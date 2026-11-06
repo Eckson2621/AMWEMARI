@@ -48,7 +48,7 @@ function clearMessage(id){$(id).classList.add('hidden')}
 function authMode(m){mode=m;$('loginTab').classList.toggle('active',m==='login');$('signupTab').classList.toggle('active',m==='signup');$('nameField').classList.toggle('hidden',m!=='signup');$('authSubmit').textContent=m==='login'?'Ingia':'Fungua akaunti';$('password').autocomplete=m==='login'?'current-password':'new-password';clearMessage('authMsg')}
 $('authForm').addEventListener('submit',async e=>{e.preventDefault();const email=$('email').value.trim(),password=$('password').value;let res;if(mode==='signup'){res=await db.auth.signUp({email,password,options:{data:{full_name:$('fullName').value.trim()}}});if(!res.error){message('authMsg',res.data.session?'Akaunti imetengenezwa.':'Akaunti imetengenezwa. Angalia email uthibitishe akaunti, kisha ingia.');return}}else{res=await db.auth.signInWithPassword({email,password})}if(res.error){message('authMsg',res.error.message,true);return}await boot()});
 async function signOut(){await db.auth.signOut();location.reload()}
-async function boot(){const {data:{session}}=await db.auth.getSession();const u=session?.user;if(!u)return;user=u;$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('userLabel').textContent=u.email;await loadStore()}
+async function boot(){const {data:{session}}=await db.auth.getSession();const u=session?.user;if(!u)return;user=u;$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('userLabel').textContent=u.email;await loadStore();if(navigator.onLine)syncPendingProducts().then(()=>syncPendingSales()).catch(console.error)}
 async function loadStore(){let found=null;try{if(navigator.onLine){const {data,error}=await db.from('stores').select('*').eq('owner_id',user.id).order('created_at',{ascending:true}).limit(1);if(error)throw error;found=data?.[0]||null;if(found)await localPut('stores',found)}}catch(error){console.warn('AMWEMARI: store fetch unavailable; using offline cache',error)}if(!found){const cached=await localAll('stores');found=cached.find(x=>x.owner_id===user.id)||null}if(!found){if(!navigator.onLine){message('appMsg','Huna intaneti na taarifa za biashara hii hazijahifadhiwa kwenye simu hii. Fungua mfumo ukiwa online angalau mara moja.',true);return}$('storeSetup').classList.remove('hidden');$('workspace').classList.add('hidden');return}store=found;$('storeSetup').classList.add('hidden');$('workspace').classList.remove('hidden');$('storeLabel').textContent=store.name;$('storeName').value=store.name;let loaded=false;if(navigator.onLine){try{await refreshAll();loaded=true}catch(error){console.warn('AMWEMARI: online refresh failed; switching to offline cache',error)}}if(!loaded){products=(await localAll('products')).filter(p=>p.store_id===store.id&&p.is_active!==false);renderAll();await renderPendingSales();message('appMsg','Hali ya offline: unaona bidhaa zilizohifadhiwa kwenye simu. Ripoti na taarifa mpya zinahitaji intaneti.')}}
 $('storeForm').addEventListener('submit',async e=>{e.preventDefault();const payload={name:$('storeName').value.trim(),business_type:$('storeType').value.trim()||null,phone:$('storePhone').value.trim()||null,address:$('storeAddress').value.trim()||null,owner_id:user.id,currency_code:'TZS',timezone:'Africa/Dar_es_Salaam'};const {data,error}=await db.from('stores').insert(payload).select().single();if(error){message('appMsg',error.message,true);return}store=data;await loadStore()});
 document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.page))}));
@@ -64,35 +64,46 @@ function productsTable(){if(!products.length)return'<p class="muted">Bado hujasa
 function purchasesTable(){if(!movements.length)return'<p class="muted">Bado hakuna ununuzi uliorekodiwa.</p>';return'<table><thead><tr><th>Tarehe</th><th>Bidhaa</th><th>Vifungashio</th><th>Idadi ya vipande</th><th>Gharama</th></tr></thead><tbody>'+movements.map(m=>{const p=products.find(x=>x.id===m.product_id);return '<tr><td>'+(m.purchase_date||m.created_at.slice(0,10))+'</td><td>'+esc(p?.name||'Bidhaa')+'</td><td>'+(m.package_quantity??'—')+' '+esc(m.package_label||'')+'</td><td>'+Number(m.quantity_change)+'</td><td>'+money(m.total_cost??(Number(m.quantity_change)*Number(m.unit_cost)))+'</td></tr>'}).join('')+'</tbody></table>'}
 function expensesTable(){if(!expenses.length)return'<p class="muted">Bado hakuna matumizi.</p>';return'<table><thead><tr><th>Tarehe</th><th>Aina</th><th>Maelezo</th><th>Kiasi</th></tr></thead><tbody>'+expenses.map(x=>'<tr><td>'+x.expense_date+'</td><td>'+esc(x.category)+'</td><td>'+esc(x.description)+'</td><td>'+money(x.amount)+'</td></tr>').join('')+'</tbody></table>'}
 $('productForm').addEventListener('submit',async e=>{
- e.preventDefault();
- const form=e.currentTarget,submit=form.querySelector('button[type="submit"]');
- if(submit.disabled)return;
+ e.preventDefault();const form=e.target,submit=form.querySelector('button[type="submit"]');
  const units=Number($('pUnitsPerPack').value),packs=Number($('pOpeningPacks').value),packCost=Number($('pPackCost').value),retail=Number($('pPrice').value),wholesale=Number($('pWholesale').value);
- if(!store||!user){message('appMsg','Hujaingia kwenye biashara. Toka kisha ingia tena ukiwa na intaneti.',true);return}
- if(!navigator.onLine){message('appMsg','Huwezi kusajili bidhaa mpya bila intaneti. Unganisha intaneti kisha jaribu tena.',true);return}
+ if(!store||!user){message('appMsg','Hujaingia kwenye biashara. Ingia tena ukiwa online kwanza.',true);return}
  if(units<=0||packs<0||packCost<0||retail<0||wholesale<0){message('appMsg','Hakikisha idadi na bei ni sahihi.',true);return}
  const openingQty=packs*units,unitCost=packCost/units;
- const payload={store_id:store.id,name:$('pName').value.trim(),cost_price:unitCost,selling_price:retail,quantity:0,reorder_level:Number($('pReorder').value),unit:'pcs',base_unit:$('pBaseUnit').value.trim(),pack_name:$('pPackName').value.trim(),units_per_pack:units,purchase_pack_price:packCost,wholesale_pack_price:wholesale};
+ const payload={id:crypto.randomUUID(),store_id:store.id,name:$('pName').value.trim(),cost_price:unitCost,selling_price:retail,quantity:0,reorder_level:Number($('pReorder').value),unit:'pcs',base_unit:$('pBaseUnit').value.trim(),pack_name:$('pPackName').value.trim(),units_per_pack:units,purchase_pack_price:packCost,wholesale_pack_price:wholesale};
+ if(!payload.name){message('appMsg','Andika jina la bidhaa.',true);return}
+ const pending={id:payload.id,store_id:store.id,payload,opening_packs:packs,opening_pack_cost:packCost,created_at:new Date().toISOString()};
  submit.disabled=true;submit.textContent='Inahifadhi…';
  try{
+  if(!navigator.onLine){
+   await localPut('pending_products',pending);
+   const localProduct={...payload,quantity:openingQty,is_active:true};
+   const cached=(await localAll('products')).filter(p=>p.id!==payload.id);cached.push(localProduct);await localReplace('products',cached);
+   products=cached.filter(p=>p.store_id===store.id&&p.is_active!==false);renderAll();form.reset();
+   $('pUnitsPerPack').value='1';$('pPackName').value='katoni';$('pBaseUnit').value='chupa';$('pOpeningPacks').value='0';$('pPackCost').value='0';$('pWholesale').value='0';
+   message('appMsg','Bidhaa imehifadhiwa KWENYE SIMU. Itatumwa Supabase intaneti ikirudi. Stock ya kuanzia imeonyeshwa hapa; usifute data za kivinjari wala kusajili bidhaa hii tena.');
+   await renderPendingProducts();return;
+  }
   const {data,error}=await db.from('products').insert(payload).select().single();
-  if(error){message('appMsg','Bidhaa haijahifadhiwa: '+error.message,true);return}
+  if(error)throw error;
   if(openingQty>0){
-   try{
-    const {error:purchaseError}=await db.rpc('record_purchase',{p_store_id:store.id,p_product_id:data.id,p_package_quantity:packs,p_package_cost:packCost,p_purchase_date:new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'}),p_note:'Stock ya mwanzo'});
-    if(purchaseError)throw purchaseError;
-   }catch(stockError){
-    try{await refreshAll()}catch(_){}
-    message('appMsg','Bidhaa "'+payload.name+'" IMEHIFADHIWA, lakini stock ya mwanzo haijathibitishwa. Usisajili bidhaa hiyo tena. Hitilafu ya stock: '+(stockError.message||'Muunganisho umekatika')+'. Nenda Nunua stock baada ya kurejea mtandaoni.',true);
-    return;
-   }
+   const {error:purchaseError}=await db.rpc('record_purchase',{p_store_id:store.id,p_product_id:data.id,p_package_quantity:packs,p_package_cost:packCost,p_purchase_date:new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'}),p_note:'Stock ya mwanzo'});
+   if(purchaseError)throw purchaseError;
   }
   form.reset();$('pUnitsPerPack').value='1';$('pPackName').value='katoni';$('pBaseUnit').value='chupa';$('pOpeningPacks').value='0';$('pPackCost').value='0';$('pWholesale').value='0';
-  await refreshAll();message('appMsg','Bidhaa imehifadhiwa. Stock ya mwanzo: '+openingQty+' '+payload.base_unit);
+  await refreshAll();message('appMsg','Bidhaa imehifadhiwa Supabase. Stock ya mwanzo: '+openingQty+' '+payload.base_unit);
  }catch(error){
   console.error('AMWEMARI product save failed:',error);
   const detail=error?.message||String(error);
-  message('appMsg',/failed to fetch|fetch failed|network|load failed/i.test(detail)?'Muunganisho na Supabase umekatika. Bidhaa haijathibitishwa kuhifadhiwa. Kagua intaneti na orodha ya bidhaa kabla ya kujaribu tena.':'Hitilafu wakati wa kuhifadhi bidhaa: '+detail,true);
+  if(/failed to fetch|fetch failed|network|load failed|timeout/i.test(detail)){
+   try{
+    await localPut('pending_products',pending);
+    const localProduct={...payload,quantity:openingQty,is_active:true};
+    const cached=(await localAll('products')).filter(p=>p.id!==payload.id);cached.push(localProduct);await localReplace('products',cached);
+    products=cached.filter(p=>p.store_id===store.id&&p.is_active!==false);renderAll();form.reset();
+    message('appMsg','Muunganisho umekatika. Bidhaa imehifadhiwa KWENYE SIMU na itatumwa intaneti ikirudi. Usisajili tena bidhaa hii.');
+    await renderPendingProducts();
+   }catch(queueError){message('appMsg','Haikuwezekana kuhifadhi bidhaa kwenye simu: '+(queueError.message||queueError),true)}
+  }else{message('appMsg','Bidhaa haijahifadhiwa: '+detail,true)}
  }finally{submit.disabled=false;submit.textContent='Hifadhi bidhaa'}
 });
 $('purchaseDate').value=new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'});$('purchaseProduct').addEventListener('change',()=>{const p=products.find(x=>x.id===$('purchaseProduct').value);$('purchasePackCost').value=p?String(p.purchase_pack_price||0):'0';updatePurchasePreview()});$('purchasePacks').addEventListener('input',updatePurchasePreview);$('purchasePackCost').addEventListener('input',updatePurchasePreview);
@@ -109,17 +120,46 @@ db.auth.getSession().then(({data})=>{if(data.session)boot()});
 </script><script>
 
 const LOCAL_DB_NAME='amwemari_offline_v1';
-function localDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(LOCAL_DB_NAME,1);req.onupgradeneeded=()=>{const d=req.result;for(const name of ['stores','products','pending_sales'])if(!d.objectStoreNames.contains(name))d.createObjectStore(name,{keyPath:name==='stores'?'id':name==='products'?'id':'request_id'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
+function localDB(){return new Promise((resolve,reject)=>{const req=indexedDB.open(LOCAL_DB_NAME,2);req.onupgradeneeded=()=>{const d=req.result;for(const name of ['stores','products','pending_sales','pending_products'])if(!d.objectStoreNames.contains(name))d.createObjectStore(name,{keyPath:name==='stores'?'id':name==='products'?'id':name==='pending_sales'?'request_id':'id'})};req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function localPut(name,value){const d=await localDB();return new Promise((resolve,reject)=>{const t=d.transaction(name,'readwrite');t.objectStore(name).put(value);t.oncomplete=()=>{d.close();resolve()};t.onerror=()=>{d.close();reject(t.error)}})}
 async function localAll(name){const d=await localDB();return new Promise((resolve,reject)=>{const t=d.transaction(name,'readonly'),r=t.objectStore(name).getAll();r.onsuccess=()=>{d.close();resolve(r.result||[])};r.onerror=()=>{d.close();reject(r.error)}})}
 async function localDelete(name,key){const d=await localDB();return new Promise((resolve,reject)=>{const t=d.transaction(name,'readwrite');t.objectStore(name).delete(key);t.oncomplete=()=>{d.close();resolve()};t.onerror=()=>{d.close();reject(t.error)}})}
 async function localReplace(name,rows){const d=await localDB();return new Promise((resolve,reject)=>{const t=d.transaction(name,'readwrite'),s=t.objectStore(name);s.clear();rows.forEach(r=>s.put(r));t.oncomplete=()=>{d.close();resolve()};t.onerror=()=>{d.close();reject(t.error)}})}
+async function renderPendingProducts(){const q=(await localAll('pending_products')).filter(p=>p.store_id===store?.id);const el=$('pendingSales');if(el){const salesQ=(await localAll('pending_sales')).filter(s=>s.store_id===store?.id);el.textContent='Bidhaa zinazosubiri: '+q.length+' · Mauzo yanayosubiri: '+salesQ.length;}return q.length}
+async function syncPendingProducts(){
+ if(!navigator.onLine||!store||!user)return;
+ const q=(await localAll('pending_products')).filter(p=>p.store_id===store.id).sort((a,b)=>a.created_at.localeCompare(b.created_at));
+ for(const item of q){
+  try{
+   let product=null;
+   const existing=await db.from('products').select('id,store_id').eq('id',item.id).maybeSingle();
+   if(existing.error)throw existing.error;
+   if(existing.data){if(existing.data.store_id!==store.id)throw new Error('Product ID belongs to another store');product=existing.data;}
+   else{
+    const inserted=await db.from('products').insert(item.payload).select('id,store_id').single();
+    if(inserted.error)throw inserted.error;product=inserted.data;
+   }
+   if(Number(item.opening_packs)>0){
+    const marker='AMWEMARI_OFFLINE_OPENING:'+item.id;
+    const movement=await db.from('stock_movements').select('id').eq('store_id',store.id).eq('product_id',item.id).eq('note',marker).limit(1);
+    if(movement.error)throw movement.error;
+    if(!movement.data?.length){
+     const purchase=await db.rpc('record_purchase',{p_store_id:store.id,p_product_id:item.id,p_package_quantity:item.opening_packs,p_package_cost:item.opening_pack_cost,p_purchase_date:new Date(item.created_at).toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'}),p_note:marker});
+     if(purchase.error)throw purchase.error;
+    }
+   }
+   await localDelete('pending_products',item.id);
+  }catch(error){console.warn('AMWEMARI product sync paused:',error);message('appMsg','Bidhaa '+item.payload.name+' bado inasubiri kutumwa. Mfumo utajaribu tena intaneti ikipatikana: '+(error.message||error),true);break}
+ }
+ await renderPendingProducts();
+ if(navigator.onLine)await refreshAll();
+}
 async function getQueuedQuantity(productId){const q=await localAll('pending_sales');return q.filter(s=>s.store_id===store.id).reduce((sum,s)=>sum+s.items.filter(i=>i.product_id===productId).reduce((a,i)=>a+Number(i.quantity),0),0)}
 async function renderPendingSales(){const q=(await localAll('pending_sales')).filter(s=>s.store_id===store?.id);const el=$('pendingSales');if(!el)return;el.textContent='Mauzo yanayosubiri kusawazishwa: '+q.length+(q.length?' · Jumla '+money(q.reduce((a,s)=>a+Number(s.total),0)):'');el.classList.toggle('success',q.length===0);el.classList.toggle('error',q.length>0)}
 async function syncPendingSales(){if(!navigator.onLine||!store||!user)return;const q=(await localAll('pending_sales')).filter(s=>s.store_id===store.id).sort((a,b)=>a.created_at.localeCompare(b.created_at));for(const sale of q){const {error}=await db.rpc('create_sale',{p_store_id:sale.store_id,p_items:sale.items,p_amount_paid:sale.amount_paid,p_payment_method:sale.payment_method,p_discount:0,p_tax:0,p_request_id:sale.request_id});if(error){console.warn('AMWEMARI sale sync paused:',error.message);message('appMsg','Kuna mauzo '+q.length+' yanayosubiri. Usiyafute; usawazishaji umesimama: '+error.message,true);break}await localDelete('pending_sales',sale.request_id)}await renderPendingSales();if(navigator.onLine)await refreshAll()}
 
 function updateConnectionStatus(){const el=document.getElementById('connectionStatus');if(!el)return;const online=navigator.onLine;el.textContent=online?'Uko mtandaoni — data zinasawazishwa Supabase.':'Huna intaneti — mauzo mapya yanaweza kuhifadhiwa kwenye simu na kusawazishwa baadaye.';el.classList.toggle('error',!online);el.classList.toggle('success',online)}
-window.addEventListener('online',()=>{updateConnectionStatus();syncPendingSales().catch(console.error)});window.addEventListener('offline',updateConnectionStatus);updateConnectionStatus();
+window.addEventListener('online',()=>{updateConnectionStatus();syncPendingProducts().then(()=>syncPendingSales()).catch(console.error)});window.addEventListener('offline',updateConnectionStatus);updateConnectionStatus();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('Service worker:',e)))}
 </script>
 </body></html>
