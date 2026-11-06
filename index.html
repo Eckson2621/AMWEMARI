@@ -86,7 +86,7 @@ $('productForm').addEventListener('submit',async e=>{
   const {data,error}=await db.from('products').insert(payload).select().single();
   if(error)throw error;
   if(openingQty>0){
-   const {error:purchaseError}=await db.rpc('record_purchase',{p_store_id:store.id,p_product_id:data.id,p_package_quantity:packs,p_package_cost:packCost,p_purchase_date:new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'}),p_note:'Stock ya mwanzo'});
+   const {error:purchaseError}=await db.rpc('record_purchase',{p_store_id:store.id,p_product_id:data.id,p_package_quantity:packs,p_package_cost:packCost,p_purchase_date:new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'}),p_note:'AMWEMARI_OFFLINE_OPENING:'+payload.id});
    if(purchaseError)throw purchaseError;
   }
   form.reset();$('pUnitsPerPack').value='1';$('pPackName').value='katoni';$('pBaseUnit').value='chupa';$('pOpeningPacks').value='0';$('pPackCost').value='0';$('pWholesale').value='0';
