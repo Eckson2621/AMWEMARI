@@ -3,11 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10243a"><link rel="manifest" href="/manifest.json">
 <title>AMWEMARI — Business Manager</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">async function staffRequest(payload){const {data:{session}}=await db.auth.getSession();const headers={'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY};if(session?.access_token)headers.Authorization='Bearer '+session.access_token;const r=await fetch(STAFF_AUTH_URL,{method:'POST',headers,body:JSON.stringify(payload)});const d=await r.json();if(!r.ok)throw new Error(d.error||'Ombi limeshindwa.');return d;}
-async function loadStaff(){if(!store||store.owner_id!==user.id)return;$('staffTable').textContent='Inapakia...';try{const d=await staffRequest({action:'list_staff',store_id:store.id});if(!d.staff?.length){$('staffTable').innerHTML='<p class="muted">Bado hujasajili mfanyakazi.</p>';return;}$('staffTable').innerHTML='<table><thead><tr><th>Jina</th><th>Username</th><th>Tarehe</th></tr></thead><tbody>'+d.staff.map(x=>'<tr><td>'+esc(x.full_name)+'</td><td>'+esc(x.username)+'</td><td>'+new Date(x.created_at).toLocaleDateString('sw-TZ')+'</td></tr>').join('')+'</tbody></table>';}catch(e){$('staffTable').textContent=e.message;}}
-$('staffNav').addEventListener('click',loadStaff);
-$('staffForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('createStaffBtn');btn.disabled=true;btn.textContent='Inasajili...';try{const d=await staffRequest({action:'create_staff',store_id:store.id,full_name:$('staffFullName').value.trim(),username:$('staffUsername').value.trim().toLowerCase(),password:$('staffPassword').value});message('staffMessage','Mfanyakazi '+d.full_name+' amesajiliwa. Username: '+d.username+'.');$('staffForm').reset();await loadStaff();}catch(err){message('staffMessage',err.message,true);}finally{btn.disabled=false;btn.textContent='Sajili mfanyakazi';}});
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--navy:#10243a;--blue:#1769aa;--bg:#f3f6fa;--line:#e2e8f0;--muted:#64748b;--green:#16845b}*{box-sizing:border-box}body{margin:0;font:15px system-ui,Arial;background:var(--bg);color:#172b40}.hidden{display:none!important}button,input,select{font:inherit}button{border:0;border-radius:9px;padding:11px 15px;background:var(--blue);color:#fff;font-weight:650;cursor:pointer}button.secondary{background:#e8eef5;color:#20364d}button.danger{background:#b42318}.wrap{max-width:1100px;margin:auto;padding:20px}.brand{font-size:24px;font-weight:850;color:var(--navy);letter-spacing:.5px}.muted{color:var(--muted)}.panel,.card{background:white;border:1px solid var(--line);border-radius:14px;padding:18px}.auth{max-width:460px;margin:7vh auto}.field{display:grid;gap:6px;margin:12px 0}.field input,.field select{width:100%;padding:12px;border:1px solid #cbd5e1;border-radius:8px;background:white}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}.tabs button{background:#e7edf4;color:#21364c}.tabs button.active{background:var(--navy);color:white}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.metric{font-size:25px;font-weight:800;margin-top:8px}.row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}table{width:100%;border-collapse:collapse;margin-top:10px}th,td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-size:12px;text-transform:uppercase}.tablewrap{overflow:auto}.notice{padding:11px 13px;border-radius:9px;background:#edf5ff;color:#174a75;margin:12px 0}.error{background:#fff0ef;color:#9b2119}.success{background:#eaf8f1;color:#12633f}.actions{display:flex;gap:8px;flex-wrap:wrap}.section{margin-top:16px}h2{font-size:20px;margin:0 0 12px}.total{font-weight:800}.small{font-size:13px}@media(max-width:600px){.wrap{padding:12px}.panel,.card{padding:14px}th,td{white-space:nowrap}}
 </style></head>
@@ -140,6 +136,36 @@ function removeCart(i){cart.splice(i,1);renderCart()}
 async function completeSale(){if(!cart.length){message('appMsg','Ongeza bidhaa kwanza.',true);return}const total=cart.reduce((a,x)=>a+x.quantity*x.unit_price,0),paid=Number($('salePaid').value),method=$('saleMethod').value;if(paid<0||paid>total){message('appMsg','Malipo hayawezi kuwa chini ya sifuri au kuzidi jumla.',true);return}const payload={request_id:crypto.randomUUID(),store_id:store.id,items:cart.map(x=>({product_id:x.product_id,quantity:x.quantity,unit_price:x.unit_price})),amount_paid:paid,payment_method:method,total,created_at:new Date().toISOString()};if(!navigator.onLine){await localPut('pending_sales',payload);cart=[];$('salePaid').value='0';renderCart();await renderPendingSales();message('appMsg','Mauzo yamehifadhiwa kwenye simu na yanasubiri intaneti. Usifute data za kivinjari kabla hayajasawazishwa.');return}const {data,error}=await db.rpc('create_sale',{p_store_id:store.id,p_items:payload.items,p_amount_paid:paid,p_payment_method:method,p_discount:0,p_tax:0,p_request_id:payload.request_id});if(error){const networkError=/fetch|network|load failed|failed to fetch/i.test(error.message||'');if(networkError){await localPut('pending_sales',payload);cart=[];$('salePaid').value='0';renderCart();await renderPendingSales();message('appMsg','Mtandao umekatika wakati wa kutuma. Mauzo yamewekwa kwenye foleni salama; yatasawazishwa baadaye.');return}message('appMsg',error.message,true);return}const receipt=data?.[0];cart=[];$('salePaid').value='0';await refreshAll();message('appMsg','Mauzo yamehifadhiwa. Risiti: '+(receipt?.receipt_no||'imeundwa')+'. Jumla '+money(receipt?.total)+'. Salio '+money(receipt?.balance_due));}
 $('expenseForm').addEventListener('submit',async e=>{e.preventDefault();const payload={store_id:store.id,category:$('eCategory').value.trim(),description:$('eDescription').value.trim(),amount:Number($('eAmount').value),payment_method:$('eMethod').value,recorded_by:user.id};const {error}=await db.from('expenses').insert(payload);if(error){message('appMsg',error.message,true);return}e.target.reset();await refreshAll();message('appMsg','Matumizi yamehifadhiwa.')});
 db.auth.getSession().then(({data})=>{if(data.session)boot()});
+
+async function staffRequest(payload){
+ let {data:{session}}=await db.auth.getSession();
+ if(!session){const refreshed=await db.auth.refreshSession();session=refreshed.data.session;}
+ if(!session?.access_token)throw new Error('Session ya mmiliki imeisha. Toka kisha ingia tena.');
+ const headers={'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+session.access_token};
+ const r=await fetch(STAFF_AUTH_URL,{method:'POST',headers,body:JSON.stringify(payload)});
+ const d=await r.json().catch(()=>({error:'Jibu la Supabase halijasomeka.'}));
+ if(!r.ok)throw new Error(d.error||'Ombi limeshindwa.');
+ return d;
+}
+async function loadStaff(){
+ if(!store||store.owner_id!==user.id)return;
+ $('staffTable').textContent='Inapakia...';
+ try{
+  const d=await staffRequest({action:'list_staff',store_id:store.id});
+  if(!d.staff?.length){$('staffTable').innerHTML='<p class="muted">Bado hujasajili mfanyakazi.</p>';return;}
+  $('staffTable').innerHTML='<table><thead><tr><th>Jina</th><th>Username</th><th>Tarehe</th></tr></thead><tbody>'+d.staff.map(x=>'<tr><td>'+esc(x.full_name)+'</td><td>'+esc(x.username)+'</td><td>'+new Date(x.created_at).toLocaleDateString('sw-TZ')+'</td></tr>').join('')+'</tbody></table>';
+ }catch(e){$('staffTable').textContent=e.message;}
+}
+$('staffNav').addEventListener('click',loadStaff);
+$('staffForm').addEventListener('submit',async e=>{
+ e.preventDefault();const btn=$('createStaffBtn');btn.disabled=true;btn.textContent='Inasajili...';
+ try{
+  const d=await staffRequest({action:'create_staff',store_id:store.id,full_name:$('staffFullName').value.trim(),username:$('staffUsername').value.trim().toLowerCase(),password:$('staffPassword').value});
+  message('staffMessage','Mfanyakazi '+d.full_name+' amesajiliwa. Username: '+d.username+'.');
+  $('staffForm').reset();await loadStaff();
+ }catch(err){message('staffMessage',err.message,true);}
+ finally{btn.disabled=false;btn.textContent='Sajili mfanyakazi';}
+});
 </script><script>
 
 const LOCAL_DB_NAME='amwemari_offline_v1';
