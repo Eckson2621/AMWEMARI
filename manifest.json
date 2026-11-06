@@ -1,0 +1,11 @@
+{
+  "name": "AMWEMARI Business Manager",
+  "short_name": "AMWEMARI",
+  "description": "Rekodi mauzo, bidhaa, stock na matumizi ya biashara.",
+  "lang": "sw",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f3f6fa",
+  "theme_color": "#10243a"
+}
