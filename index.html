@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="sw">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#10243a"><link rel="manifest" href="/manifest.json">
 <title>AMWEMARI — Business Manager</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -24,7 +24,7 @@
 <div id="appView" class="hidden">
  <header style="background:white;border-bottom:1px solid var(--line)"><div class="wrap row"><div><div class="brand">AMWEMARI</div><div id="storeLabel" class="muted small">Business Manager</div></div><div class="actions"><span id="userLabel" class="muted small"></span><button class="secondary" onclick="signOut()">Toka</button></div></div></header>
  <main class="wrap">
-  <div id="appMsg" class="notice hidden"></div>
+  <div id="connectionStatus" class="notice" role="status">Inakagua hali ya mtandao…</div><div id="appMsg" class="notice hidden"></div>
   <section id="storeSetup" class="panel hidden"><h2>Sajili biashara yako</h2><p class="muted">Weka taarifa za biashara ili kuanza kurekodi mauzo.</p><form id="storeForm"><div class="field"><label>Jina la biashara</label><input id="storeName" required></div><div class="field"><label>Aina ya biashara</label><input id="storeType" placeholder="Mf. Duka la vinywaji"></div><div class="field"><label>Namba ya simu</label><input id="storePhone"></div><div class="field"><label>Mahali biashara ilipo</label><input id="storeAddress"></div><button type="submit">Hifadhi biashara</button></form></section>
   <div id="workspace" class="hidden">
    <nav class="tabs"><button class="active" data-page="dashboard">Muhtasari</button><button data-page="products">Bidhaa</button><button data-page="purchases">Nunua stock</button><button data-page="sales">Rekodi mauzo</button><button data-page="expenses">Matumizi</button><button data-page="reports">Ripoti</button></nav>
@@ -75,4 +75,9 @@ function removeCart(i){cart.splice(i,1);renderCart()}
 async function completeSale(){if(!cart.length){message('appMsg','Ongeza bidhaa kwanza.',true);return}const total=cart.reduce((a,x)=>a+x.quantity*x.unit_price,0),paid=Number($('salePaid').value);if(paid<0||paid>total){message('appMsg','Malipo hayawezi kuwa chini ya sifuri au kuzidi jumla.',true);return}const items=cart.map(x=>({product_id:x.product_id,quantity:x.quantity,unit_price:x.unit_price}));const {data,error}=await db.rpc('create_sale',{p_store_id:store.id,p_items:items,p_amount_paid:paid,p_payment_method:$('saleMethod').value,p_discount:0,p_tax:0,p_request_id:crypto.randomUUID()});if(error){message('appMsg',error.message,true);return}const receipt=data?.[0];cart=[];$('salePaid').value='0';await refreshAll();message('appMsg','Mauzo yamehifadhiwa. Risiti: '+(receipt?.receipt_no||'imeundwa')+'. Jumla '+money(receipt?.total)+'. Salio '+money(receipt?.balance_due));}
 $('expenseForm').addEventListener('submit',async e=>{e.preventDefault();const payload={store_id:store.id,category:$('eCategory').value.trim(),description:$('eDescription').value.trim(),amount:Number($('eAmount').value),payment_method:$('eMethod').value,recorded_by:user.id};const {error}=await db.from('expenses').insert(payload);if(error){message('appMsg',error.message,true);return}e.target.reset();await refreshAll();message('appMsg','Matumizi yamehifadhiwa.')});
 db.auth.getSession().then(({data})=>{if(data.session)boot()});
-</script></body></html>
+</script><script>
+function updateConnectionStatus(){const el=document.getElementById('connectionStatus');if(!el)return;const online=navigator.onLine;el.textContent=online?'Uko mtandaoni — data zinasomwa na kuhifadhiwa Supabase.':'Huna intaneti. Mfumo unaweza kufunguka ikiwa umehifadhiwa, lakini kurekodi mauzo bado kunahitaji mtandao.';el.classList.toggle('error',!online);el.classList.toggle('success',online)}
+window.addEventListener('online',updateConnectionStatus);window.addEventListener('offline',updateConnectionStatus);updateConnectionStatus();
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('/sw.js').catch(e=>console.warn('Service worker:',e)))}
+</script>
+</body></html>
