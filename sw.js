@@ -1,5 +1,6 @@
 const CACHE_NAME='amwemari-shell-v1';
-const APP_SHELL=['/','/index.html','/manifest.json','https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'];
-self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(APP_SHELL)).then(()=>self.skipWaiting()))});
+const CORE_FILES=['/','/index.html','/manifest.json'];
+const SUPABASE_SCRIPT='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(CACHE_NAME);await cache.addAll(CORE_FILES);try{await cache.add(SUPABASE_SCRIPT)}catch(error){console.warn('Supabase library haikuhifadhiwa kwa matumizi ya offline',error)}await self.skipWaiting()})())});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
 self.addEventListener('fetch',event=>{const request=event.request;if(request.method!=='GET')return;const url=new URL(request.url);if(url.origin!==self.location.origin&&url.hostname!=='cdn.jsdelivr.net')return;event.respondWith(caches.match(request).then(cached=>cached||fetch(request).then(response=>{if(response.ok){const copy=response.clone();caches.open(CACHE_NAME).then(cache=>cache.put(request,copy))}return response}).catch(()=>{if(request.mode==='navigate')return caches.match('/index.html');throw new Error('Offline resource unavailable')})))});
