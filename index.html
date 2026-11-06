@@ -77,6 +77,7 @@ $('productForm').addEventListener('submit',async e=>{
  const units=Number($('pUnitsPerPack').value),packs=Number($('pOpeningPacks').value),packCost=Number($('pPackCost').value),retail=Number($('pPrice').value),wholesale=Number($('pWholesale').value);
  if(!store||!user){message('appMsg','Hujaingia kwenye biashara. Ingia tena ukiwa online kwanza.',true);return}
  if(units<=0||packs<0||packCost<0||retail<0||wholesale<0){message('appMsg','Hakikisha idadi na bei ni sahihi.',true);return}
+ if(store.owner_id!==user.id&&packs>0){message('appMsg','Mfanyakazi anaweza kusajili bidhaa mpya, lakini hawezi kuweka stock ya kuanzia. Mmiliki aongeze stock kupitia Nunua stock.',true);return}
  const openingQty=packs*units,unitCost=packCost/units;
  const payload={id:crypto.randomUUID(),store_id:store.id,name:$('pName').value.trim(),cost_price:unitCost,selling_price:retail,quantity:0,reorder_level:Number($('pReorder').value),unit:'pcs',base_unit:$('pBaseUnit').value.trim(),pack_name:$('pPackName').value.trim(),units_per_pack:units,purchase_pack_price:packCost,wholesale_pack_price:wholesale};
  if(!payload.name){message('appMsg','Andika jina la bidhaa.',true);return}
