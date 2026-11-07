@@ -117,7 +117,7 @@ function updateProductEntryPreview(){
  preview.classList.toggle('error',base.toLowerCase()===pack.toLowerCase());
  if(base.toLowerCase()===pack.toLowerCase())preview.textContent+=' Tahadhari: kipimo cha msingi na kifungashio haviwezi kuwa jina moja.';
 }
-['pBaseUnit','pPackName','pUnitsPerPack','pOpeningPacks','pOpeningLoose','pPackCost','pPrice'].forEach(id=>$(id).addEventListener('input',updateProductEntryPreview));
+['pBaseUnit','pPackName','pUnitsPerPack','pOpeningPacks','pOpeningLoose','pPackCost','pPrice','pWholesale'].forEach(id=>$(id).addEventListener('input',updateProductEntryPreview));
 updateProductEntryPreview();
 $('productForm').addEventListener('submit',async e=>{
  e.preventDefault();const form=e.target,submit=form.querySelector('button[type="submit"]');
