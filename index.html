@@ -100,8 +100,8 @@ async function loadSubscription(gateOnly=false){
  const endText=end?'Tarehe ya mwisho: '+end.toLocaleDateString('sw-TZ'):'';
  const gateStatus=$('gateSubscriptionStatus');if(gateStatus)gateStatus.textContent='Hali: '+statusText;
  const gateEnds=$('gateSubscriptionEnds');if(gateEnds)gateEnds.textContent=endText;
- const dashStatus=$('dashboardSubscriptionStatus');if(dashStatus)dashStatus.textContent='Hali: '+statusText+(end?' · '+endText:' · Akaunti ya majaribio ya mmiliki');
- const gateBtn=$('subscriptionPayBtn');if(gateBtn)gateBtn.disabled=false;
+ const dashStatus=$('dashboardSubscriptionStatus');if(dashStatus)dashStatus.textContent='Hali: '+statusText+(end?' · '+endText:' · Akaunti ya mmiliki ya majaribio (bila tarehe ya mwisho)');
+ const gateBtn=$('subscriptionPayBtn');if(gateBtn){gateBtn.disabled=false;gateBtn.classList.toggle('hidden',store.owner_id!==user.id)}
  const dashBtn=$('dashboardPayBtn');if(dashBtn)dashBtn.textContent=end&&end>new Date()?'Ongeza mwezi':'Lipa TSh 5,000';
  const history=$('dashboardSubscriptionHistory');
  if(history&&store.owner_id===user.id){
