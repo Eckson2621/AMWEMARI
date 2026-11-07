@@ -141,7 +141,7 @@ async function loadAdminPanel(){
   }).join('')+'</tbody></table>':'Hakuna akaunti nyingine.';
   pendingBox.innerHTML=pending.length?'<table><thead><tr><th>Akaunti</th><th>Ilisitishwa</th><th>Itatakiwa kufutwa</th><th>Muda</th><th>Hatua</th></tr></thead><tbody>'+pending.map(r=>{
    const due=new Date(r.scheduled_delete_at),days=Math.max(0,Math.ceil((due-Date.now())/86400000));
-   return '<tr><td><strong>'+escapeHtml(r.store_name||'Akaunti')+'</strong><br>'+escapeHtml(r.owner_email)+'</td><td>'+new Date(r.requested_at).toLocaleDateString('sw-TZ')+'</td><td>'+due.toLocaleDateString('sw-TZ')+'</td><td>'+days+' siku</td><td><button type="button" onclick="restorePendingAccount(\''+r.user_id+'\')">Ondoa Delete Pending</button></td></tr>';
+   return '<tr><td><strong>'+escapeHtml(r.store_name||'Akaunti')+'</strong><br>'+escapeHtml(r.owner_email)+'</td><td>'+new Date(r.requested_at).toLocaleDateString('sw-TZ')+'</td><td>'+due.toLocaleDateString('sw-TZ')+'</td><td>'+days+' siku</td><td>'+(r.store_id?'<button type="button" onclick="approveStoreSubscription(\''+r.store_id+'\')">Thibitisha TSh 5,000 na fungua</button> ':'')+'<button type="button" class="secondary" onclick="restorePendingAccount(\''+r.user_id+'\')">Ondoa Delete Pending</button></td></tr>';
   }).join('')+'</tbody></table>':'Hakuna akaunti kwenye Delete Pending.';
  }catch(e){msg.textContent=e?.context?.json?.error||e.message||'Imeshindikana kupakia akaunti.'}
 }
