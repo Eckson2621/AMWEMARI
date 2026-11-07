@@ -192,7 +192,7 @@ async function completeSale(){
   soldAt=new Date(raw).toISOString();
   if(Number.isNaN(Date.parse(soldAt))||Date.parse(soldAt)>Date.now()+5*60000){message('appMsg','Muda wa mauzo si sahihi au uko mbele ya muda wa sasa.',true);return}
  }
- const payload={request_id:crypto.randomUUID(),store_id:store.id,seller_id:user.id,items:cart.map(x=>({product_id:x.product_id,quantity:x.quantity,unit_price:x.unit_price})),amount_paid:paid,payment_method:method,total,entry_mode,sold_at,created_at:new Date().toISOString(),notes:entryMode==='day_end'?$('dayEndReason').value.trim():''};
+ const payload={request_id:crypto.randomUUID(),store_id:store.id,seller_id:user.id,items:cart.map(x=>({product_id:x.product_id,quantity:x.quantity,unit_price:x.unit_price})),amount_paid:paid,payment_method:method,total,entry_mode:entryMode,sold_at,created_at:new Date().toISOString(),notes:entryMode==='day_end'?$('dayEndReason').value.trim():''};
  if(btn){btn.disabled=true;btn.textContent='Inahifadhi mauzo...'}
  message('appMsg','Inatuma mauzo kuhifadhiwa. Subiri tafadhali...');
  try{
