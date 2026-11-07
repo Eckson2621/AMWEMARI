@@ -177,7 +177,7 @@ async function loadAdminPanel(){
    const state=trial?'MAJARIBIO':(paid&&active?'IMELIPIWA':(r.access_status==='expired'?'MAJARIBIO YAMEISHA':(r.access_status==='pending'?'INASUBIRI IDHINI':(active?'ACTIVE':'HAIJALIPWA'))));
    const period=trial?'Siku '+r.trial_days+' · mwisho '+new Date(r.trial_ends_at).toLocaleString('sw-TZ'):(end?'Mwisho: '+end.toLocaleDateString('sw-TZ'):'Bila muda');
    const payment=paid?'TSh '+Number(r.latest_payment.amount).toLocaleString('en-TZ')+' · '+new Date(r.latest_payment.paid_at||r.latest_payment.created_at).toLocaleDateString('sw-TZ'):'Hakuna malipo yaliyothibitishwa';
-   const trialBtn=!paid?'<button type="button" class="secondary" onclick="grantTrial(\\''+r.owner_id+'\\')">'+(trial?'Badili muda wa majaribio':'Weka muda wa majaribio')+'</button>':'<span class="muted">Malipo yamethibitishwa</span>';
+    const trialBtn=!paid?'<button type="button" class="secondary" onclick="grantTrial(\''+r.owner_id+'\')">'+(trial?'Badili muda wa majaribio':'Weka muda wa majaribio')+'</button>':'<span class="muted">Malipo yamethibitishwa</span>';
    const payBtn=(r.id&&!trial&&!active)?'<button type="button" onclick="approveStoreSubscription(\''+r.id+'\')">Thibitisha malipo TSh 5,000</button> ':'';
    const deleteBtn='<button type="button" class="danger" onclick="markAccountDelete(\''+r.owner_id+'\',\''+(r.id||'')+'\')">Weka Delete Pending</button>';
    return '<tr><td><strong>'+escapeHtml(r.owner_name||r.name)+'</strong><br>'+escapeHtml(r.name||'')+'<br>'+escapeHtml(r.owner_email||'')+'<br>'+escapeHtml(r.phone||'')+'</td><td>'+new Date(r.created_at).toLocaleDateString('sw-TZ')+'</td><td><strong>'+state+'</strong><br>'+period+'</td><td>'+payment+'</td><td>'+trialBtn+' '+payBtn+deleteBtn+'</td></tr>';
