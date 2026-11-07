@@ -197,8 +197,18 @@ async function loadStaff(){
   staffDirectory=d.staff||[];
   const filter=$('staffReportFilter');if(filter){const selected=filter.value||'all';filter.innerHTML='<option value="all">Wafanyakazi wote</option>'+staffDirectory.map(x=>'<option value="'+esc(x.user_id)+'">'+esc(x.full_name)+'</option>').join('');if([...filter.options].some(o=>o.value===selected))filter.value=selected;}
   if(!d.staff?.length){$('staffTable').innerHTML='<p class="muted">Bado hujasajili mfanyakazi.</p>';return;}
-  $('staffTable').innerHTML='<table><thead><tr><th>Jina</th><th>Username</th><th>Tarehe</th></tr></thead><tbody>'+d.staff.map(x=>'<tr><td>'+esc(x.full_name)+'</td><td>'+esc(x.username)+'</td><td>'+new Date(x.created_at).toLocaleDateString('sw-TZ')+'</td></tr>').join('')+'</tbody></table>';if($('salesTable'))$('salesTable').innerHTML=salesTable(sales);
+  $('staffTable').innerHTML='<table><thead><tr><th>Jina</th><th>Username</th><th>Hali</th><th>Tarehe</th><th>Hatua</th></tr></thead><tbody>'+d.staff.map(x=>'<tr><td>'+esc(x.full_name)+'</td><td>'+esc(x.username)+'</td><td>'+(x.is_active===false?'<span class="muted">Ameondolewa</span>':'<strong>Active</strong>')+'</td><td>'+new Date(x.created_at).toLocaleDateString('sw-TZ')+'</td><td>'+(x.is_active===false?'<span class="muted">—</span>':'<button type="button" class="danger" onclick="removeStaff(\\''+esc(x.user_id)+'\\')">Ondoa mfanyakazi</button>')+'</td></tr>').join('')+'</tbody></table>';if($('salesTable'))$('salesTable').innerHTML=salesTable(sales);
  }catch(e){$('staffTable').textContent=e.message;}
+}
+async function removeStaff(userId){
+ const staff=staffDirectory.find(x=>x.user_id===userId);
+ if(!staff||!store||store.owner_id!==user.id)return;
+ if(!confirm('Una uhakika unataka kumwondoa '+staff.full_name+'? Hataweza tena kuingia au kurekodi mauzo. Historia ya mauzo yake haitafutwa.'))return;
+ try{
+  await staffRequest({action:'remove_staff',store_id:store.id,user_id:userId});
+  message('staffMessage',staff.full_name+' ameondolewa kwenye wafanyakazi hai. Historia ya mauzo yake imehifadhiwa.');
+  await loadStaff();
+ }catch(error){message('staffMessage',error.message||'Imeshindikana kumwondoa mfanyakazi.',true);}
 }
 $('staffNav').addEventListener('click',loadStaff);
 $('staffForm').addEventListener('submit',async e=>{
