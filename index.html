@@ -28,9 +28,10 @@
  <main class="wrap">
   <div id="connectionStatus" class="notice" role="status">Inakagua hali ya mtandao…</div><div id="appMsg" class="notice hidden"></div>
 
+  <section id="approvalGate" class="panel hidden" style="max-width:560px;margin:8vh auto"><div class="brand">AMWEMARI</div><h2>Akaunti inasubiri idhini</h2><p>Akaunti yako imesajiliwa. Msimamizi atakagua usajili na kuweka muda wako wa majaribio baada ya mawasiliano yenu.</p><div class="notice"><strong>Wasiliana na msimamizi:</strong><br>Call only: 0613794448<br>Owner name: Eckson Mwampaja.</div><p class="muted small">Baada ya kupewa muda wa majaribio, toka kisha ingia tena ili mfumo ufunguke.</p><button type="button" class="secondary" style="width:100%" onclick="signOut()">Toka</button></section>
   <section id="subscriptionGate" class="panel hidden" style="max-width:560px;margin:8vh auto">
    <div class="brand">AMWEMARI</div><h2>Subscription inahitajika</h2>
-   <p class="muted">Muda wako wa bure wa siku 30 umeisha. Ili kuendelea kutumia AMWEMARI, wasiliana na mmiliki wa mfumo kwa malipo ya mwezi.</p>
+   <p id="gateDescription" class="muted">Muda wako wa majaribio umeisha. Ili kuendelea kutumia AMWEMARI, wasiliana na msimamizi kwa uthibitisho wa malipo.</p>
    <div class="card"><div class="muted">Ada ya mwezi</div><div class="metric">TSh 5,000</div><div id="gateSubscriptionStatus" class="muted small">Muda wa majaribio umeisha</div><div id="gateSubscriptionEnds" class="muted small"></div></div>
    <div class="notice" style="margin-top:14px"><strong>Call only: 0613794448</strong><br><strong>Owner name: Eckson Mwampaja.</strong></div>
    <button type="button" class="secondary" style="width:100%;margin-top:8px" onclick="signOut()">Toka</button>
@@ -69,7 +70,7 @@ const SUPABASE_URL='https://eevexpjcyadcjjziwesb.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_oAByqcmvRE7fQY5PObAFLw_k5vMPf64';
 const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
 const STAFF_AUTH_URL=SUPABASE_URL+'/functions/v1/staff-auth';
-let user=null,store=null,isSuperAdmin=false,products=[],sales=[],expenses=[],movements=[],cart=[],staffDirectory=[],mode='login',pendingEditProductId=null;
+let user=null,store=null,isSuperAdmin=false,accountAccess=null,products=[],sales=[],expenses=[],movements=[],cart=[],staffDirectory=[],mode='login',pendingEditProductId=null;
 const $=id=>document.getElementById(id), money=n=>'TZS '+Number(n||0).toLocaleString('en-TZ',{maximumFractionDigits:2});
 function message(id,msg,error=false){const el=$(id);el.textContent=msg;el.classList.remove('hidden','error','success');el.classList.add(error?'error':'success')}
 function clearMessage(id){$(id).classList.add('hidden')}
@@ -78,7 +79,41 @@ function staffLoginMode(){$('loginTab').classList.remove('active');$('signupTab'
 $('authForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('authSubmit'),email=$('email').value.trim(),password=$('password').value;btn.disabled=true;btn.textContent=mode==='login'?'Inaingia...':'Inafungua akaunti...';clearMessage('authMsg');try{if(!navigator.onLine)throw new Error('Huna intaneti. Unganisha intaneti kisha jaribu tena kuingia.');if(!window.supabase)throw new Error('Huduma ya kuingia haijapakia. Refresh ukurasa kisha jaribu tena.');let res;if(mode==='signup'){res=await db.auth.signUp({email,password,options:{data:{full_name:$('fullName').value.trim()}}});if(res.error)throw res.error;if(!res.data.session){message('authMsg','Akaunti imetengenezwa. Angalia email uthibitishe akaunti, kisha ingia.');return}}else{res=await db.auth.signInWithPassword({email,password});if(res.error)throw res.error;if(!res.data.session)throw new Error('Ingia haijakamilika. Hakikisha email imethibitishwa kisha jaribu tena.')}await boot()}catch(error){message('authMsg',error?.message||'Imeshindikana kuingia. Jaribu tena.',true)}finally{btn.disabled=false;btn.textContent=mode==='login'?'Ingia':'Fungua akaunti'}});
 $('staffLoginForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('staffLoginSubmit');btn.disabled=true;btn.textContent='Inaingia...';try{const r=await fetch(STAFF_AUTH_URL,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY},body:JSON.stringify({action:'login',username:$('staffLoginUsername').value.trim().toLowerCase(),password:$('staffLoginPassword').value})});const d=await r.json();if(!r.ok)throw new Error(d.error||'Imeshindikana kuingia.');const {error}=await db.auth.setSession({access_token:d.access_token,refresh_token:d.refresh_token});if(error)throw error;await boot()}catch(error){message('authMsg',error.message||'Imeshindikana kuingia.',true)}finally{btn.disabled=false;btn.textContent='Ingia kama mfanyakazi'}});
 async function signOut(){await db.auth.signOut();location.reload()}
-async function boot(){const {data:{session}}=await db.auth.getSession();const u=session?.user;if(!u)return;user=u;await checkSuperAdmin();$('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('userLabel').textContent=u.user_metadata?.full_name||u.email;if(!isSuperAdmin&&navigator.onLine){try{const {data,error}=await db.functions.invoke('amwemari-admin-subscriptions',{body:{action:'account_status'}});if(error)throw error;if(data?.pending){$('storeSetup').classList.add('hidden');$('workspace').classList.add('hidden');$('subscriptionGate').classList.add('hidden');$('deletionGate').classList.remove('hidden');const due=new Date(data.deletion.scheduled_delete_at);const days=Math.max(0,Math.ceil((due-Date.now())/86400000));$('deletionCountdown').textContent='Siku zilizobaki: '+days+' · Tarehe ya mwisho: '+due.toLocaleString('sw-TZ');return}}catch(e){console.warn('Delete pending status check failed:',e)}}$('deletionGate').classList.add('hidden');await loadStore();await handleSubscriptionReturn();if(navigator.onLine)syncPendingProducts().then(()=>syncPendingSales()).catch(console.error)}
+async function boot(){
+ const {data:{session}}=await db.auth.getSession();const u=session?.user;if(!u)return;
+ user=u;accountAccess=null;await checkSuperAdmin();
+ $('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('userLabel').textContent=u.user_metadata?.full_name||u.email;
+ if(!isSuperAdmin){
+  if(!navigator.onLine){message('appMsg','Unganisha intaneti ili kuthibitisha idhini na hali ya akaunti kabla ya kuendelea.',true);return;}
+  try{
+   const {data,error}=await db.functions.invoke('amwemari-admin-subscriptions',{body:{action:'account_status'}});
+   if(error)throw error;
+   accountAccess=data||{};
+   if(data?.pending){
+    $('approvalGate').classList.add('hidden');$('storeSetup').classList.add('hidden');$('workspace').classList.add('hidden');$('subscriptionGate').classList.add('hidden');$('deletionGate').classList.remove('hidden');
+    const due=new Date(data.deletion.scheduled_delete_at),days=Math.max(0,Math.ceil((due-Date.now())/86400000));
+    $('deletionCountdown').textContent='Siku zilizobaki: '+days+' · Tarehe ya mwisho: '+due.toLocaleString('sw-TZ');return;
+   }
+   $('deletionGate').classList.add('hidden');
+   if(data?.access_status==='pending'){
+    $('approvalGate').classList.remove('hidden');$('subscriptionGate').classList.add('hidden');$('storeSetup').classList.add('hidden');$('workspace').classList.add('hidden');return;
+   }
+   $('approvalGate').classList.add('hidden');
+   if(data?.access_status==='expired'){
+    $('storeSetup').classList.add('hidden');$('workspace').classList.add('hidden');$('subscriptionGate').classList.remove('hidden');
+    $('gateDescription').textContent='Muda wa majaribio wa siku '+(data.trial_days||'ulioruhusiwa')+' umeisha. Wasiliana na msimamizi ili kuthibitisha malipo na kufungua akaunti.';
+    $('gateSubscriptionStatus').textContent='Majaribio yameisha';$('gateSubscriptionEnds').textContent=data.trial_ends_at?'Uliisha: '+new Date(data.trial_ends_at).toLocaleString('sw-TZ'):'';
+    return;
+   }
+  }catch(e){
+   console.error('AMWEMARI account approval check failed:',e);
+   message('appMsg','Imeshindikana kuthibitisha idhini ya akaunti. Hakuna huduma itakayofunguliwa hadi muunganisho urejee: '+(e.message||'Hitilafu.'),true);return;
+  }
+ }
+ $('approvalGate').classList.add('hidden');$('deletionGate').classList.add('hidden');
+ await loadStore();await handleSubscriptionReturn();
+ if(navigator.onLine)syncPendingProducts().then(()=>syncPendingSales()).catch(console.error);
+}
 async function loadStore(){let found=null;try{if(navigator.onLine){const {data,error}=await db.from('stores').select('*').eq('owner_id',user.id).order('created_at',{ascending:true}).limit(1);if(error)throw error;found=data?.[0]||null;if(!found){const {data:members,error:memberError}=await db.from('store_members').select('store_id').eq('user_id',user.id).limit(1);if(memberError)throw memberError;if(members?.[0]){const {data:memberStore,error:storeError}=await db.from('stores').select('*').eq('id',members[0].store_id).single();if(storeError)throw storeError;found=memberStore}}if(found){await localPut('stores',found);if(found.owner_id!==user.id)await localPut('stores',{...found,id:found.id+':member:'+user.id,_real_store_id:found.id,_cached_user_id:user.id})}}}catch(error){console.warn('AMWEMARI: store fetch unavailable; using offline cache',error)}if(!found){const cached=await localAll('stores');found=cached.find(x=>x.owner_id===user.id||x._cached_user_id===user.id)||null;if(found?._real_store_id)found={...found,id:found._real_store_id}}if(!found){if(!navigator.onLine){message('appMsg','Huna intaneti na taarifa za biashara hii hazijahifadhiwa kwenye simu hii. Fungua mfumo ukiwa online angalau mara moja.',true);return}$('storeSetup').classList.remove('hidden');$('workspace').classList.add('hidden');return}store=found;const isOwner=store.owner_id===user.id;
 let billing=null;
 if(navigator.onLine){
@@ -86,7 +121,7 @@ if(navigator.onLine){
  if(billingError)throw billingError;
  billing=billingRow;
 }
-const billingValid=billing?.status==='active'&&(!billing.ends_at||new Date(billing.ends_at)>new Date());
+const billingValid=(billing?.status==='active'&&(!billing.ends_at||new Date(billing.ends_at)>new Date()))||(accountAccess?.access_status==='trial'&&accountAccess.trial_ends_at&&new Date(accountAccess.trial_ends_at)>new Date());
 if(!billingValid&&!isSuperAdmin){
  $('storeSetup').classList.add('hidden');$('workspace').classList.add('hidden');$('subscriptionGate').classList.remove('hidden');
  await loadSubscription(true);
@@ -133,18 +168,37 @@ async function loadAdminPanel(){
   if(error)throw error;if(!data?.stores)throw new Error(data?.error||'Orodha haijapatikana.');
   const rows=data.stores,pending=data.pendingDeletes||[],pendingIds=new Set(pending.map(x=>x.user_id));
   const normal=rows.filter(r=>!pendingIds.has(r.owner_id));
-  msg.textContent='Akaunti/biashara: '+rows.length+' · Delete Pending: '+pending.length;
-  box.innerHTML=normal.length?'<table><thead><tr><th>Biashara / mmiliki</th><th>Usajili</th><th>Subscription</th><th>Malipo ya mwisho</th><th>Hatua</th></tr></thead><tbody>'+normal.map(r=>{
+  msg.textContent='Akaunti zilizosajiliwa: '+rows.length+' · Delete Pending: '+pending.length;
+  box.innerHTML=normal.length?'<table><thead><tr><th>Biashara / mmiliki</th><th>Usajili</th><th>Hali / majaribio</th><th>Malipo ya mwisho</th><th>Hatua</th></tr></thead><tbody>'+normal.map(r=>{
    const sub=r.subscription||{},end=sub.ends_at?new Date(sub.ends_at):null,active=sub.status==='active'&&(!end||end>new Date());
-   const paid=r.latest_payment?.status==='successful'?'TSh '+Number(r.latest_payment.amount).toLocaleString('en-TZ')+' · '+new Date(r.latest_payment.paid_at||r.latest_payment.created_at).toLocaleDateString('sw-TZ'):'Hakuna malipo yaliyothibitishwa';
-   const actions=active?'<span class="muted">Akaunti iko wazi</span>':'<button type="button" onclick="approveStoreSubscription(\''+r.id+'\')">Ruhusu akaunti</button> <button type="button" class="danger" onclick="markAccountDelete(\''+r.owner_id+'\',\''+(r.id||'')+'\')">Weka Delete Pending</button>';
-   return '<tr><td><strong>'+escapeHtml(r.name)+'</strong><br>'+escapeHtml(r.owner_email||'')+'<br>'+escapeHtml(r.phone||'')+'</td><td>'+new Date(r.created_at).toLocaleDateString('sw-TZ')+'</td><td><strong>'+(active?'ACTIVE':(end&&end<=new Date()?'IMEISHA':'HAIJALIPWA'))+'</strong><br>'+(end?'Mwisho: '+end.toLocaleDateString('sw-TZ'):'Bila mwisho')+'</td><td>'+paid+'</td><td>'+(!r.id?'<button type="button" class="danger" onclick="markAccountDelete(\''+r.owner_id+'\',\'\')">Weka Delete Pending</button>':actions)+'</td></tr>';
+   const paid=r.latest_payment?.status==='successful';
+   const trial=r.access_status==='trial'&&r.trial_ends_at&&new Date(r.trial_ends_at)>new Date();
+   const state=trial?'MAJARIBIO':(paid&&active?'IMELIPIWA':(r.access_status==='expired'?'MAJARIBIO YAMEISHA':(r.access_status==='pending'?'INASUBIRI IDHINI':(active?'ACTIVE':'HAIJALIPWA'))));
+   const period=trial?'Siku '+r.trial_days+' · mwisho '+new Date(r.trial_ends_at).toLocaleString('sw-TZ'):(end?'Mwisho: '+end.toLocaleDateString('sw-TZ'):'Bila muda');
+   const payment=paid?'TSh '+Number(r.latest_payment.amount).toLocaleString('en-TZ')+' · '+new Date(r.latest_payment.paid_at||r.latest_payment.created_at).toLocaleDateString('sw-TZ'):'Hakuna malipo yaliyothibitishwa';
+   const trialBtn='<button type="button" class="secondary" onclick="grantTrial(\''+r.owner_id+'\',\''+escapeHtml(r.name).replace(/'/g,'&#39;')+'\')">'+(trial?'Badili muda wa majaribio':'Weka muda wa majaribio')+'</button>';
+   const payBtn=(r.id&&!trial&&!active)?'<button type="button" onclick="approveStoreSubscription(\''+r.id+'\',\''+escapeHtml(r.name).replace(/'/g,'&#39;')+'\')">Thibitisha malipo TSh 5,000</button> ':'';
+   const deleteBtn='<button type="button" class="danger" onclick="markAccountDelete(\''+r.owner_id+'\',\''+(r.id||'')+'\')">Weka Delete Pending</button>';
+   return '<tr><td><strong>'+escapeHtml(r.name)+'</strong><br>'+escapeHtml(r.owner_email||'')+'<br>'+escapeHtml(r.phone||'')+'</td><td>'+new Date(r.created_at).toLocaleDateString('sw-TZ')+'</td><td><strong>'+state+'</strong><br>'+period+'</td><td>'+payment+'</td><td>'+trialBtn+' '+payBtn+deleteBtn+'</td></tr>';
   }).join('')+'</tbody></table>':'Hakuna akaunti nyingine.';
   pendingBox.innerHTML=pending.length?'<table><thead><tr><th>Akaunti</th><th>Ilisitishwa</th><th>Itatakiwa kufutwa</th><th>Muda</th><th>Hatua</th></tr></thead><tbody>'+pending.map(r=>{
    const due=new Date(r.scheduled_delete_at),days=Math.max(0,Math.ceil((due-Date.now())/86400000));
    return '<tr><td><strong>'+escapeHtml(r.store_name||'Akaunti')+'</strong><br>'+escapeHtml(r.owner_email)+'</td><td>'+new Date(r.requested_at).toLocaleDateString('sw-TZ')+'</td><td>'+due.toLocaleDateString('sw-TZ')+'</td><td>'+days+' siku</td><td>'+(r.store_id?'<button type="button" onclick="approveStoreSubscription(\''+r.store_id+'\')">Thibitisha TSh 5,000 na fungua</button> ':'')+'<button type="button" class="secondary" onclick="restorePendingAccount(\''+r.user_id+'\')">Ondoa Delete Pending</button></td></tr>';
   }).join('')+'</tbody></table>':'Hakuna akaunti kwenye Delete Pending.';
  }catch(e){msg.textContent=e?.context?.json?.error||e.message||'Imeshindikana kupakia akaunti.'}
+}
+async function grantTrial(userId,storeName){
+ if(!isSuperAdmin||!userId)return;
+ const raw=prompt('Weka siku za majaribio kwa '+(storeName||'akaunti hii')+'. Unaweza kuweka 3, 7, 14, 30 au idadi nyingine (1–365):','14');
+ if(raw===null)return;
+ const days=Number(raw);
+ if(!Number.isInteger(days)||days<1||days>365){message('adminPanelMessage','Weka idadi kamili ya siku kati ya 1 na 365.',true);return;}
+ if(!confirm('Unampa akaunti hii siku '+days+' za majaribio kuanzia sasa?'))return;
+ try{
+  const {data,error}=await db.functions.invoke('amwemari-admin-subscriptions',{body:{action:'grant_trial',user_id:userId,trial_days:days,note:'Muda wa majaribio umewekwa na Super Admin'}});
+  if(error)throw error;if(!data?.ok)throw new Error(data?.error||'Imeshindikana kuweka majaribio.');
+  message('adminPanelMessage','Majaribio ya siku '+days+' yameanza. Mwisho: '+new Date(data.trial_ends_at).toLocaleString('sw-TZ')+'.');await loadAdminPanel();
+ }catch(e){message('adminPanelMessage',e?.context?.json?.error||e.message||'Hitilafu.',true)}
 }
 function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
