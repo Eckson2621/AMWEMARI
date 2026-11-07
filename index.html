@@ -136,7 +136,7 @@ $('productForm').addEventListener('submit',async e=>{
    const localProduct={...payload,quantity:openingQty,is_active:true};
    const cached=(await localAll('products')).filter(p=>p.id!==payload.id);cached.push(localProduct);await localReplace('products',cached);
    products=cached.filter(p=>p.store_id===store.id&&p.is_active!==false);renderAll();form.reset();
-   $('pUnitsPerPack').value='1';$('pPackName').value='katoni';$('pBaseUnit').value='chupa';$('pOpeningPacks').value='0';$('pPackCost').value='0';$('pWholesale').value='0';
+   $('pUnitsPerPack').value='12';$('pPackName').value='katoni';$('pBaseUnit').value='chupa';$('pOpeningPacks').value='0';$('pPackCost').value='0';$('pWholesale').value='0';
    message('appMsg','Bidhaa imehifadhiwa KWENYE SIMU. Itatumwa Supabase intaneti ikirudi. Stock ya kuanzia imeonyeshwa hapa; usifute data za kivinjari wala kusajili bidhaa hii tena.');
    await renderPendingProducts();return;
   }
@@ -146,7 +146,7 @@ $('productForm').addEventListener('submit',async e=>{
    const {error:purchaseError}=await db.rpc('record_purchase_with_loose_units',{p_store_id:store.id,p_product_id:data.id,p_package_quantity:packs,p_loose_units:loose,p_package_cost:packCost,p_purchase_date:new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'}),p_note:'AMWEMARI_OFFLINE_OPENING:'+payload.id});
    if(purchaseError)throw purchaseError;
   }
-  form.reset();$('pUnitsPerPack').value='1';$('pPackName').value='katoni';$('pBaseUnit').value='chupa';$('pOpeningPacks').value='0';$('pPackCost').value='0';$('pWholesale').value='0';
+  form.reset();$('pUnitsPerPack').value='12';$('pPackName').value='katoni';$('pBaseUnit').value='chupa';$('pOpeningPacks').value='0';$('pPackCost').value='0';$('pWholesale').value='0';
   await refreshAll();message('appMsg','Bidhaa imehifadhiwa Supabase. Stock ya mwanzo: '+openingQty+' '+payload.base_unit);
  }catch(error){
   console.error('AMWEMARI product save failed:',error);
