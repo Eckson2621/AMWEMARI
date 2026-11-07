@@ -113,7 +113,8 @@ function updateProductEntryPreview(){
   preview.classList.add('error');return;
  }
  const total=packs*units+loose;
- const unitCost=units>0?cost/units:0,unitProfit=retail-unitCost,wholesale=Number($('pWholesale').value)||0,packProfit=wholesale-cost;\n preview.textContent='Hakikisha: '+packs+' '+pack+' × '+units+' '+base+' + '+loose+' '+base+' za ziada = '+total+' '+base+' kwenye stock ya kuanzia. Gharama ya kununua kwa '+base+': '+money(unitCost)+'. Bei ya rejareja: '+money(retail)+' kwa '+base+'. Faida ghafi kwa '+base+': '+money(unitProfit)+'. Faida ghafi kwa '+pack+' ukiuza jumla: '+money(packProfit)+'.';
+ const unitCost=units>0?cost/units:0,unitProfit=retail-unitCost,wholesale=Number($('pWholesale').value)||0,packProfit=wholesale-cost;
+ preview.textContent='Hakikisha: '+packs+' '+pack+' × '+units+' '+base+' + '+loose+' '+base+' za ziada = '+total+' '+base+' kwenye stock ya kuanzia. Gharama ya kununua kwa '+base+': '+money(unitCost)+'. Bei ya rejareja: '+money(retail)+' kwa '+base+'. Faida ghafi kwa '+base+': '+money(unitProfit)+'. Faida ghafi kwa '+pack+' ukiuza jumla: '+money(packProfit)+'.';
  preview.classList.toggle('error',base.toLowerCase()===pack.toLowerCase());
  if(base.toLowerCase()===pack.toLowerCase())preview.textContent+=' Tahadhari: kipimo cha msingi na kifungashio haviwezi kuwa jina moja.';
 }
