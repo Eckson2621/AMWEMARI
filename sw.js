@@ -1,4 +1,4 @@
-const CACHE_NAME='amwemari-shell-v11';
+const CACHE_NAME='amwemari-shell-v12';
 const CORE_FILES=['/','/index.html','/manifest.json'];
 const SUPABASE_SCRIPT='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
 self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(CACHE_NAME);for(const path of CORE_FILES){try{const response=await fetch(path,{cache:'reload'});if(response.ok)await cache.put(path,response.clone())}catch(error){console.warn('Could not cache app file:',path,error)}}try{const response=await fetch(SUPABASE_SCRIPT);if(response.ok)await cache.put(SUPABASE_SCRIPT,response.clone())}catch(error){console.warn('Supabase library not cached:',error)}await self.skipWaiting()})())});
