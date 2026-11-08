@@ -339,7 +339,7 @@ async function exportBusinessReport(format){
   }
   const d=await getReportExportData(),r=d.summary;
   if(format==='excel'){
-   const csv='\\uFEFF'+reportCsvRows(d).map(row=>row.map(csvCell).join(',')).join('\\r\\n');
+   const csv='\uFEFF'+reportCsvRows(d).map(row=>row.map(csvCell).join(',')).join('\r\n');
    const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
    const url=URL.createObjectURL(blob),a=document.createElement('a');
    a.href=url;a.download='AMWEMARI_Ripoti_'+d.from+'_hadi_'+d.to+'.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
