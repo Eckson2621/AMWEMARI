@@ -331,7 +331,12 @@ function reportHtmlTable(headers,rows){
 }
 async function exportBusinessReport(format){
  const buttons=[...document.querySelectorAll('#reports button')];buttons.forEach(b=>b.disabled=true);
+ let printWindow=null;
  try{
+  if(format==='pdf'){
+   printWindow=window.open('','_blank');
+   if(!printWindow)throw new Error('Ruhusu pop-up kwenye kivinjari ili kutengeneza PDF.');
+  }
   const d=await getReportExportData(),r=d.summary;
   if(format==='excel'){
    const csv='\\uFEFF'+reportCsvRows(d).map(row=>row.map(csvCell).join(',')).join('\\r\\n');
@@ -340,8 +345,7 @@ async function exportBusinessReport(format){
    a.href=url;a.download='AMWEMARI_Ripoti_'+d.from+'_hadi_'+d.to+'.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
    message('reportMessage','Excel/CSV imepakuliwa kwa kipindi '+d.from+' hadi '+d.to+'.');
   }else{
-   const w=window.open('','_blank');
-   if(!w)throw new Error('Ruhusu pop-up kwenye kivinjari ili kutengeneza PDF.');
+   const w=printWindow;
    const sales=d.sales.map(s=>[s.receipt_no,new Date(s.sold_at).toLocaleString('sw-TZ',{timeZone:'Africa/Dar_es_Salaam'}),staffName(s.sold_by),s.total,s.amount_paid,Math.max(0,Number(s.total)-Number(s.amount_paid))]);
    const expenses=d.expenses.map(e=>[e.expense_date,e.category,e.description,e.amount]);
    const purchases=d.purchases.map(m=>[m.purchase_date,d.products.find(p=>p.id===m.product_id)?.name||'Bidhaa',m.package_quantity||'',m.package_label||'',m.quantity_change,m.total_cost||0]);
@@ -356,7 +360,7 @@ async function exportBusinessReport(format){
    w.document.write('<p class="muted">Faida ghafi = mapato ya bidhaa baada ya punguzo, bila kodi ya mauzo, ukiondoa gharama ya bidhaa zilizouzwa. Manunuzi ya stock hayaondolewi tena kwenye faida.</p></body></html>');
    w.document.close();message('reportMessage','Ripoti ya PDF iko tayari. Chagua Chapisha kisha Save as PDF.');
   }
- }catch(error){message('reportMessage','Imeshindikana kupakua ripoti: '+(error.message||error),true)}
+ }catch(error){if(printWindow&&!printWindow.closed)printWindow.close();message('reportMessage','Imeshindikana kupakua ripoti: '+(error.message||error),true)}
  finally{buttons.forEach(b=>b.disabled=false)}
 }
 async function loadStaffSalesReport(){
