@@ -61,7 +61,12 @@
 <section id="purchases" class="page hidden"><div class="panel"><h2>Rekodi ununuzi wa stock</h2><div class="grid"><div class="field"><label>Bidhaa</label><select id="purchaseProduct"></select></div><div class="field"><label>Katoni/vifungashio ulivyonunua</label><input id="purchasePacks" type="number" min="0" step="1" value="0"></div><div class="field"><label>Vipande vya ziada vilivyonunuliwa</label><input id="purchaseLoose" type="number" min="0" step="1" value="0"></div><div class="field"><label>Bei ya kifungashio kimoja (TZS)</label><input id="purchasePackCost" type="number" min="0" step=".01"></div><div class="field"><label>Tarehe ya ununuzi</label><input id="purchaseDate" type="date" required></div></div><div id="purchasePreview" class="notice">Chagua bidhaa ili kuona idadi itakayoingia stock.</div><button onclick="recordPurchase()">Hifadhi ununuzi</button></div><div class="panel section"><h2>Ununuzi wa karibuni</h2><div id="purchasesTable" class="tablewrap"></div></div></section>
    <section id="expenses" class="page hidden"><div class="panel"><h2>Rekodi matumizi</h2><form id="expenseForm"><div class="grid"><div class="field"><label>Aina ya matumizi</label><input id="eCategory" placeholder="Mf. Usafiri" required></div><div class="field"><label>Maelezo</label><input id="eDescription" required></div><div class="field"><label>Kiasi (TZS)</label><input id="eAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Njia ya malipo</label><select id="eMethod"><option value="cash">Taslimu</option><option value="mobile_money">Mobile money</option><option value="bank">Benki</option><option value="card">Kadi</option></select></div></div><button type="submit">Hifadhi matumizi</button></form></div><div class="panel section"><h2>Matumizi ya karibuni</h2><div id="expensesTable" class="tablewrap"></div></div></section>
    <section id="staff" class="page hidden"><div class="panel"><h2>Sajili mfanyakazi</h2><p class="muted small">Mfanyakazi atatumia username na password; hahitaji email. Password iwe na angalau herufi 8.</p><form id="staffForm"><div class="grid"><div class="field"><label>Jina kamili</label><input id="staffFullName" required maxlength="100"></div><div class="field"><label>Username</label><input id="staffUsername" required minlength="3" maxlength="30" pattern="[a-zA-Z0-9._-]+" autocomplete="off"></div><div class="field"><label>Password</label><input id="staffPassword" type="password" required minlength="8" maxlength="72" autocomplete="new-password"></div></div><button id="createStaffBtn" type="submit">Sajili mfanyakazi</button></form><div id="staffMessage" class="notice hidden"></div></div><div class="panel section"><div class="row"><h2>Wafanyakazi wa biashara</h2><button type="button" class="secondary" onclick="loadStaff()">Sasisha</button></div><div id="staffTable" class="tablewrap">Inapakia...</div></div></section>
-   <section id="reports" class="page hidden"><div class="panel"><h2>Ripoti ya biashara</h2><p class="muted small">Chagua kipindi ili kuona mauzo, gharama ya bidhaa zilizouzwa, faida na matumizi.</p><div class="grid"><div class="field"><label>Kuanzia tarehe</label><input id="reportFrom" type="date"></div><div class="field"><label>Mpaka tarehe</label><input id="reportTo" type="date"></div></div><button onclick="loadBusinessReport()">Tengeneza ripoti</button><div id="reportMessage" class="notice hidden"></div><div class="panel section"><h2>Ripoti za wafanyakazi</h2><p class="muted small">Mmiliki anaweza kuona mauzo ya kila mfanyakazi kwa kipindi alichochagua hapo juu.</p><div class="row"><div class="field" style="min-width:220px;flex:1"><label>Chagua mfanyakazi</label><select id="staffReportFilter"><option value="all">Wafanyakazi wote</option></select></div><button type="button" onclick="loadStaffSalesReport()">Tengeneza ripoti ya wafanyakazi</button></div><div id="staffSalesReport" class="tablewrap">Bonyeza tengeneza ripoti baada ya kuchagua tarehe.</div></div><div class="grid section"><div class="card"><div class="muted">Idadi ya mauzo</div><div class="metric" id="reportCount">0</div></div><div class="card"><div class="muted">Jumla ya mauzo</div><div class="metric" id="reportSales">TZS 0</div></div><div class="card"><div class="muted">Fedha zilizopokelewa</div><div class="metric" id="reportReceived">TZS 0</div></div><div class="card"><div class="muted">Madeni ya wateja</div><div class="metric" id="reportBalance">TZS 0</div></div><div class="card"><div class="muted">Gharama ya bidhaa zilizouzwa</div><div class="metric" id="reportCogs">TZS 0</div></div><div class="card"><div class="muted">Faida ghafi</div><div class="metric" id="reportGrossProfit">TZS 0</div></div><div class="card"><div class="muted">Matumizi ya biashara</div><div class="metric" id="reportExpenses">TZS 0</div></div><div class="card"><div class="muted">Faida baada ya matumizi</div><div class="metric" id="reportNet">TZS 0</div></div><div class="card"><div class="muted">Manunuzi ya stock (si matumizi ya faida)</div><div class="metric" id="reportPurchases">TZS 0</div></div></div><p class="muted small section">Faida ghafi = thamani ya bidhaa zilizouzwa ukiondoa gharama ya kununua bidhaa hizo. Faida baada ya matumizi = faida ghafi ukiondoa matumizi yaliyorekodiwa. Manunuzi ya stock yanaonyeshwa tofauti ili yasihesabiwe mara mbili.</p></div></section>
+   <section id="reports" class="page hidden"><div class="panel"><h2>Ripoti ya biashara</h2><p class="muted small">Chagua kipindi ili kuona mauzo, gharama ya bidhaa zilizouzwa, faida na matumizi.</p><div class="grid"><div class="field"><label>Kuanzia tarehe</label><input id="reportFrom" type="date"></div><div class="field"><label>Mpaka tarehe</label><input id="reportTo" type="date"></div></div><button onclick="loadBusinessReport()">Tengeneza ripoti</button><div class="actions section">
+ <button type="button" onclick="setReportPeriod('week')">Ripoti ya wiki</button>
+ <button type="button" onclick="setReportPeriod('month')">Ripoti ya mwezi</button>
+ <button type="button" class="secondary" onclick="exportBusinessReport('excel')">Pakua Excel (CSV)</button>
+ <button type="button" class="secondary" onclick="exportBusinessReport('pdf')">Pakua PDF / Chapisha</button>
+</div><div id="reportMessage" class="notice hidden"></div><div class="panel section"><h2>Ripoti za wafanyakazi</h2><p class="muted small">Mmiliki anaweza kuona mauzo ya kila mfanyakazi kwa kipindi alichochagua hapo juu.</p><div class="row"><div class="field" style="min-width:220px;flex:1"><label>Chagua mfanyakazi</label><select id="staffReportFilter"><option value="all">Wafanyakazi wote</option></select></div><button type="button" onclick="loadStaffSalesReport()">Tengeneza ripoti ya wafanyakazi</button></div><div id="staffSalesReport" class="tablewrap">Bonyeza tengeneza ripoti baada ya kuchagua tarehe.</div></div><div class="grid section"><div class="card"><div class="muted">Idadi ya mauzo</div><div class="metric" id="reportCount">0</div></div><div class="card"><div class="muted">Jumla ya mauzo</div><div class="metric" id="reportSales">TZS 0</div></div><div class="card"><div class="muted">Fedha zilizopokelewa</div><div class="metric" id="reportReceived">TZS 0</div></div><div class="card"><div class="muted">Madeni ya wateja</div><div class="metric" id="reportBalance">TZS 0</div></div><div class="card"><div class="muted">Gharama ya bidhaa zilizouzwa</div><div class="metric" id="reportCogs">TZS 0</div></div><div class="card"><div class="muted">Faida ghafi</div><div class="metric" id="reportGrossProfit">TZS 0</div></div><div class="card"><div class="muted">Matumizi ya biashara</div><div class="metric" id="reportExpenses">TZS 0</div></div><div class="card"><div class="muted">Faida baada ya matumizi</div><div class="metric" id="reportNet">TZS 0</div></div><div class="card"><div class="muted">Manunuzi ya stock (si matumizi ya faida)</div><div class="metric" id="reportPurchases">TZS 0</div></div></div><p class="muted small section">Faida ghafi = thamani ya bidhaa zilizouzwa ukiondoa gharama ya kununua bidhaa hizo. Faida baada ya matumizi = faida ghafi ukiondoa matumizi yaliyorekodiwa. Manunuzi ya stock yanaonyeshwa tofauti ili yasihesabiwe mara mbili.</p></div></section>
   </div>
  </main>
 </div>
@@ -252,6 +257,108 @@ async function refreshAll(){if(!store)return;const isOwner=store.owner_id===user
 function todayRows(rows,field){const d=new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'});return rows.filter(r=>new Date(r[field]).toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'})===d)}
 const localToday=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'});$('reportFrom').value=localToday();$('reportTo').value=localToday();
 async function loadBusinessReport(){if(!store)return;const from=$('reportFrom').value,to=$('reportTo').value;if(!from||!to||to<from){message('reportMessage','Chagua tarehe sahihi ya kuanzia na kumalizia.',true);return}const {data,error}=await db.rpc('get_business_report',{p_store_id:store.id,p_from:from,p_to:to});if(error){message('reportMessage','Imeshindikana kutengeneza ripoti: '+error.message,true);return}const r=data?.[0]||{};$('reportCount').textContent=Number(r.sales_count||0).toLocaleString('en-TZ');$('reportSales').textContent=money(r.sales_total);$('reportReceived').textContent=money(r.amount_received);$('reportBalance').textContent=money(r.unpaid_balance);$('reportCogs').textContent=money(r.cost_of_goods);$('reportGrossProfit').textContent=money(r.gross_profit);$('reportExpenses').textContent=money(r.expenses_total);$('reportNet').textContent=money(r.net_profit);$('reportPurchases').textContent=money(r.purchases_total);message('reportMessage','Ripoti imekamilika: '+from+' hadi '+to+'.')}
+
+function setReportPeriod(period){
+ const base=$('reportTo').value||localToday();
+ const d=new Date(base+'T00:00:00Z');
+ let from,to;
+ if(period==='week'){
+  const day=(d.getUTCDay()+6)%7;
+  const monday=new Date(d);monday.setUTCDate(d.getUTCDate()-day);
+  const sunday=new Date(monday);sunday.setUTCDate(monday.getUTCDate()+6);
+  from=monday.toISOString().slice(0,10);to=sunday.toISOString().slice(0,10);
+ }else{
+  from=base.slice(0,7)+'-01';
+  const last=new Date(Date.UTC(d.getUTCFullYear(),d.getUTCMonth()+1,0));
+  to=last.toISOString().slice(0,10);
+ }
+ $('reportFrom').value=from;$('reportTo').value=to;
+ loadBusinessReport();
+}
+async function fetchAllReportRows(table,select,configure){
+ let all=[];
+ for(let offset=0;;offset+=1000){
+  let q=db.from(table).select(select).eq('store_id',store.id);
+  q=configure(q);
+  const {data,error}=await q.range(offset,offset+999);
+  if(error)throw error;
+  const batch=data||[];all.push(...batch);
+  if(batch.length<1000)break;
+ }
+ return all;
+}
+async function getReportExportData(){
+ if(!store||store.owner_id!==user.id)throw new Error('Ripoti za kupakua zinapatikana kwa mmiliki pekee.');
+ const from=$('reportFrom').value,to=$('reportTo').value;
+ if(!from||!to||to<from)throw new Error('Chagua tarehe sahihi kwanza.');
+ const start=new Date(from+'T00:00:00+03:00').toISOString();
+ const end=new Date(new Date(to+'T00:00:00+03:00').getTime()+86400000).toISOString();
+ const {data:summaryRows,error:summaryError}=await db.rpc('get_business_report',{p_store_id:store.id,p_from:from,p_to:to});
+ if(summaryError)throw summaryError;
+ const [saleRows,expenseRows,purchaseRows,productRows]=await Promise.all([
+  fetchAllReportRows('sales','*,sale_items!sale_items_sale_id_fkey(product_name_snapshot,quantity,unit_price,unit_cost,line_total)',q=>q.eq('status','completed').gte('sold_at',start).lt('sold_at',end).order('sold_at',{ascending:true})),
+  fetchAllReportRows('expenses','*',q=>q.gte('expense_date',from).lte('expense_date',to).order('expense_date',{ascending:true})),
+  fetchAllReportRows('stock_movements','*',q=>q.eq('movement_type','purchase').gte('purchase_date',from).lte('purchase_date',to).order('purchase_date',{ascending:true})),
+  fetchAllReportRows('products','*',q=>q.eq('is_active',true).order('name',{ascending:true}))
+ ]);
+ return {from,to,summary:summaryRows?.[0]||{},sales:saleRows,expenses:expenseRows,purchases:purchaseRows,products:productRows};
+}
+function csvCell(value){
+ let s=String(value??'');
+ if(/^[=+@-]/.test(s))s="'"+s;
+ return '"'+s.replace(/"/g,'""')+'"';
+}
+function reportCsvRows(d){
+ const r=d.summary,rows=[];
+ rows.push(['AMWEMARI - RIPOTI YA BIASHARA']);
+ rows.push(['Kipindi',d.from+' hadi '+d.to]);
+ rows.push([]);
+ rows.push(['MUHTASARI','THAMANI']);
+ rows.push(['Idadi ya mauzo',r.sales_count||0],['Jumla ya mauzo (pamoja na kodi)',r.sales_total||0],['Fedha zilizopokelewa',r.amount_received||0],['Madeni ya mauzo',r.unpaid_balance||0],['Gharama ya bidhaa zilizouzwa',r.cost_of_goods||0],['Faida ghafi baada ya punguzo',r.gross_profit||0],['Matumizi ya biashara',r.expenses_total||0],['Faida baada ya matumizi',r.net_profit||0],['Manunuzi ya stock (tofauti na matumizi)',r.purchases_total||0]);
+ rows.push([],['MAUZO'],['Risiti','Tarehe/muda','Aliyeuza','Bidhaa','Idadi','Bei','Gharama kwa kipande','Jumla ya bidhaa','Jumla ya risiti','Imepokelewa','Salio']);
+ for(const s of d.sales)for(const it of (s.sale_items||[]))rows.push([s.receipt_no,new Date(s.sold_at).toLocaleString('sw-TZ',{timeZone:'Africa/Dar_es_Salaam'}),staffName(s.sold_by),it.product_name_snapshot,it.quantity,it.unit_price,it.unit_cost,it.line_total,s.total,s.amount_paid,Math.max(0,Number(s.total)-Number(s.amount_paid))]);
+ rows.push([],['MATUMIZI'],['Tarehe','Aina','Maelezo','Njia ya malipo','Kiasi']);
+ for(const e of d.expenses)rows.push([e.expense_date,e.category,e.description,e.payment_method,e.amount]);
+ rows.push([],['MANUNUZI YA STOCK'],['Tarehe','Bidhaa','Aina ya kifungashio','Idadi ya vifungashio','Idadi ya vipande','Gharama jumla']);
+ for(const m of d.purchases){const p=d.products.find(x=>x.id===m.product_id);rows.push([m.purchase_date,p?.name||'Bidhaa',m.package_label||'',m.package_quantity||'',m.quantity_change,m.total_cost||0]);}
+ rows.push([],['STOCK ILIYOPO SASA'],['Bidhaa','Stock (vipimo vya msingi)','Gharama kwa kipimo','Thamani ya stock']);
+ for(const p of d.products)rows.push([p.name,p.quantity,p.cost_price,Number(p.quantity||0)*Number(p.cost_price||0)]);
+ return rows;
+}
+function reportHtmlTable(headers,rows){
+ return '<table><thead><tr>'+headers.map(x=>'<th>'+esc(x)+'</th>').join('')+'</tr></thead><tbody>'+
+ rows.map(row=>'<tr>'+row.map(x=>'<td>'+esc(x==null?'':String(x))+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+}
+async function exportBusinessReport(format){
+ const buttons=[...document.querySelectorAll('#reports button')];buttons.forEach(b=>b.disabled=true);
+ try{
+  const d=await getReportExportData(),r=d.summary;
+  if(format==='excel'){
+   const csv='\\uFEFF'+reportCsvRows(d).map(row=>row.map(csvCell).join(',')).join('\\r\\n');
+   const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+   const url=URL.createObjectURL(blob),a=document.createElement('a');
+   a.href=url;a.download='AMWEMARI_Ripoti_'+d.from+'_hadi_'+d.to+'.csv';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+   message('reportMessage','Excel/CSV imepakuliwa kwa kipindi '+d.from+' hadi '+d.to+'.');
+  }else{
+   const w=window.open('','_blank');
+   if(!w)throw new Error('Ruhusu pop-up kwenye kivinjari ili kutengeneza PDF.');
+   const sales=d.sales.map(s=>[s.receipt_no,new Date(s.sold_at).toLocaleString('sw-TZ',{timeZone:'Africa/Dar_es_Salaam'}),staffName(s.sold_by),s.total,s.amount_paid,Math.max(0,Number(s.total)-Number(s.amount_paid))]);
+   const expenses=d.expenses.map(e=>[e.expense_date,e.category,e.description,e.amount]);
+   const purchases=d.purchases.map(m=>[m.purchase_date,d.products.find(p=>p.id===m.product_id)?.name||'Bidhaa',m.package_quantity||'',m.package_label||'',m.quantity_change,m.total_cost||0]);
+   const stock=d.products.map(p=>[p.name,stockDisplay(p),money(p.cost_price),money(Number(p.quantity||0)*Number(p.cost_price||0))]);
+   w.document.write('<!doctype html><html lang="sw"><head><meta charset="utf-8"><title>AMWEMARI Ripoti</title><style>body{font:12px Arial,sans-serif;color:#172b40;padding:24px}h1{margin:0 0 6px}h2{margin:22px 0 8px;font-size:16px}.muted{color:#64748b}table{width:100%;border-collapse:collapse;margin:8px 0 18px}th,td{border:1px solid #dbe2ea;padding:6px;text-align:left}th{background:#edf2f7}.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.metric{border:1px solid #dbe2ea;padding:9px}button{padding:9px 14px}@media print{button{display:none}body{padding:0}}</style></head><body>');
+   w.document.write('<h1>AMWEMARI — Ripoti ya biashara</h1><p class="muted">Kipindi: '+esc(d.from)+' hadi '+esc(d.to)+' · '+esc(store.name||'')+'</p><button onclick="window.print()">Chapisha / Hifadhi PDF</button>');
+   w.document.write('<div class="metrics">'+[['Jumla ya mauzo',money(r.sales_total)],['Fedha zilizopokelewa',money(r.amount_received)],['Madeni',money(r.unpaid_balance)],['Gharama ya bidhaa zilizouzwa',money(r.cost_of_goods)],['Faida ghafi',money(r.gross_profit)],['Matumizi',money(r.expenses_total)],['Faida baada ya matumizi',money(r.net_profit)],['Manunuzi ya stock',money(r.purchases_total)],['Idadi ya mauzo',String(r.sales_count||0)]].map(x=>'<div class="metric"><strong>'+esc(x[0])+'</strong><br>'+esc(x[1])+'</div>').join('')+'</div>');
+   w.document.write('<h2>Mauzo</h2>'+reportHtmlTable(['Risiti','Tarehe/muda','Aliyeuza','Jumla','Imepokelewa','Salio'],sales));
+   w.document.write('<h2>Matumizi</h2>'+reportHtmlTable(['Tarehe','Aina','Maelezo','Kiasi'],expenses));
+   w.document.write('<h2>Manunuzi ya stock</h2>'+reportHtmlTable(['Tarehe','Bidhaa','Katoni/pakiti','Jina la kifungashio','Vipimo vilivyoingia','Gharama'],purchases));
+   w.document.write('<h2>Stock iliyopo sasa</h2>'+reportHtmlTable(['Bidhaa','Stock','Gharama kwa kipimo','Thamani ya stock'],stock));
+   w.document.write('<p class="muted">Faida ghafi = mapato ya bidhaa baada ya punguzo, bila kodi ya mauzo, ukiondoa gharama ya bidhaa zilizouzwa. Manunuzi ya stock hayaondolewi tena kwenye faida.</p></body></html>');
+   w.document.close();message('reportMessage','Ripoti ya PDF iko tayari. Chagua Chapisha kisha Save as PDF.');
+  }
+ }catch(error){message('reportMessage','Imeshindikana kupakua ripoti: '+(error.message||error),true)}
+ finally{buttons.forEach(b=>b.disabled=false)}
+}
 async function loadStaffSalesReport(){
  if(!store||store.owner_id!==user.id){$('staffSalesReport').textContent='Ripoti hii ni ya mmiliki pekee.';return}
  const from=$('reportFrom').value,to=$('reportTo').value;
