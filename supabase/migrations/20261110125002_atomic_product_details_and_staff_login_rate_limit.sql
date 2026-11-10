@@ -1,3 +1,7 @@
+-- Additive metadata column; IF NOT EXISTS also reconciles projects where it was applied manually.
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS product_details jsonb NOT NULL DEFAULT '{}'::jsonb;
+COMMENT ON COLUMN public.products.product_details IS 'Optional business-specific product attributes, such as vehicle make, model, year, chassis and registration details.';
+
 -- Make product edit + stock adjustment + business-specific metadata one transaction.
 CREATE OR REPLACE FUNCTION public.owner_edit_product_with_details(
  p_store_id uuid, p_product_id uuid, p_pin text, p_name text,
