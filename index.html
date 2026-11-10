@@ -440,8 +440,8 @@ async function loadFinancialPosition(){
   health.className='notice success';
   health.textContent='Hali nzuri: Hakuna hasara ya jumla inayokula mtaji kwa sasa. Faida iliyokusanywa imefikia '+money(r.net_profit_loss)+'.';
  }
- $('financePositionNote').textContent='FAIDA/HASARA: '+money(r.net_profit_loss)+'. Mtaji ulioingizwa: '+money(r.owner_capital_added)+' (fedha: '+money(r.owner_cash_added)+'; stock: '+money(r.owner_stock_added)+'). Fedha binafsi zilizochukuliwa: '+money(r.owner_withdrawals)+'. MABADILIKO YA FEDHA KWA REKODI: '+money(cashAfterLoan)+' (si salio halisi). Mauzo ya mkopo/mchanganyiko yasiyojumuishwa kwenye mapokezi ya fedha: '+money(r.unallocated_or_credit_receipts)+'. Manunuzi ya stock si matumizi ya faida; gharama ya bidhaa huingia kwenye faida pale bidhaa zinapouzwa. Hakikisha unalinganisha na pesa halisi uliyonayo.';
- if(Number(r.estimated_available_funds)<0){
+ $('financePositionNote').textContent='FAIDA/HASARA: '+money(r.net_profit_loss)+'. Mtaji ulioingizwa: '+money(r.owner_capital_added)+' (fedha: '+money(r.owner_cash_added)+'; stock: '+money(r.owner_stock_added)+'). Fedha binafsi zilizochukuliwa: '+money(r.owner_withdrawals)+'. MABADILIKO YA FEDHA KWA REKODI: '+money(cashAfterLoan)+' baada ya kutoa marejesho ya mikopo ('+money(loanRepayments)+'), si salio halisi. Mauzo ya mkopo/mchanganyiko yasiyojumuishwa kwenye mapokezi ya fedha: '+money(r.unallocated_or_credit_receipts)+'. Manunuzi ya stock si matumizi ya faida; gharama ya bidhaa huingia kwenye faida pale bidhaa zinapouzwa. Hakikisha unalinganisha na pesa halisi uliyonayo.';
+ if(cashAfterLoan<0){
   const cashNote=$('cashFlowPanel').querySelector('p.muted.small');
   if(cashNote)cashNote.textContent+=' Tahadhari: hesabu inaonyesha upungufu wa '+money(Math.abs(Number(r.estimated_available_funds)))+'. Kagua malipo yasiyoingizwa, manunuzi ya mkopo au miamala ambayo haijarekodiwa kabla ya kuhitimisha kuwa mtaji umeliwa.';
  }
