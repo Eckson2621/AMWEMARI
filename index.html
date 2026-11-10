@@ -717,7 +717,7 @@ function init(){
  setupPages();bindForms();addLanguage();
  const oldLoadStore=window.loadStore;
  // Patch only after original store loader has finished, without replacing its core logic.
- const observer=new MutationObserver(()=>{if(store&&$id('amwProfileTitle')){loadBusinessProfile().catch(()=>{});loadExtraData().catch(()=>{});}});
+ const observer=new MutationObserver(()=>{if(store&&$id('amwProfileTitle')){loadBusinessProfile().catch(()=>{});loadExtraData().catch(()=>{});translateStatic();addLanguage();}});
  observer.observe($id('storeLabel'),{childList:true,subtree:true});
  document.addEventListener('click',e=>{const b=e.target.closest('[data-page="business_tools"]');if(b)loadBusinessProfile().catch(()=>{});});
  const origRefresh=window.refreshAll;
