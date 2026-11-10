@@ -674,7 +674,7 @@ async function completeSale(){
  const method=$('saleMethod').value;
  const entryMode=$('saleEntryMode').value;
  if(!Number.isFinite(total)||total<=0){message('appMsg','Jumla ya mauzo si sahihi. Ondoa bidhaa kisha uziweke tena.',true);return}
- if(!Number.isFinite(paid)||paid<0||paid>total){message('appMsg','Malipo hayawezi kuwa chini ya sifuri au kuzidi jumla.',true);return}
+ if(!Number.isFinite(paid)||paid<0||paid>total){message('appMsg','Malipo hayawezi kuwa chini ya sifuri au kuzidi jumla.',true);return}if(method==='credit'&&paid>0){message('appMsg','Ukishapokea sehemu ya fedha, chagua njia halisi ya malipo. Mkopo utakuwa salio ambalo halijalipwa.',true);return}
  let soldAt=new Date().toISOString();
  if(entryMode==='day_end'){
   const raw=$('dayEndSoldAt').value;
