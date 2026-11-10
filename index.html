@@ -360,7 +360,7 @@ async function loadCashFlow(){
  ]);
  const {data:r,error}=summary;if(error)throw error;if(loanSummary.error)throw loanSummary.error;
  const loanRepayments=Number(loanSummary.data?.loan_repayments_since_opening||0);
- const cashAfterLoan=cashAfterLoan-loanRepayments;
+ const cashAfterLoan=Number(r.estimated_available_funds||0)-loanRepayments;
  $('cashSalesTotal').textContent=money(r.sales_cash_received);
  $('cashPurchasesTotal').textContent=money(r.purchases_paid_since_opening);
  $('cashExpensesTotal').textContent=money(r.expenses_paid_since_opening);
