@@ -1029,7 +1029,7 @@ function localDB(){return new Promise((resolve,reject)=>{const req=indexedDB.ope
 async function localPut(name,value){const d=await localDB();return new Promise((resolve,reject)=>{const t=d.transaction(name,'readwrite');t.objectStore(name).put(value);t.oncomplete=()=>{d.close();resolve()};t.onerror=()=>{d.close();reject(t.error)}})}
 async function localAll(name){const d=await localDB();return new Promise((resolve,reject)=>{const t=d.transaction(name,'readonly'),r=t.objectStore(name).getAll();r.onsuccess=()=>{d.close();resolve(r.result||[])};r.onerror=()=>{d.close();reject(r.error)}})}
 // Backward-compatible alias for older cached scripts that call LocalAll.
-window.LocalAll=localAll;
+window.LocalAll=localAll;window.localALL=localAll;window.localAll=localAll;window.LOCALALL=localAll;
 async function localDelete(name,key){const d=await localDB();return new Promise((resolve,reject)=>{const t=d.transaction(name,'readwrite');t.objectStore(name).delete(key);t.oncomplete=()=>{d.close();resolve()};t.onerror=()=>{d.close();reject(t.error)}})}
 async function localReplace(name,rows){const d=await localDB();return new Promise((resolve,reject)=>{const t=d.transaction(name,'readwrite'),s=t.objectStore(name);s.clear();rows.forEach(r=>s.put(r));t.oncomplete=()=>{d.close();resolve()};t.onerror=()=>{d.close();reject(t.error)}})}
 async function renderPendingProducts(){const q=(await localAll('pending_products')).filter(p=>p.store_id===store?.id);const el=$('pendingSales');if(el){const salesQ=(await localAll('pending_sales')).filter(s=>s.store_id===store?.id);el.textContent='Bidhaa zinazosubiri: '+q.length+' · Mauzo yanayosubiri: '+salesQ.length;}return q.length}
