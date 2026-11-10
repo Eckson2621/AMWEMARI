@@ -354,20 +354,25 @@ async function refreshAll(){if(!store)return;const isOwner=store.owner_id===user
 
 async function loadCashFlow(){
  if(!store||store.owner_id!==user.id)return;
- const {data:r,error}=await db.from('store_financial_summary').select('*').eq('store_id',store.id).single();
- if(error)throw error;
+ const [summary,loanSummary]=await Promise.all([
+  db.from('store_financial_summary').select('*').eq('store_id',store.id).single(),
+  db.from('store_loan_repayment_summary').select('loan_repayments_since_opening').eq('store_id',store.id).maybeSingle()
+ ]);
+ const {data:r,error}=summary;if(error)throw error;if(loanSummary.error)throw loanSummary.error;
+ const loanRepayments=Number(loanSummary.data?.loan_repayments_since_opening||0);
+ const cashAfterLoan=cashAfterLoan-loanRepayments;
  $('cashSalesTotal').textContent=money(r.sales_cash_received);
  $('cashPurchasesTotal').textContent=money(r.purchases_paid_since_opening);
  $('cashExpensesTotal').textContent=money(r.expenses_paid_since_opening);
  $('cashOpeningDisplay').textContent=money(r.opening_cash);
  $('cashUnallocatedTotal').textContent=money(r.unallocated_or_credit_receipts);
- $('cashOnHand').textContent=money(r.estimated_available_funds);
+ $('cashOnHand').textContent=money(cashAfterLoan);
  $('openingCashAmount').value=Number(r.opening_cash||0);
  $('openingCashDate').value=r.opening_date||localToday();
- const cashAlert=$('cashPositionAlert');if(cashAlert){const bal=Number(r.estimated_available_funds||0);cashAlert.classList.remove('hidden','error','success');if(bal<0){cashAlert.classList.add('error');cashAlert.textContent='TOFAUTI YA KUFANYA RECONCILIATION: '+money(Math.abs(bal))+' upande wa matumizi ya fedha ni mkubwa kuliko mapokezi yaliyorekodiwa. Hii SI hasara ya biashara wala uthibitisho kuwa mtaji umeliwa. Faida/hasara inaonyeshwa sehemu tofauti. Kagua salio halisi, mauzo ya mkopo/mchanganyiko ('+money(r.unallocated_or_credit_receipts)+'), na kama manunuzi yote yaliwekwa kama yamelipwa.';}else{cashAlert.classList.add('success');cashAlert.textContent='Mabadiliko ya fedha kwa rekodi zilizopo: '+money(bal)+'. Thibitisha kwa kuhesabu pesa halisi kwenye droo, simu na benki.';}}
+ const cashAlert=$('cashPositionAlert');if(cashAlert){const bal=cashAfterLoan;cashAlert.classList.remove('hidden','error','success');if(bal<0){cashAlert.classList.add('error');cashAlert.textContent='TOFAUTI YA KUFANYA RECONCILIATION: '+money(Math.abs(bal))+' upande wa matumizi ya fedha ni mkubwa kuliko mapokezi yaliyorekodiwa. Hii SI hasara ya biashara wala uthibitisho kuwa mtaji umeliwa. Faida/hasara inaonyeshwa sehemu tofauti. Kagua salio halisi, mauzo ya mkopo/mchanganyiko ('+money(r.unallocated_or_credit_receipts)+'), na kama manunuzi yote yaliwekwa kama yamelipwa.';}else{cashAlert.classList.add('success');cashAlert.textContent='Mabadiliko ya fedha kwa rekodi zilizopo: '+money(bal)+'. Thibitisha kwa kuhesabu pesa halisi kwenye droo, simu na benki.';}}
  const note=$('cashFlowPanel').querySelector('p.muted.small');
  if(note){
-  note.textContent='Hii ni movement ya fedha kwa rekodi zilizopo, si salio halisi. Salio halisi linahitaji kulinganisha cash, mobile money na benki pamoja na kurekodi kila fedha inayoingia/kutoka. Stock iliyonunuliwa ni mali; si gharama ya faida mpaka iuzwe.';
+  note.textContent='Hii ni movement ya fedha kwa rekodi zilizopo baada ya kutoa marejesho ya mikopo ('+money(loanRepayments)+'), si salio halisi. Salio halisi linahitaji kulinganisha cash, mobile money na benki pamoja na kurekodi kila fedha inayoingia/kutoka. Stock iliyonunuliwa ni mali; si gharama ya faida mpaka iuzwe.';
  }
 }
 function renderBusinessGrowth(rows){
@@ -408,12 +413,13 @@ async function loadCapitalTransactions(){
 }
 async function loadFinancialPosition(){
  if(!store||store.owner_id!==user.id)return;
- const [summaryResult,dailyResult]=await Promise.all([
+ const [summaryResult,dailyResult,loanResult]=await Promise.all([
   db.from('store_financial_summary').select('*').eq('store_id',store.id).single(),
-  db.from('store_financial_daily').select('*').eq('store_id',store.id).order('report_date',{ascending:true}).limit(90)
+  db.from('store_financial_daily').select('*').eq('store_id',store.id).order('report_date',{ascending:true}).limit(90),
+  db.from('store_loan_repayment_summary').select('loan_repayments_since_opening').eq('store_id',store.id).maybeSingle()
  ]);
- if(summaryResult.error)throw summaryResult.error;if(dailyResult.error)throw dailyResult.error;
- const r=summaryResult.data;
+ if(summaryResult.error)throw summaryResult.error;if(dailyResult.error)throw dailyResult.error;if(loanResult.error)throw loanResult.error;
+ const r=summaryResult.data,loanRepayments=Number(loanResult.data?.loan_repayments_since_opening||0),cashAfterLoan=Number(r.estimated_available_funds||0)-loanRepayments;
  $('financeSalesTotal').textContent=money(r.net_sales);
  $('financePurchasesTotal').textContent=money(r.recorded_stock_purchases);
  $('financeCogsTotal').textContent=money(r.cost_of_goods_sold);
@@ -421,7 +427,7 @@ async function loadFinancialPosition(){
  $('financeNetProfit').textContent=money(r.net_profit_loss);
  $('financeStockValue').textContent=money(r.current_stock_value);
  $('financeStockUnits').textContent=Number(r.current_stock_units||0).toLocaleString('en-TZ',{maximumFractionDigits:3});
- $('financeCashOnHand').textContent=money(r.estimated_available_funds);
+ $('financeCashOnHand').textContent=money(cashAfterLoan);
  $('financeCashOnHand').title='Mabadiliko ya fedha kwa miamala iliyorekodiwa; si uthibitisho wa salio halisi.';
  $('capitalTotal').textContent=money(r.owner_capital_added);
  $('capitalConsumed').textContent=money(r.capital_consumed_by_cumulative_loss);
@@ -434,7 +440,7 @@ async function loadFinancialPosition(){
   health.className='notice success';
   health.textContent='Hali nzuri: Hakuna hasara ya jumla inayokula mtaji kwa sasa. Faida iliyokusanywa imefikia '+money(r.net_profit_loss)+'.';
  }
- $('financePositionNote').textContent='FAIDA/HASARA: '+money(r.net_profit_loss)+'. Mtaji ulioingizwa: '+money(r.owner_capital_added)+' (fedha: '+money(r.owner_cash_added)+'; stock: '+money(r.owner_stock_added)+'). Fedha binafsi zilizochukuliwa: '+money(r.owner_withdrawals)+'. MABADILIKO YA FEDHA KWA REKODI: '+money(r.estimated_available_funds)+' (si salio halisi). Mauzo ya mkopo/mchanganyiko yasiyojumuishwa kwenye mapokezi ya fedha: '+money(r.unallocated_or_credit_receipts)+'. Manunuzi ya stock si matumizi ya faida; gharama ya bidhaa huingia kwenye faida pale bidhaa zinapouzwa. Hakikisha unalinganisha na pesa halisi uliyonayo.';
+ $('financePositionNote').textContent='FAIDA/HASARA: '+money(r.net_profit_loss)+'. Mtaji ulioingizwa: '+money(r.owner_capital_added)+' (fedha: '+money(r.owner_cash_added)+'; stock: '+money(r.owner_stock_added)+'). Fedha binafsi zilizochukuliwa: '+money(r.owner_withdrawals)+'. MABADILIKO YA FEDHA KWA REKODI: '+money(cashAfterLoan)+' (si salio halisi). Mauzo ya mkopo/mchanganyiko yasiyojumuishwa kwenye mapokezi ya fedha: '+money(r.unallocated_or_credit_receipts)+'. Manunuzi ya stock si matumizi ya faida; gharama ya bidhaa huingia kwenye faida pale bidhaa zinapouzwa. Hakikisha unalinganisha na pesa halisi uliyonayo.';
  if(Number(r.estimated_available_funds)<0){
   const cashNote=$('cashFlowPanel').querySelector('p.muted.small');
   if(cashNote)cashNote.textContent+=' Tahadhari: hesabu inaonyesha upungufu wa '+money(Math.abs(Number(r.estimated_available_funds)))+'. Kagua malipo yasiyoingizwa, manunuzi ya mkopo au miamala ambayo haijarekodiwa kabla ya kuhitimisha kuwa mtaji umeliwa.';
