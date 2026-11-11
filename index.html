@@ -1373,7 +1373,8 @@ document.addEventListener('click',function(event){
   return;
  }
  button.dataset.saleStarting='1';
- button.disabled=true;
+ // Do not disable here: completeSale() checks btn.disabled at entry.
+ // It will disable the button itself only after validation is complete.
  button.textContent='Inaanza kuhifadhi...';
  show('Ombi la kurekodi mauzo limepokelewa. Subiri tafadhali.');
  Promise.resolve().then(()=>window.completeSale()).catch(error=>{
