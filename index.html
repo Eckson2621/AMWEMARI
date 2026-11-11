@@ -1353,5 +1353,40 @@ function init(){
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
+
+/* Reliable delegated sale button handler: catches taps even if direct binding fails. */
+document.addEventListener('click',function(event){
+ const button=event.target instanceof Element?event.target.closest('#completeSaleBtn'):null;
+ if(!button)return;
+ event.preventDefault();
+ event.stopImmediatePropagation();
+ if(button.dataset.saleStarting==='1')return;
+ const status=document.getElementById('appMsg');
+ const show=(text,isError=false)=>{
+  if(!status)return;
+  status.textContent=text;
+  status.classList.remove('hidden','error','success');
+  status.classList.add(isError?'error':'success');
+ };
+ if(typeof window.completeSale!=='function'){
+  show('Hitilafu: sehemu ya kurekodi mauzo haijaanza. Refresh ukurasa kisha jaribu tena.',true);
+  return;
+ }
+ button.dataset.saleStarting='1';
+ button.disabled=true;
+ button.textContent='Inaanza kuhifadhi...';
+ show('Ombi la kurekodi mauzo limepokelewa. Subiri tafadhali.');
+ Promise.resolve().then(()=>window.completeSale()).catch(error=>{
+  console.error('AMWEMARI delegated sale click failed:',error);
+  show('Mauzo hayajahifadhiwa: '+(error?.message||String(error)),true);
+ }).finally(()=>{
+  delete button.dataset.saleStarting;
+  if(button.isConnected){
+   button.disabled=false;
+   button.textContent='Thibitisha mauzo';
+  }
+ });
+},true);
+
 </script>
 </body></html>
