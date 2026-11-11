@@ -127,7 +127,7 @@
  <div class="panel section"><h2>Ununuzi wa karibuni</h2><div id="purchasesTable" class="tablewrap"></div></div>
  <div class="panel section"><h2>Mikopo ya biashara na supplier</h2><div class="grid"><div class="card"><div class="muted">Jumla ya madeni ya mikopo yaliyorekodiwa</div><div class="metric" id="businessLoanOutstanding">TZS 0</div></div></div><div id="businessLoansTable" class="tablewrap">Inapakia...</div><p class="muted small">Salio hili linaonyesha mikopo iliyorekodiwa wakati wa kununua stock. Rekodi marejesho ya mkopo kwenye hatua ya usimamizi wa madeni itakapowashwa; usipunguze salio kwa kubadilisha rekodi ya ununuzi.</p></div>
 </section>
-   <section id="expenses" class="page hidden"><div class="panel"><h2>Rekodi matumizi</h2><form id="expenseForm"><div class="grid"><div class="field"><label>Aina ya matumizi</label><input id="eCategory" placeholder="Mf. Usafiri" required></div><div class="field"><label>Maelezo</label><input id="eDescription" required></div><div class="field"><label>Kiasi (TZS)</label><input id="eAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Njia ya malipo</label><select id="eMethod"><option value="cash">Taslimu</option><option value="mobile_money">Mobile money</option><option value="bank">Benki</option><option value="card">Kadi</option></select></div></div><button id="saveExpenseBtn" type="submit">Hifadhi matumizi</button></form></div><div class="panel section"><h2>Matumizi ya karibuni</h2><div id="expensesTable" class="tablewrap"></div></div></section>
+   <section id="expenses" class="page hidden"><div class="panel"><h2>Rekodi matumizi</h2><form id="expenseForm"><div class="grid"><div class="field"><label>Aina ya matumizi</label><input id="eCategory" placeholder="Mf. Usafiri" required></div><div class="field"><label>Maelezo</label><input id="eDescription" required></div><div class="field"><label>Kiasi (TZS)</label><input id="eAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Njia ya malipo</label><select id="eMethod"><option value="cash">Taslimu</option><option value="mobile_money">Mobile money</option><option value="bank">Benki</option><option value="card">Kadi</option></select></div></div><button id="saveExpenseBtn" type="button">Hifadhi matumizi</button></form></div><div class="panel section"><h2>Matumizi ya karibuni</h2><div id="expensesTable" class="tablewrap"></div></div></section>
    <section id="staff" class="page hidden"><div class="panel"><h2>Sajili mfanyakazi</h2><p class="muted small">Mfanyakazi atatumia username na password; hahitaji email. Password iwe na angalau herufi 8.</p><form id="staffForm"><div class="grid"><div class="field"><label>Jina kamili</label><input id="staffFullName" required maxlength="100"></div><div class="field"><label>Username</label><input id="staffUsername" required minlength="3" maxlength="30" pattern="[a-zA-Z0-9._-]+" autocomplete="off"></div><div class="field"><label>Password</label><input id="staffPassword" type="password" required minlength="8" maxlength="72" autocomplete="new-password"></div></div><button id="createStaffBtn" type="submit">Sajili mfanyakazi</button></form><div id="staffMessage" class="notice hidden"></div></div><div class="panel section"><div class="row"><h2>Wafanyakazi wa biashara</h2><button type="button" class="secondary" onclick="loadStaff()">Sasisha</button></div><div id="staffTable" class="tablewrap">Inapakia...</div></div></section>
    <section id="reports" class="page hidden"><div class="panel"><h2>Ripoti ya biashara</h2><p class="muted small">Chagua kipindi ili kuona mauzo, gharama ya bidhaa zilizouzwa, faida na matumizi.</p><div class="grid"><div class="field"><label>Kuanzia tarehe</label><input id="reportFrom" type="date"></div><div class="field"><label>Mpaka tarehe</label><input id="reportTo" type="date"></div></div><button onclick="loadBusinessReport()">Tengeneza ripoti</button><div class="actions section">
  <button type="button" onclick="setReportPeriod('week')">Ripoti ya wiki</button>
@@ -871,10 +871,10 @@ window.addCart=addCart;
 window.completeSale=completeSale;
 window.removeCart=removeCart;
 let expenseSaveInProgress=false;
-$('expenseForm').addEventListener('submit',async e=>{
- e.preventDefault();
- const form=e.currentTarget,btn=$('saveExpenseBtn')||form.querySelector('button');
- // A synchronous lock prevents a second submit even if the user double-taps quickly.
+async function saveExpense(event){
+ if(event){event.preventDefault();event.stopPropagation();}
+ const form=$('expenseForm'),btn=$('saveExpenseBtn');
+ // Lock synchronously so a rapid double-tap cannot create duplicate expenses.
  if(expenseSaveInProgress)return;
  if(!store||!user){message('appMsg','Akaunti au biashara haijapakiwa. Hakuna matumizi yaliyohifadhiwa; taarifa zako zimeachwa kwenye fomu.',true);return}
  if(!navigator.onLine){message('appMsg','Intaneti haipo. Matumizi hayajahifadhiwa. Acha taarifa hizi kwenye fomu, unganisha intaneti kisha jaribu tena.',true);return}
@@ -889,9 +889,11 @@ $('expenseForm').addEventListener('submit',async e=>{
   if(!session?.user?.id||session.user.id!==user.id)throw new Error('Session ya akaunti haipo au imeisha. Taarifa zako zimeachwa kwenye fomu; ingia tena kisha ujaribu kuhifadhi.');
   const {error}=await db.from('expenses').insert(payload);
   if(error)throw error;
+  // Clear inputs only after Supabase confirms the insert.
   form.reset();
   if(btn)btn.textContent='Matumizi yamehifadhiwa ✓';
-  try{await refreshAll();message('appMsg','Matumizi yamehifadhiwa kikamilifu.')}
+  message('appMsg','Matumizi yamehifadhiwa kikamilifu.');
+  try{await refreshAll()}
   catch(refreshError){console.error('Expense saved but refresh failed:',refreshError);message('appMsg','Matumizi yamehifadhiwa kwenye database, lakini orodha haikuweza kusasishwa. Bonyeza Sasisha; usiingize matumizi haya tena.',false)}
  }catch(error){
   console.error('AMWEMARI expense save failed:',error);
@@ -901,7 +903,10 @@ $('expenseForm').addEventListener('submit',async e=>{
   expenseSaveInProgress=false;
   if(btn){btn.disabled=false;if(btn.textContent==='Inahifadhi matumizi…')btn.textContent='Hifadhi matumizi'}
  }
-});
+}
+const expenseForm=$('expenseForm'),saveExpenseBtn=$('saveExpenseBtn');
+if(expenseForm)expenseForm.addEventListener('submit',saveExpense);
+if(saveExpenseBtn)saveExpenseBtn.addEventListener('click',event=>saveExpense(event));
 db.auth.getSession().then(({data})=>{if(data.session)boot().catch(showAuthFailure)}).catch(showAuthFailure);
 
 async function staffRequest(payload){
