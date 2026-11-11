@@ -127,7 +127,7 @@
  <div class="panel section"><h2>Ununuzi wa karibuni</h2><div id="purchasesTable" class="tablewrap"></div></div>
  <div class="panel section"><h2>Mikopo ya biashara na supplier</h2><div class="grid"><div class="card"><div class="muted">Jumla ya madeni ya mikopo yaliyorekodiwa</div><div class="metric" id="businessLoanOutstanding">TZS 0</div></div></div><div id="businessLoansTable" class="tablewrap">Inapakia...</div><p class="muted small">Salio hili linaonyesha mikopo iliyorekodiwa wakati wa kununua stock. Rekodi marejesho ya mkopo kwenye hatua ya usimamizi wa madeni itakapowashwa; usipunguze salio kwa kubadilisha rekodi ya ununuzi.</p></div>
 </section>
-   <section id="expenses" class="page hidden"><div class="panel"><h2>Rekodi matumizi</h2><form id="expenseForm"><div class="grid"><div class="field"><label>Aina ya matumizi</label><input id="eCategory" placeholder="Mf. Usafiri" required></div><div class="field"><label>Maelezo</label><input id="eDescription" required></div><div class="field"><label>Kiasi (TZS)</label><input id="eAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Njia ya malipo</label><select id="eMethod"><option value="cash">Taslimu</option><option value="mobile_money">Mobile money</option><option value="bank">Benki</option><option value="card">Kadi</option></select></div></div><button id="saveExpenseBtn" type="button" onclick="saveExpense(event)">Hifadhi matumizi</button><div id="expenseSaveStatus" class="notice hidden" role="status" aria-live="polite" style="margin-top:10px"></div></form></div><div class="panel section"><h2>Matumizi ya karibuni</h2><div id="expensesTable" class="tablewrap"></div></div></section>
+   <section id="expenses" class="page hidden"><div class="panel"><h2>Rekodi matumizi</h2><form id="expenseForm"><div class="grid"><div class="field"><label>Aina ya matumizi</label><input id="eCategory" placeholder="Mf. Usafiri" required></div><div class="field"><label>Maelezo</label><input id="eDescription" required></div><div class="field"><label>Kiasi (TZS)</label><input id="eAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Njia ya malipo</label><select id="eMethod"><option value="cash">Taslimu</option><option value="mobile_money">Mobile money</option><option value="bank">Benki</option><option value="card">Kadi</option></select></div></div><button id="saveExpenseBtn" type="button">Hifadhi matumizi</button><div id="expenseSaveStatus" class="notice hidden" role="status" aria-live="polite" style="margin-top:10px"></div></form></div><div class="panel section"><h2>Matumizi ya karibuni</h2><div id="expensesTable" class="tablewrap"></div></div></section>
    <section id="staff" class="page hidden"><div class="panel"><h2>Sajili mfanyakazi</h2><p class="muted small">Mfanyakazi atatumia username na password; hahitaji email. Password iwe na angalau herufi 8.</p><form id="staffForm"><div class="grid"><div class="field"><label>Jina kamili</label><input id="staffFullName" required maxlength="100"></div><div class="field"><label>Username</label><input id="staffUsername" required minlength="3" maxlength="30" pattern="[a-zA-Z0-9._-]+" autocomplete="off"></div><div class="field"><label>Password</label><input id="staffPassword" type="password" required minlength="8" maxlength="72" autocomplete="new-password"></div></div><button id="createStaffBtn" type="submit">Sajili mfanyakazi</button></form><div id="staffMessage" class="notice hidden"></div></div><div class="panel section"><div class="row"><h2>Wafanyakazi wa biashara</h2><button type="button" class="secondary" onclick="loadStaff()">Sasisha</button></div><div id="staffTable" class="tablewrap">Inapakia...</div></div></section>
    <section id="reports" class="page hidden"><div class="panel"><h2>Ripoti ya biashara</h2><p class="muted small">Chagua kipindi ili kuona mauzo, gharama ya bidhaa zilizouzwa, faida na matumizi.</p><div class="grid"><div class="field"><label>Kuanzia tarehe</label><input id="reportFrom" type="date"></div><div class="field"><label>Mpaka tarehe</label><input id="reportTo" type="date"></div></div><button onclick="loadBusinessReport()">Tengeneza ripoti</button><div class="actions section">
  <button type="button" onclick="setReportPeriod('week')">Ripoti ya wiki</button>
@@ -188,7 +188,10 @@ if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.se
 <script>
 const SUPABASE_URL='https://eevexpjcyadcjjziwesb.supabase.co';
 const SUPABASE_ANON_KEY='sb_publishable_oAByqcmvRE7fQY5PObAFLw_k5vMPf64';
-const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+// Explicitly persist the Supabase session in this browser so a page refresh does not sign the user out.
+const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
+ auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true,storage:window.localStorage}
+});
 const STAFF_AUTH_URL=SUPABASE_URL+'/functions/v1/staff-auth';
 let user=null,store=null,isSuperAdmin=false,accountAccess=null,products=[],sales=[],expenses=[],movements=[],cart=[],staffDirectory=[],mode='login',pendingEditProductId=null;
 const $=id=>document.getElementById(id), money=n=>'TZS '+Number(n||0).toLocaleString('en-TZ',{maximumFractionDigits:2});
@@ -909,6 +912,7 @@ async function saveExpense(event){
  }
 }
 const expenseForm=$('expenseForm'),saveExpenseBtn=$('saveExpenseBtn');
+if(saveExpenseBtn)saveExpenseBtn.addEventListener('click',saveExpense);
 if(expenseForm)expenseForm.addEventListener('submit',saveExpense);
 
 db.auth.getSession().then(({data})=>{if(data.session)boot().catch(showAuthFailure)}).catch(showAuthFailure);
