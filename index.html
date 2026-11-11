@@ -370,10 +370,14 @@ async function loadSubscription(gateOnly=false){
  const dashPanel=$('dashboardSubscription');if(dashPanel)dashPanel.classList.toggle('hidden',store.owner_id!==user.id);
 }
 async function checkSuperAdmin(){
- isSuperAdmin=false;if(!navigator.onLine||!user)return;
+ isSuperAdmin=false;
+ if(!navigator.onLine||!user)return;
+ // Avoid sending every ordinary account to the Super Admin-only list endpoint.
+ // The Edge Function still performs the authoritative email + database allow-list check.
+ if((user.email||'').toLowerCase()!=='mwalimueckson2104@gmail.com')return;
  try{const {data,error}=await db.functions.invoke('amwemari-admin-subscriptions',{body:{action:'list'}});
   if(!error&&data?.stores)isSuperAdmin=true;
- }catch(e){console.warn('Not a super admin session')}
+ }catch(e){console.warn('Super Admin verification failed:',e)}
 }
 
 function renderAdminAnalytics(rows,pending){
