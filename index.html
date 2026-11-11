@@ -823,7 +823,9 @@ $('productForm').addEventListener('submit',async e=>{
    await renderPendingProducts();return;
   }
   productStatus('Inahifadhi bidhaa na stock ya kuanzia kwa pamoja kwenye Supabase…');message('appMsg','Inahifadhi bidhaa na stock ya kuanzia kwa pamoja…');
-  const {data,error}=await db.rpc('create_product_with_opening_stock',{
+  // RPC may take time on a weak mobile connection. Bound the wait, then verify
+  // the exact product ID directly before telling the user that saving succeeded.
+  const rpcPromise=db.rpc('create_product_with_opening_stock',{
    p_product:payload,
    p_package_quantity:packs,
    p_loose_units:loose,
@@ -831,9 +833,28 @@ $('productForm').addEventListener('submit',async e=>{
    p_purchase_date:new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'}),
    p_note:'AMWEMARI_OFFLINE_OPENING:'+payload.id
   });
-  if(error)throw error;
-  const savedProduct=Array.isArray(data)?data[0]:data;
-  if(!savedProduct||savedProduct.id!==payload.id)throw new Error('Supabase haijathibitisha bidhaa iliyohifadhiwa. Hakuna mafanikio yaliyothibitishwa.');
+  let rpcResult;
+  let rpcTimedOut=false;
+  try{
+   rpcResult=await Promise.race([
+    rpcPromise,
+    new Promise((_,reject)=>setTimeout(()=>{rpcTimedOut=true;reject(new Error('Muda wa kusubiri Supabase umeisha baada ya sekunde 25. Inathibitisha kama bidhaa iliingia…'))},25000))
+   ]);
+  }catch(rpcWaitError){
+   if(!rpcTimedOut)throw rpcWaitError;
+   const verification=await db.from('products').select('*').eq('id',payload.id).eq('store_id',store.id).maybeSingle();
+   if(verification.error)throw new Error('Supabase haikujibu ndani ya sekunde 25, na uthibitisho umeshindikana: '+verification.error.message);
+   if(!verification.data)throw new Error('Supabase haijahifadhi bidhaa ndani ya sekunde 25. Jaribu tena; bidhaa haijaonekana kwenye hifadhidata.');
+   rpcResult={data:verification.data,error:null};
+  }
+  if(rpcResult.error)throw rpcResult.error;
+  let savedProduct=Array.isArray(rpcResult.data)?rpcResult.data[0]:rpcResult.data;
+  if(!savedProduct||savedProduct.id!==payload.id){
+   const verification=await db.from('products').select('*').eq('id',payload.id).eq('store_id',store.id).maybeSingle();
+   if(verification.error)throw verification.error;
+   savedProduct=verification.data;
+  }
+  if(!savedProduct||savedProduct.id!==payload.id)throw new Error('Supabase haijathibitisha bidhaa iliyohifadhiwa. Haijaongezwa kwenye Rekodi Mauzo.');
   // Update the product list and sales selector immediately after the RPC succeeds.
   // Do not make product-save success depend on unrelated dashboard/report queries.
   products=[...products.filter(p=>p.id!==savedProduct.id),savedProduct]
