@@ -959,14 +959,37 @@ async function completeSale(){
  }
 
 }
-// Bind sale controls explicitly; do not rely on inline HTML onclick handlers.
-const addCartButton=$('addCartBtn');
-if(addCartButton){
- addCartButton.addEventListener('click',event=>{
-  event.preventDefault();
-  addCart().catch(error=>console.error('AMWEMARI addCart error:',error));
- });
-}
+// Expose sale actions, then delegate the Add-to-cart tap from document capture.
+window.addCart=addCart;
+window.completeSale=completeSale;
+window.removeCart=removeCart;
+window.addCartFromButton=async function(event){
+ if(event){event.preventDefault();event.stopPropagation();}
+ const btn=$('addCartBtn'),status=$('saleActionStatus');
+ if(!btn||typeof window.addCart!=='function'){
+  if(status)status.textContent='Hitilafu: sehemu ya kuongeza bidhaa haijaanza. Refresh ukurasa kisha jaribu tena.';
+  return false;
+ }
+ if(btn.dataset.adding==='1')return false;
+ btn.dataset.adding='1';
+ try{
+  await window.addCart();
+  return true;
+ }catch(error){
+  console.error('AMWEMARI add-to-cart failed:',error);
+  if(status)status.textContent='Haijaongezwa: '+(error?.message||String(error));
+  return false;
+ }finally{
+  delete btn.dataset.adding;
+ }
+};
+document.addEventListener('click',function(event){
+ const target=event.target instanceof Element?event.target.closest('#addCartBtn'):null;
+ if(!target)return;
+ event.preventDefault();
+ event.stopImmediatePropagation();
+ window.addCartFromButton(event);
+},true);
 const completeSaleButton=$('completeSaleBtn');
 if(completeSaleButton){
  completeSaleButton.addEventListener('click',event=>{
@@ -977,9 +1000,6 @@ if(completeSaleButton){
   });
  });
 }
-window.addCart=addCart;
-window.completeSale=completeSale;
-window.removeCart=removeCart;
 // Use var so early event callbacks cannot hit a lexical temporal-dead-zone.
 var expenseSaveInProgress=false;
 async function saveExpense(event){
