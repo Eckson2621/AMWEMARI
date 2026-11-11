@@ -1226,6 +1226,27 @@ document.addEventListener('click',function(event){
   if(status){status.textContent='Haijahifadhiwa: '+(error?.message||String(error));status.classList.remove('hidden');status.classList.add('error');}
  });
 },true);
+
+// Capture sale confirmation at document level so a missing inline binding
+// cannot make the confirmation button appear unresponsive.
+document.addEventListener('click',function(event){
+ const button=event.target instanceof Element?event.target.closest('#completeSaleBtn'):null;
+ if(!button)return;
+ event.preventDefault();
+ event.stopImmediatePropagation();
+ const status=document.getElementById('appMsg');
+ if(typeof window.completeSale!=='function'){
+  if(status){status.textContent='Hitilafu: sehemu ya kuhifadhi mauzo haijaanza. Refresh ukurasa kisha jaribu tena.';status.classList.remove('hidden');status.classList.add('error');}
+  console.error('AMWEMARI: completeSale handler is unavailable.');
+  return;
+ }
+ if(button.disabled)return;
+ if(status){status.textContent='Kitufe kimebonyezwa. Mfumo unaanza kuhifadhi mauzo...';status.classList.remove('hidden','error');status.classList.add('success');}
+ Promise.resolve().then(()=>window.completeSale()).catch(error=>{
+  console.error('AMWEMARI delegated sale click failed:',error);
+  if(status){status.textContent='Mauzo hayajaanza kuhifadhiwa: '+(error?.message||String(error));status.classList.remove('hidden');status.classList.add('error');}
+ });
+},true);
 </script>
 <script>
 (()=>{
