@@ -1048,6 +1048,26 @@ async function completeSale(){
 window.addCart=addCart;
 window.completeSale=completeSale;
 window.removeCart=removeCart;
+// Capture the Add Product click centrally so the button still responds
+// if its local listener is disrupted by another script or DOM re-render.
+document.addEventListener('click',function(event){
+ const button=event.target instanceof Element?event.target.closest('#addCartBtn'):null;
+ if(!button)return;
+ event.preventDefault();
+ event.stopImmediatePropagation();
+ const status=document.getElementById('saleActionStatus');
+ if(typeof window.addCart!=='function'){
+  if(status)status.textContent='Hitilafu: sehemu ya kuongeza bidhaa haijaanza. Refresh ukurasa kisha jaribu tena.';
+  console.error('AMWEMARI: addCart handler is unavailable.');
+  return;
+ }
+ if(button.disabled)return;
+ Promise.resolve().then(()=>window.addCart()).catch(error=>{
+  console.error('AMWEMARI delegated add click failed:',error);
+  if(status)status.textContent='Bidhaa haijaongezwa: '+(error?.message||String(error));
+  message('appMsg','Bidhaa haijaongezwa: '+(error?.message||String(error)),true);
+ });
+},true);
 const addCartButton=$('addCartBtn');
 if(addCartButton){
  addCartButton.addEventListener('click',async event=>{
