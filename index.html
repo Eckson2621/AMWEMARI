@@ -925,7 +925,19 @@ async function recordPurchase(){
  finally{if(btn){btn.disabled=false;btn.textContent='Hifadhi ununuzi'}}
 }
 async function adjustStock(id){const p=products.find(x=>x.id===id),v=prompt('Ongeza kiasi cha stock kwa '+p.name+':');if(v===null)return;const qty=Number(v);if(!Number.isFinite(qty)||qty<=0){alert('Weka kiasi zaidi ya sifuri.');return}const {error}=await db.from('products').update({quantity:Number(p.quantity)+qty,updated_at:new Date().toISOString()}).eq('id',id).eq('store_id',store.id);if(error){message('appMsg',error.message,true);return}const m=await db.from('stock_movements').insert({store_id:store.id,product_id:id,movement_type:'purchase',quantity_change:qty,unit_cost:p.cost_price,reference_type:'manual_adjustment',note:'Manual stock addition',performed_by:user.id});if(m.error)message('appMsg','Stock imeongezwa lakini ledger imeshindwa: '+m.error.message,true);await refreshAll()}
-$('saleProduct').addEventListener('change',updateSalePrice);$('saleUnit').addEventListener('change',updateSalePrice);function updateSalePrice(){const p=products.find(x=>x.id===$('saleProduct').value),pack=$('saleUnit').value==='pack';$('salePrice').textContent=p?p.name+' · '+(pack?money(p.wholesale_pack_price)+' / '+p.pack_name:money(p.selling_price)+' / '+p.base_unit)+' · Stock '+stockDisplay(p):'Chagua bidhaa'}
+function updateSalePrice(){
+ const select=$('saleProduct'),unit=$('saleUnit'),display=$('salePrice');
+ if(!select||!unit||!display)return;
+ const selectedId=String(select.value||'').trim();
+ const p=products.find(x=>String(x.id)===selectedId);
+ const pack=unit.value==='pack';
+ if(!p){display.textContent='Chagua bidhaa';return}
+ const price=pack?Number(p.wholesale_pack_price||0):Number(p.selling_price||0);
+ const unitName=pack?(p.pack_name||'pakiti'):(p.base_unit||p.unit||'kipande');
+ display.textContent=p.name+' · '+money(price)+' / '+unitName+' · Stock '+stockDisplay(p);
+}
+$('saleProduct').addEventListener('change',updateSalePrice);
+$('saleUnit').addEventListener('change',updateSalePrice);
 let saleAddInProgress=false;
 async function addCart(){
  const btn=$('addCartBtn'),status=$('saleActionStatus');
@@ -938,6 +950,7 @@ async function addCart(){
   if(!productSelect||!qtyInput||!unitSelect)throw new Error('Sehemu za kuchagua bidhaa hazijapakiwa. Refresh ukurasa kisha jaribu tena.');
   const selectedId=String(productSelect.value||'').trim();
   const p=products.find(x=>String(x.id)===selectedId);
+  updateSalePrice();
   const q=Number(qtyInput.value),pack=unitSelect.value==='pack';
   if(!selectedId||!p)throw new Error('Chagua bidhaa iliyopo kwenye orodha kwanza.');
   if(!Number.isFinite(q)||q<=0)throw new Error('Weka kiasi sahihi zaidi ya sifuri.');
