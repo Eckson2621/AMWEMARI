@@ -833,8 +833,24 @@ $('productForm').addEventListener('submit',async e=>{
   if(error)throw error;
   const savedProduct=Array.isArray(data)?data[0]:data;
   if(!savedProduct||savedProduct.id!==payload.id)throw new Error('Supabase haijathibitisha bidhaa iliyohifadhiwa. Hakuna mafanikio yaliyothibitishwa.');
+  // Update the product list and sales selector immediately after the RPC succeeds.
+  // Do not make product-save success depend on unrelated dashboard/report queries.
+  products=[...products.filter(p=>p.id!==savedProduct.id),savedProduct]
+    .filter(p=>p.store_id===store.id&&p.is_active!==false);
+  renderAll();
   form.reset();$('pUnitsPerPack').value='12';$('pPackName').value='katoni';$('pBaseUnit').value='chupa';$('pOpeningPacks').value='0';$('pPackCost').value='0';$('pWholesale').value='0';
-  await refreshAll();message('appMsg','Bidhaa imehifadhiwa Supabase kikamilifu ✓ Stock ya mwanzo: '+openingQty+' '+payload.base_unit);
+  try{
+   const cached=(await window.localAll('products')).filter(p=>p.id!==savedProduct.id);
+   cached.push(savedProduct);
+   await localReplace('products',cached);
+  }catch(cacheError){console.warn('Product saved in Supabase; local cache refresh failed:',cacheError)}
+  try{
+   await refreshAll();
+   message('appMsg','Bidhaa imehifadhiwa Supabase kikamilifu ✓ Imeongezwa pia kwenye orodha ya Rekodi Mauzo. Stock ya mwanzo: '+openingQty+' '+payload.base_unit);
+  }catch(refreshError){
+   console.warn('Product saved successfully; dashboard refresh had a separate error:',refreshError);
+   message('appMsg','Bidhaa imehifadhiwa Supabase kikamilifu ✓ Imeongezwa kwenye Rekodi Mauzo. Sehemu nyingine za dashboard hazijapakia: '+(refreshError?.message||refreshError),true);
+  }
  }catch(error){
   console.error('AMWEMARI product save failed:',error);
   const detail=error?.message||String(error);
