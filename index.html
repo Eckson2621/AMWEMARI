@@ -100,7 +100,7 @@
 </div>
 <div id="businessGrowthPanel" class="panel section"><h2>Graph ya mwenendo wa biashara</h2><p class="muted small">Mauzo, faida/hasara na thamani ya stock kwa siku. Stock ya siku zilizopita ni makadirio yanayotumia movement history na gharama ya sasa ya bidhaa.</p><div id="businessGrowthChart"><p class="muted">Inapakia graph...</p></div></div>
 <div class="panel section"><h2>Bidhaa zinazokaribia kuisha</h2><div id="lowStockList" class="tablewrap"></div></div><div class="panel section"><h2>Mauzo ya hivi karibuni</h2><div id="recentSales" class="tablewrap"></div></div></section>
-   <section id="sales" class="page hidden"><div class="panel"><h2>Rekodi mauzo</h2><div class="grid"><div class="field"><label>Bidhaa</label><select id="saleProduct"></select></div><div class="field"><label>Aina ya mauzo</label><select id="saleUnit"><option value="single">Rejareja (kipande/chupa)</option><option value="pack">Jumla (katoni/boksi)</option></select></div><div class="field"><label>Kiasi</label><input id="saleQty" type="number" min=".001" step=".001" value="1"></div><div class="field"><label>Malipo yaliyopokelewa</label><input id="salePaid" type="number" min="0" step=".01" value="0"></div><div class="field"><label>Jina la mteja (lazima kama kuna deni)</label><input id="saleCustomerName" maxlength="120" placeholder="Jina la anayechukua kwa mkopo"></div><div class="field"><label>Simu ya mteja (hiari)</label><input id="saleCustomerPhone" maxlength="30" placeholder="07..."></div><div class="field"><label>Njia ya malipo</label><select id="saleMethod"><option value="cash">Taslimu</option><option value="mobile_money">Mobile money</option><option value="card">Kadi</option><option value="bank">Benki</option><option value="credit">Mkopo</option></select></div><div class="field"><label>Aina ya kurekodi mauzo</label><select id="saleEntryMode"><option value="live">Mauzo ya papo hapo</option><option value="day_end">Mauzo ya mwisho wa siku</option></select></div></div><div id="dayEndFields" class="grid hidden"><div class="field"><label>Muda halisi ambao mauzo yalifanyika</label><input id="dayEndSoldAt" type="datetime-local"></div><div class="field"><label>Maelezo (hiari)</label><input id="dayEndReason" maxlength="250" placeholder="Mf. Mauzo yaliyofanyika wakati simu haikuwa na chaji"></div></div><p id="saleEntryHint" class="muted small">Rekodi kila mteja anaponunua. Mfumo utahifadhi muda wa mauzo na muda wa kurekodi.</p><div class="row"><div id="salePrice" class="muted">Chagua bidhaa</div><button id="addCartBtn" type="button" onclick="return addCartFromButton(event)">Ongeza bidhaa</button></div><div id="saleActionStatus" class="notice section" role="status" aria-live="polite">Chagua bidhaa, weka kiasi, kisha bonyeza Ongeza bidhaa.</div><div id="cartTable" class="tablewrap section"></div><div id="pendingSales" class="notice section">Mauzo yanayosubiri kusawazishwa: 0</div><div class="row section"><strong id="cartTotal">Jumla: TZS 0</strong><button id="completeSaleBtn" type="button" onclick="return window.handleCompleteSaleClick(event)">Thibitisha mauzo</button></div><p class="muted small">Ukiuza katoni, stock itapungua kwa idadi ya chupa zilizomo kwenye katoni. Mauzo yote yanatumia stock moja.</p></div><div class="panel section"><h2>Mauzo yaliyorekodiwa</h2><div id="salesTable" class="tablewrap"></div><div id="mySalesSummary" class="notice section">Muhtasari wa mauzo yangu utajitokeza hapa.</div></div></section>
+   <section id="sales" class="page hidden"><div class="panel"><h2>Rekodi mauzo</h2><div class="grid"><div class="field"><label>Bidhaa</label><select id="saleProduct"></select></div><div class="field"><label>Aina ya mauzo</label><select id="saleUnit"><option value="single">Rejareja (kipande/chupa)</option><option value="pack">Jumla (katoni/boksi)</option></select></div><div class="field"><label>Kiasi</label><input id="saleQty" type="number" min=".001" step=".001" value="1"></div><div class="field"><label>Malipo yaliyopokelewa</label><input id="salePaid" type="number" min="0" step=".01" value="0"></div><div class="field"><label>Jina la mteja (lazima kama kuna deni)</label><input id="saleCustomerName" maxlength="120" placeholder="Jina la anayechukua kwa mkopo"></div><div class="field"><label>Simu ya mteja (hiari)</label><input id="saleCustomerPhone" maxlength="30" placeholder="07..."></div><div class="field"><label>Njia ya malipo</label><select id="saleMethod"><option value="cash">Taslimu</option><option value="mobile_money">Mobile money</option><option value="card">Kadi</option><option value="bank">Benki</option><option value="credit">Mkopo</option></select></div><div class="field"><label>Aina ya kurekodi mauzo</label><select id="saleEntryMode"><option value="live">Mauzo ya papo hapo</option><option value="day_end">Mauzo ya mwisho wa siku</option></select></div></div><div id="dayEndFields" class="grid hidden"><div class="field"><label>Muda halisi ambao mauzo yalifanyika</label><input id="dayEndSoldAt" type="datetime-local"></div><div class="field"><label>Maelezo (hiari)</label><input id="dayEndReason" maxlength="250" placeholder="Mf. Mauzo yaliyofanyika wakati simu haikuwa na chaji"></div></div><p id="saleEntryHint" class="muted small">Rekodi kila mteja anaponunua. Mfumo utahifadhi muda wa mauzo na muda wa kurekodi.</p><div class="row"><div id="salePrice" class="muted">Chagua bidhaa</div><button id="addCartBtn" type="button">Ongeza bidhaa</button></div><div id="saleActionStatus" class="notice section" role="status" aria-live="polite">Chagua bidhaa, weka kiasi, kisha bonyeza Ongeza bidhaa.</div><div id="cartTable" class="tablewrap section"></div><div id="pendingSales" class="notice section">Mauzo yanayosubiri kusawazishwa: 0</div><div class="row section"><strong id="cartTotal">Jumla: TZS 0</strong><button id="completeSaleBtn" type="button">Thibitisha mauzo</button></div><p class="muted small">Ukiuza katoni, stock itapungua kwa idadi ya chupa zilizomo kwenye katoni. Mauzo yote yanatumia stock moja.</p></div><div class="panel section"><h2>Mauzo yaliyorekodiwa</h2><div id="salesTable" class="tablewrap"></div><div id="mySalesSummary" class="notice section">Muhtasari wa mauzo yangu utajitokeza hapa.</div></div></section>
 <section id="debts" class="page hidden"><div class="panel"><div class="row"><div><h2>Madeni ya wateja</h2><p class="muted small">Mauzo ya mkopo yataonekana hapa. Mteja akilipa, chagua deni, kiasi na njia ya malipo kisha bonyeza Pokea malipo. Salio litapungua moja kwa moja.</p></div><button type="button" class="secondary" onclick="loadDebts()">Sasisha</button></div><div class="grid"><div class="card"><div class="muted">Madeni yaliyobaki</div><div class="metric" id="debtOutstandingTotal">TSh 0</div></div><div class="card"><div class="muted">Idadi ya mauzo yenye deni</div><div class="metric" id="debtSaleCount">0</div></div></div><div id="debtsTable" class="tablewrap section">Inapakia madeni...</div></div><div class="panel section"><h2>Pokea malipo ya deni</h2><form id="debtPaymentForm"><div class="grid"><div class="field"><label>Chagua deni / mteja</label><select id="debtSaleSelect" required><option value="">Chagua deni</option></select></div><div class="field"><label>Kiasi kilicholipwa (TSh)</label><input id="debtPaymentAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Njia ya malipo</label><select id="debtPaymentMethod"><option value="cash">Cash / Taslimu</option><option value="mobile_money">Mobile money</option><option value="bank">Benki</option><option value="card">Kadi</option></select></div></div><div class="field"><label>Maelezo (hiari)</label><input id="debtPaymentNote" maxlength="250" placeholder="Mf. Amelipa sehemu ya deni"></div><button id="receiveDebtPaymentBtn" type="submit">Pokea malipo na punguza deni</button></form><div id="debtPaymentMessage" class="notice hidden"></div></div><div class="panel section"><h2>Historia ya malipo ya madeni</h2><div id="debtPaymentsHistory" class="tablewrap">Inapakia...</div></div></section>
 <section id="products" class="page hidden"><div class="panel"><h2>Sajili bidhaa mpya</h2><p class="muted small">Ingiza stock ya kuanzia kwa idadi ya vifungashio. Mfano: katoni 3 zenye chupa 12 kila moja = chupa 36. Mfumo utahifadhi chupa 36 na kukuonyesha katoni 3 (chupa 36).</p><form id="productForm"><div class="grid"><div class="field"><label>Jina la bidhaa</label><input id="pName" required placeholder="Mf. Maji makubwa 1.6L"></div><div class="field"><label>Jina la kipande kimoja (kipimo cha msingi)</label><input id="pBaseUnit" value="chupa" maxlength="24" placeholder="Mf. chupa" required><small class="muted">Andika jina tu, bila namba.</small></div><div class="field"><label>Jina la kifungashio kikubwa</label><input id="pPackName" value="katoni" maxlength="24" placeholder="Mf. katoni" required><small class="muted">Andika jina tu, bila namba.</small></div><div class="field"><label>Idadi ya vipande ndani ya kifungashio kimoja</label><input id="pUnitsPerPack" type="number" min="1" step="1" value="12" required><small class="muted">Mfano: katoni moja ina chupa 12. Weka 12, si “chupa 12”.</small></div><div class="field"><label>Bei ya kununua kifungashio (TZS)</label><input id="pPackCost" type="number" min="0" step=".01" value="0" required></div><div class="field"><label>Bei ya rejareja kwa kipande (TZS)</label><input id="pPrice" type="number" min="0" step=".01" required></div><div class="field"><label>Bei ya jumla kwa kifungashio (TZS)</label><input id="pWholesale" type="number" min="0" step=".01" value="0" required></div><div class="field"><label>Katoni/vifungashio vya kuanzia</label><input id="pOpeningPacks" type="number" min="0" step="1" value="0" required></div><div class="field"><label>Chupa/vipande vya ziada (vilivyo nje ya katoni)</label><input id="pOpeningLoose" type="number" min="0" step="1" value="0" required><small class="muted">Mfano: katoni 3 na chupa 5 za ziada.</small></div><div class="field"><label>Kiwango cha tahadhari (vipande)</label><input id="pReorder" type="number" min="0" step=".001" value="3"></div></div><div id="productEntryPreview" class="notice" aria-live="polite">Mfano: katoni 3 × chupa 12 = chupa 36 zitakuwa stock ya kuanzia.</div><button id="saveProductBtn" type="submit">Hifadhi bidhaa</button><div id="productSaveStatus" class="notice hidden" role="status" aria-live="polite" style="margin-top:10px"></div></form></div><div class="panel section"><div class="row"><h2>Orodha ya bidhaa</h2><button id="ownerPinBtn" type="button" class="secondary hidden" onclick="openOwnerPinModal()">Weka/Badili PIN ya mmiliki</button></div><div id="productsTable" class="tablewrap"></div></div></section>
 <div id="editPinGateModal" class="hidden" style="position:fixed;inset:0;background:#10243acc;z-index:70;padding:16px;overflow:auto"><div class="panel" style="max-width:420px;margin:12vh auto"><div class="row"><h2>Thibitisha PIN ya mmiliki</h2><button type="button" class="secondary" onclick="closeEditPinGate()">Funga</button></div><p class="muted small">Ingiza PIN ya mmiliki ili kuruhusiwa kufungua sehemu ya kuhariri bidhaa.</p><form id="editPinGateForm"><div class="field"><label>PIN ya tarakimu nne</label><input id="editGatePin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required></div><p id="editGateError" class="error hidden"></p><button id="verifyEditPinBtn" type="submit">Thibitisha na endelea</button></form></div></div>
@@ -1040,62 +1040,33 @@ async function completeSale(){
  }
 
 }
-// Expose sale actions, then delegate the Add-to-cart tap from document capture.
+// Restore the proven direct button listeners used by the earlier AMWEMARI sales flow.
 window.addCart=addCart;
 window.completeSale=completeSale;
 window.removeCart=removeCart;
-window.addCartFromButton=async function(event){
- if(event){event.preventDefault();event.stopPropagation();}
- const btn=$('addCartBtn'),status=$('saleActionStatus');
- if(!btn||typeof window.addCart!=='function'){
-  if(status)status.textContent='Hitilafu: sehemu ya kuongeza bidhaa haijaanza. Refresh ukurasa kisha jaribu tena.';
-  return false;
- }
- if(btn.dataset.adding==='1')return false;
- btn.dataset.adding='1';
- try{
-  const added=await window.addCart();
-  if(!added&&status&&!status.textContent.startsWith('Haijaongezwa:'))status.textContent='Bidhaa haijaongezwa. Kagua kiasi, bei na stock kisha jaribu tena.';
-  return !!added;
- }catch(error){
-  console.error('AMWEMARI add-to-cart failed:',error);
-  if(status)status.textContent='Haijaongezwa: '+(error?.message||String(error));
-  return false;
- }finally{
-  delete btn.dataset.adding;
- }
-};
-window.handleCompleteSaleClick=async function(event){
- if(event){event.preventDefault();event.stopPropagation();}
- const button=$('completeSaleBtn'),status=$('saleActionStatus');
- if(!button)return false;
- if(button.dataset.saving==='1')return false;
- button.dataset.saving='1';
- button.setAttribute('aria-busy','true');
- button.textContent='Inahifadhi mauzo...';
- try{
-  if(typeof window.completeSale!=='function')throw new Error('Sehemu ya kuhifadhi mauzo haijapakiwa. Refresh ukurasa.');
-  await window.completeSale();
-  const appMessage=$('appMsg')?.textContent||'';
-  if(status){
-   status.textContent=appMessage||'Ombi la mauzo limekamilika. Kagua ujumbe wa mfumo.';
-   status.classList.remove('error','success');
-   status.classList.add(/hayajahifadhiwa|hitilafu|kagua/i.test(appMessage)?'error':'success');
+const addCartButton=$('addCartBtn');
+if(addCartButton){
+ addCartButton.addEventListener('click',async event=>{
+  event.preventDefault();
+  try{
+   const added=await addCart();
+   if(!added&&$('saleActionStatus'))$('saleActionStatus').textContent=$('appMsg')?.textContent||'Bidhaa haijaongezwa. Kagua taarifa kisha jaribu tena.';
+  }catch(error){
+   console.error('AMWEMARI addCart error:',error);
+   message('appMsg','Bidhaa haijaongezwa: '+(error?.message||'Hitilafu imetokea.'),true);
   }
-  return true;
- }catch(error){
-  console.error('AMWEMARI sale button failed:',error);
-  const msg='Mauzo hayajahifadhiwa: '+(error?.message||String(error));
-  message('appMsg',msg,true);
-  if(status){status.textContent=msg;status.classList.remove('success');status.classList.add('error');}
-  return false;
- }finally{
-  delete button.dataset.saving;
-  button.removeAttribute('aria-busy');
-  button.disabled=false;
-  button.textContent='Thibitisha mauzo';
- }
-};
+ });
+}
+const completeSaleButton=$('completeSaleBtn');
+if(completeSaleButton){
+ completeSaleButton.addEventListener('click',event=>{
+  event.preventDefault();
+  completeSale().catch(error=>{
+   console.error('AMWEMARI sale click error:',error);
+   message('appMsg','Mauzo hayajaanza kuhifadhiwa: '+(error?.message||'Hitilafu imetokea.'),true);
+  });
+ });
+}
 // Use var so early event callbacks cannot hit a lexical temporal-dead-zone.
 var expenseSaveInProgress=false;
 async function saveExpense(event){
