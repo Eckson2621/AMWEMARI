@@ -1208,13 +1208,36 @@ const dict={
 };
 let lang=localStorage.getItem('amwemari_lang')||'sw';
 function translateStatic(){
- if(lang==='sw')return;
- document.querySelectorAll('#workspace h1,#workspace h2,#workspace h3,#workspace label,#workspace button').forEach(el=>{const t=el.textContent.trim();if(dict[t])el.textContent=dict[t]});
- document.querySelectorAll('#workspace input[placeholder],#workspace textarea[placeholder]').forEach(el=>{if(dict[el.placeholder])el.placeholder=dict[el.placeholder]});
+ document.querySelectorAll('#workspace h1,#workspace h2,#workspace h3,#workspace label,#workspace button').forEach(el=>{
+  if(!el.dataset.amwOriginalText)el.dataset.amwOriginalText=el.textContent;
+  const original=el.dataset.amwOriginalText.trim();
+  el.textContent=lang==='en'?(dict[original]||el.dataset.amwOriginalText):el.dataset.amwOriginalText;
+ });
+ document.querySelectorAll('#workspace input[placeholder],#workspace textarea[placeholder]').forEach(el=>{
+  if(!el.dataset.amwOriginalPlaceholder)el.dataset.amwOriginalPlaceholder=el.placeholder;
+  const original=el.dataset.amwOriginalPlaceholder;
+  el.placeholder=lang==='en'?(dict[original]||original):original;
+ });
+ const sw=$id('amwLangSw'),en=$id('amwLangEn');
+ if(sw)sw.classList.toggle('active',lang==='sw');
+ if(en)en.classList.toggle('active',lang==='en');
 }
 function addLanguage(){
- if($id('amwLangBar'))return;const bar=document.createElement('div');bar.id='amwLangBar';bar.innerHTML='<span class="muted small">Language / Lugha</span><button type="button" class="secondary" id="amwLangSw">Kiswahili</button><button type="button" class="secondary" id="amwLangEn">English</button>';$id('workspace').prepend(bar);
- const apply=l=>{lang=l;localStorage.setItem('amwemari_lang',l);location.reload()};$id('amwLangSw').onclick=()=>apply('sw');$id('amwLangEn').onclick=()=>apply('en');
+ if(!$id('amwLangBar')){
+  const bar=document.createElement('div');bar.id='amwLangBar';
+  bar.innerHTML='<span class="muted small">Language / Lugha</span><button type="button" class="secondary" id="amwLangSw">Kiswahili</button><button type="button" class="secondary" id="amwLangEn">English</button>';
+  $id('workspace').prepend(bar);
+ }
+ const apply=l=>{
+  if(l!=='sw'&&l!=='en')return;
+  lang=l;
+  try{localStorage.setItem('amwemari_lang',l)}catch(e){console.warn('Language preference could not be saved:',e)}
+  // Translate in place: do not reload the page or interrupt the authenticated Supabase session.
+  translateStatic();
+ };
+ $id('amwLangSw').onclick=()=>apply('sw');
+ $id('amwLangEn').onclick=()=>apply('en');
+ translateStatic();
 }
 function init(){
  if(!$id('workspace'))return;
