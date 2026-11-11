@@ -870,15 +870,19 @@ if(completeSaleButton){
 window.addCart=addCart;
 window.completeSale=completeSale;
 window.removeCart=removeCart;
+let expenseSaveInProgress=false;
 $('expenseForm').addEventListener('submit',async e=>{
  e.preventDefault();
  const form=e.currentTarget,btn=form.querySelector('button[type="submit"]');
+ // A synchronous lock prevents a second submit even if the user double-taps quickly.
+ if(expenseSaveInProgress)return;
  if(!store||!user){message('appMsg','Akaunti au biashara haijapakiwa. Hakuna matumizi yaliyohifadhiwa; taarifa zako zimeachwa kwenye fomu.',true);return}
  if(!navigator.onLine){message('appMsg','Intaneti haipo. Matumizi hayajahifadhiwa. Acha taarifa hizi kwenye fomu, unganisha intaneti kisha jaribu tena.',true);return}
  const amount=Number($('eAmount').value);
  if(!$('eCategory').value.trim()||!$('eDescription').value.trim()||!Number.isFinite(amount)||amount<=0){message('appMsg','Kagua aina, maelezo na kiasi cha matumizi.',true);return}
  const payload={store_id:store.id,category:$('eCategory').value.trim(),description:$('eDescription').value.trim(),amount,payment_method:$('eMethod').value,recorded_by:user.id};
- if(btn){btn.disabled=true;btn.textContent='Inahifadhi...'}
+ expenseSaveInProgress=true;
+ if(btn){btn.disabled=true;btn.textContent='Inahifadhi matumizi…';btn.setAttribute('aria-live','polite')}
  try{
   const {data:{session},error:sessionError}=await db.auth.getSession();
   if(sessionError)throw sessionError;
@@ -886,12 +890,17 @@ $('expenseForm').addEventListener('submit',async e=>{
   const {error}=await db.from('expenses').insert(payload);
   if(error)throw error;
   form.reset();
+  if(btn)btn.textContent='Matumizi yamehifadhiwa ✓';
   try{await refreshAll();message('appMsg','Matumizi yamehifadhiwa kikamilifu.')}
   catch(refreshError){console.error('Expense saved but refresh failed:',refreshError);message('appMsg','Matumizi yamehifadhiwa kwenye database, lakini orodha haikuweza kusasishwa. Bonyeza Sasisha; usiingize matumizi haya tena.',false)}
  }catch(error){
   console.error('AMWEMARI expense save failed:',error);
+  if(btn)btn.textContent='Haijahifadhiwa — jaribu tena';
   message('appMsg','Matumizi hayajahifadhiwa: '+(error?.message||String(error))+' — taarifa ulizoingiza zimeachwa kwenye fomu.',true);
- }finally{if(btn){btn.disabled=false;btn.textContent='Hifadhi matumizi'}}
+ }finally{
+  expenseSaveInProgress=false;
+  if(btn){btn.disabled=false;if(btn.textContent==='Inahifadhi matumizi…')btn.textContent='Hifadhi matumizi'}
+ }
 });
 db.auth.getSession().then(({data})=>{if(data.session)boot().catch(showAuthFailure)}).catch(showAuthFailure);
 
