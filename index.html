@@ -993,8 +993,12 @@ async function completeSale(){
  if(btn?.disabled)return;
  if(!cart.length){message('appMsg','Ongeza bidhaa kwenye kikapu kwanza.',true);return}
  const total=cart.reduce((a,x)=>a+x.quantity*x.unit_price,0);
- const paid=Number($('salePaid').value);
  const method=$('saleMethod').value;
+ // A normal cash/mobile/card/bank sale is fully paid when the user leaves the
+ // amount-received field at its default zero. Select "Mkopo" for an unpaid sale;
+ // enter a positive amount for a partial payment.
+ const enteredPaid=Number($('salePaid').value);
+ const paid=(method!=='credit'&&enteredPaid===0)?total:enteredPaid;
  const entryMode=$('saleEntryMode').value;
  if(!Number.isFinite(total)||total<=0){message('appMsg','Jumla ya mauzo si sahihi. Ondoa bidhaa kisha uziweke tena.',true);return}
  if(!Number.isFinite(paid)||paid<0||paid>total){message('appMsg','Malipo hayawezi kuwa chini ya sifuri au kuzidi jumla.',true);return}if(method==='credit'&&paid>0){message('appMsg','Ukishapokea sehemu ya fedha, chagua njia halisi ya malipo. Mkopo utakuwa salio ambalo halijalipwa.',true);return}
