@@ -799,7 +799,7 @@ updateProductEntryPreview();
 $('productForm').addEventListener('submit',async e=>{
  e.preventDefault();const form=e.target,submit=form.querySelector('button[type="submit"]');
  const units=Number($('pUnitsPerPack').value),packs=Number($('pOpeningPacks').value),loose=Number($('pOpeningLoose').value),packCost=Number($('pPackCost').value),retail=Number($('pPrice').value),wholesale=Number($('pWholesale').value);
- if(!store||!user){showSaveStatus('Haijahifadhiwa: akaunti au biashara haijapakiwa.',true);message('appMsg','Hujaingia kwenye biashara. Ingia tena ukiwa online kwanza.',true);return}
+ if(!store||!user){message('appMsg','Haijahifadhiwa: akaunti au biashara haijapakiwa. Ingia tena kisha fungua biashara kwanza.',true);return}
  const baseUnit=$('pBaseUnit').value.trim(),packName=$('pPackName').value.trim(),reorder=Number($('pReorder').value);if(!Number.isInteger(units)||units<1||!Number.isInteger(packs)||packs<0||!Number.isInteger(loose)||loose<0||!Number.isFinite(packCost)||packCost<0||!Number.isFinite(retail)||retail<=0||!Number.isFinite(wholesale)||wholesale<0||!Number.isFinite(reorder)||reorder<0){message('appMsg','Idadi ya vipande kwa kifungashio na stock ya kuanzia lazima ziwe namba kamili. Bei na kiwango cha tahadhari viwe sahihi.',true);return}if(!baseUnit||!packName||baseUnit.toLowerCase()===packName.toLowerCase()||/[0-9]/.test(baseUnit)||/[0-9]/.test(packName)){message('appMsg','Tenganisha majina: kipimo cha msingi mfano “chupa”; kifungashio mfano “katoni”. Usichanganye majina na namba.',true);return}
  if(store.owner_id!==user.id&&(packs>0||loose>0)){message('appMsg','Mfanyakazi anaweza kusajili bidhaa mpya, lakini hawezi kuweka stock ya kuanzia. Mmiliki aongeze stock kupitia Nunua stock.',true);return}
  const openingQty=packs*units+loose,unitCost=packCost/units;
@@ -817,14 +817,20 @@ $('productForm').addEventListener('submit',async e=>{
    message('appMsg','Bidhaa imehifadhiwa KWENYE SIMU. Itatumwa Supabase intaneti ikirudi. Stock ya kuanzia imeonyeshwa hapa; usifute data za kivinjari wala kusajili bidhaa hii tena.');
    await renderPendingProducts();return;
   }
-  const {data,error}=await db.from('products').insert(payload).select().single();
+  message('appMsg','Inahifadhi bidhaa na stock ya kuanzia kwa pamoja…');
+  const {data,error}=await db.rpc('create_product_with_opening_stock',{
+   p_product:payload,
+   p_package_quantity:packs,
+   p_loose_units:loose,
+   p_package_cost:packCost,
+   p_purchase_date:new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'}),
+   p_note:'AMWEMARI_OFFLINE_OPENING:'+payload.id
+  });
   if(error)throw error;
-  if(openingQty>0){
-   const {error:purchaseError}=await db.rpc('record_purchase_with_loose_units',{p_store_id:store.id,p_product_id:data.id,p_package_quantity:packs,p_loose_units:loose,p_package_cost:packCost,p_purchase_date:new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'}),p_note:'AMWEMARI_OFFLINE_OPENING:'+payload.id});
-   if(purchaseError)throw purchaseError;
-  }
+  const savedProduct=Array.isArray(data)?data[0]:data;
+  if(!savedProduct||savedProduct.id!==payload.id)throw new Error('Supabase haijathibitisha bidhaa iliyohifadhiwa. Hakuna mafanikio yaliyothibitishwa.');
   form.reset();$('pUnitsPerPack').value='12';$('pPackName').value='katoni';$('pBaseUnit').value='chupa';$('pOpeningPacks').value='0';$('pPackCost').value='0';$('pWholesale').value='0';
-  await refreshAll();message('appMsg','Bidhaa imehifadhiwa Supabase. Stock ya mwanzo: '+openingQty+' '+payload.base_unit);
+  await refreshAll();message('appMsg','Bidhaa imehifadhiwa Supabase kikamilifu ✓ Stock ya mwanzo: '+openingQty+' '+payload.base_unit);
  }catch(error){
   console.error('AMWEMARI product save failed:',error);
   const detail=error?.message||String(error);
