@@ -273,6 +273,8 @@ const db=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{
 });
 const STAFF_AUTH_URL=SUPABASE_URL+'/functions/v1/staff-auth';
 let user=null,store=null,isSuperAdmin=false,accountAccess=null,products=[],sales=[],expenses=[],movements=[],cart=[],staffDirectory=[],mode='login',pendingEditProductId=null;
+// Define the Tanzania-local date helper before any dashboard loader or form uses it.
+const localToday=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'});
 const $=id=>document.getElementById(id), money=n=>'TZS '+Number(n||0).toLocaleString('en-TZ',{maximumFractionDigits:2});
 function message(id,msg,error=false){const el=$(id);el.textContent=msg;el.classList.remove('hidden','error','success');el.classList.add(error?'error':'success')}
 function clearMessage(id){$(id).classList.add('hidden')}
