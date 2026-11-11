@@ -1044,45 +1044,36 @@ async function completeSale(){
  }
 
 }
-// Restore the proven direct button listeners used by the earlier AMWEMARI sales flow.
+// One authoritative click handler for the sales cart.
+// Keep the button outside form submission and call the in-scope function directly.
 window.addCart=addCart;
 window.completeSale=completeSale;
 window.removeCart=removeCart;
-// Capture the Add Product click centrally so the button still responds
-// if its local listener is disrupted by another script or DOM re-render.
-document.addEventListener('click',function(event){
- const button=event.target instanceof Element?event.target.closest('#addCartBtn'):null;
- if(!button)return;
- event.preventDefault();
- event.stopImmediatePropagation();
- const status=document.getElementById('saleActionStatus');
- if(typeof window.addCart!=='function'){
-  if(status)status.textContent='Hitilafu: sehemu ya kuongeza bidhaa haijaanza. Refresh ukurasa kisha jaribu tena.';
-  console.error('AMWEMARI: addCart handler is unavailable.');
-  return;
- }
- if(button.disabled)return;
- Promise.resolve().then(()=>window.addCart()).catch(error=>{
-  console.error('AMWEMARI delegated add click failed:',error);
-  if(status)status.textContent='Bidhaa haijaongezwa: '+(error?.message||String(error));
-  message('appMsg','Bidhaa haijaongezwa: '+(error?.message||String(error)),true);
- });
-},true);
 const addCartButton=$('addCartBtn');
-if(addCartButton){
- addCartButton.addEventListener('click',async event=>{
+if(addCartButton&&!addCartButton.dataset.amwBound){
+ addCartButton.dataset.amwBound='1';
+ addCartButton.type='button';
+ addCartButton.addEventListener('click',async function(event){
   event.preventDefault();
+  event.stopPropagation();
+  if(addCartButton.disabled)return;
   try{
    const added=await addCart();
-   if(!added&&$('saleActionStatus'))$('saleActionStatus').textContent=$('appMsg')?.textContent||'Bidhaa haijaongezwa. Kagua taarifa kisha jaribu tena.';
+   if(!added&&$('saleActionStatus')&&!$('saleActionStatus').textContent.trim()){
+    $('saleActionStatus').textContent='Bidhaa haijaongezwa. Kagua bidhaa, kiasi na stock kisha ujaribu tena.';
+   }
   }catch(error){
-   console.error('AMWEMARI addCart error:',error);
-   message('appMsg','Bidhaa haijaongezwa: '+(error?.message||'Hitilafu imetokea.'),true);
+   console.error('AMWEMARI addCart click failed:',error);
+   const detail=error&&error.message?error.message:String(error);
+   if($('saleActionStatus'))$('saleActionStatus').textContent='Bidhaa haijaongezwa: '+detail;
+   message('appMsg','Bidhaa haijaongezwa: '+detail,true);
   }
  });
 }
 const completeSaleButton=$('completeSaleBtn');
-if(completeSaleButton){
+if(completeSaleButton&&!completeSaleButton.dataset.amwBound){
+ completeSaleButton.dataset.amwBound='1';
+ completeSaleButton.type='button';
  completeSaleButton.addEventListener('click',event=>{
   event.preventDefault();
   completeSale().catch(error=>{
