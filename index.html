@@ -934,25 +934,38 @@ async function addCart(){
  if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent='Inaongeza bidhaa...'}
  if(status)status.textContent='Inakagua bidhaa na stock...';
  try{
-  const p=products.find(x=>x.id===$('saleProduct').value),q=Number($('saleQty').value),pack=$('saleUnit').value==='pack';
-  if(!p)throw new Error('Hakuna bidhaa iliyochaguliwa. Hakikisha bidhaa imesajiliwa na orodha imepakiwa.');
+  const productSelect=$('saleProduct'),qtyInput=$('saleQty'),unitSelect=$('saleUnit');
+  if(!productSelect||!qtyInput||!unitSelect)throw new Error('Sehemu za kuchagua bidhaa hazijapakiwa. Fungua upya ukurasa.');
+  const selectedId=String(productSelect.value||'').trim();
+  const p=products.find(x=>String(x.id)===selectedId);
+  const q=Number(qtyInput.value),pack=unitSelect.value==='pack';
+  if(!selectedId||!p)throw new Error('Chagua bidhaa iliyopo kwenye orodha kwanza. Ikiwa orodha ni tupu, nenda Bidhaa na hakikisha bidhaa imehifadhiwa.');
   if(!Number.isFinite(q)||q<=0)throw new Error('Weka kiasi sahihi zaidi ya sifuri.');
-  const units=Number(p.units_per_pack||1),baseQty=pack?q*units:q,basePrice=pack?Number(p.wholesale_pack_price||0)/units:Number(p.selling_price);
+  const units=Number(p.units_per_pack||1);
+  if(!Number.isInteger(units)||units<1)throw new Error('Kipimo cha kifungashio cha bidhaa si sahihi. Rekebisha taarifa za bidhaa.');
+  const baseQty=pack?q*units:q,packPrice=Number(p.wholesale_pack_price||0);
+  const basePrice=pack?packPrice/units:Number(p.selling_price),stock=Number(p.quantity);
   if(!Number.isFinite(basePrice)||basePrice<=0)throw new Error('Bei ya bidhaa haijawekwa au si sahihi. Rekebisha bei kwenye sehemu ya Bidhaa.');
-  if(pack&&Number(p.wholesale_pack_price||0)<=0)throw new Error('Weka kwanza bei ya jumla ya kifungashio kwenye usajili wa bidhaa.');
-  if(!Number.isFinite(Number(p.quantity))||Number(p.quantity)<0)throw new Error('Stock ya bidhaa haijasomeka vizuri. Sasisha orodha ya bidhaa.');
-  const queued=await getQueuedQuantity(p.id);
-  const existing=cart.reduce((a,x)=>a+(x.product_id===p.id?x.quantity:0),0);
-  if(existing+queued+baseQty>Number(p.quantity))throw new Error('Stock haitoshi. Iliyopo: '+p.quantity+' '+(p.base_unit||'vipande')+'.');
-  cart.push({product_id:p.id,name:p.name,quantity:baseQty,unit_price:basePrice,display_quantity:q,display_unit:pack?p.pack_name:p.base_unit});
+  if(pack&&packPrice<=0)throw new Error('Weka kwanza bei ya jumla ya kifungashio kwenye usajili wa bidhaa.');
+  if(!Number.isFinite(stock)||stock<0)throw new Error('Stock ya bidhaa haijasomeka vizuri. Sasisha orodha ya bidhaa.');
+  // Do not let an IndexedDB read stop normal online cart entry.
+  let queued=0;
+  if(!navigator.onLine){
+   try{queued=await getQueuedQuantity(p.id)}
+   catch(storageError){throw new Error('Hifadhi ya mauzo ya offline haipatikani: '+(storageError?.message||storageError))}
+  }
+  const existing=cart.reduce((sum,item)=>sum+(String(item.product_id)===String(p.id)?Number(item.quantity):0),0);
+  if(existing+queued+baseQty>stock)throw new Error('Stock haitoshi. Iliyopo: '+stock+' '+(p.base_unit||'vipande')+'. Tayari kwenye kikapu: '+existing+'; mauzo yanayosubiri: '+queued+'.');
+  cart.push({product_id:p.id,name:p.name,quantity:baseQty,unit_price:basePrice,display_quantity:q,display_unit:pack?(p.pack_name||'pakiti'):(p.base_unit||'kipande')});
   renderCart();
   clearMessage('appMsg');
   if(status)status.textContent='✓ '+p.name+' imeongezwa kwenye kikapu. Unaweza kuongeza bidhaa nyingine au kuthibitisha mauzo.';
   return true;
  }catch(error){
+  console.error('AMWEMARI addCart validation failed:',error);
   if(status)status.textContent='Haijaongezwa: '+(error?.message||String(error));
   message('appMsg','Bidhaa haijaongezwa: '+(error?.message||String(error)),true);
-  throw error;
+  return false;
  }finally{
   saleAddInProgress=false;
   if(btn){btn.disabled=false;btn.removeAttribute('aria-busy');btn.textContent='Ongeza bidhaa'}
