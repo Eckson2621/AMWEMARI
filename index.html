@@ -212,8 +212,9 @@ async function amwAuthBackupGet(key){
 async function amwAuthBackupSet(key,value){
  const d=await openAmwAuthDB();
  return new Promise((resolve,reject)=>{
-  const tx=d.transaction('sessions','readwrite');
-  tx.objectStore('sessions').put({key,value});
+  const tx=d.transaction('sessions','readwrite'),store=tx.objectStore('sessions');
+  store.put({key,value});
+  if(key.endsWith('-auth-token'))store.delete('__amw_auth_signed_out__');
   tx.oncomplete=()=>{d.close();resolve()};
   tx.onerror=()=>{const e=tx.error;d.close();reject(e)};
   tx.onabort=()=>{const e=tx.error;d.close();reject(e||new Error('Session backup imekatika'))};
@@ -222,15 +223,22 @@ async function amwAuthBackupSet(key,value){
 async function amwAuthBackupRemove(key){
  const d=await openAmwAuthDB();
  return new Promise((resolve,reject)=>{
-  const tx=d.transaction('sessions','readwrite');
-  tx.objectStore('sessions').delete(key);
+  const tx=d.transaction('sessions','readwrite'),store=tx.objectStore('sessions');
+  store.delete(key);
+  if(key.endsWith('-auth-token'))store.put({key:'__amw_auth_signed_out__',value:true});
   tx.oncomplete=()=>{d.close();resolve()};
   tx.onerror=()=>{const e=tx.error;d.close();reject(e)};
   tx.onabort=()=>{const e=tx.error;d.close();reject(e||new Error('Session backup haijafutika'))};
  });
 }
+const AMW_AUTH_SIGNED_OUT_FLAG='amwemari_auth_signed_out_v1';
 const amwemariAuthStorage={
  async getItem(key){
+  const isSessionKey=key.endsWith('-auth-token');
+  if(isSessionKey){
+   try{if(window.localStorage.getItem(AMW_AUTH_SIGNED_OUT_FLAG)==='1')return null}catch(e){}
+   try{if(await amwAuthBackupGet('__amw_auth_signed_out__')===true)return null}catch(e){console.warn('AMWEMARI sign-out marker:',e)}
+  }
   try{
    const value=window.localStorage.getItem(key);
    if(value!==null){amwAuthBackupSet(key,value).catch(e=>console.warn('AMWEMARI session backup:',e));return value}
@@ -242,15 +250,17 @@ const amwemariAuthStorage={
   return null;
  },
  async setItem(key,value){
+  const isSessionKey=key.endsWith('-auth-token');
   const results=await Promise.allSettled([
-   Promise.resolve().then(()=>window.localStorage.setItem(key,value)),
+   Promise.resolve().then(()=>{window.localStorage.setItem(key,value);if(isSessionKey)window.localStorage.removeItem(AMW_AUTH_SIGNED_OUT_FLAG)}),
    amwAuthBackupSet(key,value)
   ]);
   if(results.every(x=>x.status==='rejected'))throw new Error('AMWEMARI imeshindwa kuhifadhi session kwenye simu. Hakikisha browser inaruhusu site kuhifadhi data.');
  },
  async removeItem(key){
+  const isSessionKey=key.endsWith('-auth-token');
   const results=await Promise.allSettled([
-   Promise.resolve().then(()=>window.localStorage.removeItem(key)),
+   Promise.resolve().then(()=>{if(isSessionKey)window.localStorage.setItem(AMW_AUTH_SIGNED_OUT_FLAG,'1');window.localStorage.removeItem(key)}),
    amwAuthBackupRemove(key)
   ]);
   if(results.every(x=>x.status==='rejected'))throw new Error('AMWEMARI imeshindwa kufuta session wakati wa kutoka.');
