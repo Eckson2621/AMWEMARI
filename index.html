@@ -154,25 +154,25 @@ async function syncPendingProducts(){
  const q=(await window.localAll('pending_products')).filter(p=>p.store_id===store.id).sort((a,b)=>a.created_at.localeCompare(b.created_at));
  for(const item of q){
   try{
-   let product=null;
-   const existing=await db.from('products').select('id,store_id').eq('id',item.id).maybeSingle();
-   if(existing.error)throw existing.error;
-   if(existing.data){if(existing.data.store_id!==store.id)throw new Error('Product ID belongs to another store');product=existing.data;}
-   else{
-    const inserted=await db.from('products').insert(item.payload).select('id,store_id').single();
-    if(inserted.error)throw inserted.error;product=inserted.data;
-   }
-   if(Number(item.opening_packs)>0||Number(item.opening_loose_units)>0){
-    const marker='AMWEMARI_OFFLINE_OPENING:'+item.id;
-    const movement=await db.from('stock_movements').select('id').eq('store_id',store.id).eq('product_id',item.id).eq('note',marker).limit(1);
-    if(movement.error)throw movement.error;
-    if(!movement.data?.length){
-     const purchase=await db.rpc('record_purchase_with_loose_units',{p_store_id:store.id,p_product_id:item.id,p_package_quantity:item.opening_packs||0,p_loose_units:item.opening_loose_units||0,p_package_cost:item.opening_pack_cost,p_purchase_date:new Date(item.created_at).toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'}),p_note:marker});
-     if(purchase.error)throw purchase.error;
-    }
-   }
+   // Use the same atomic, idempotent RPC as online product creation.
+   // Opening stock must remain an opening movement, never a paid purchase.
+   const result=await db.rpc('create_product_with_opening_stock',{
+    p_product:item.payload,
+    p_package_quantity:Number(item.opening_packs||0),
+    p_loose_units:Number(item.opening_loose_units||0),
+    p_package_cost:Number(item.opening_pack_cost||0),
+    p_purchase_date:new Date(item.created_at).toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'}),
+    p_note:'AMWEMARI_OFFLINE_OPENING:'+item.id
+   });
+   if(result.error)throw result.error;
+   const saved=Array.isArray(result.data)?result.data[0]:result.data;
+   if(!saved||saved.id!==item.id||saved.store_id!==store.id)throw new Error('Supabase haijathibitisha bidhaa na stock yake ya mwanzo.');
    await localDelete('pending_products',item.id);
-  }catch(error){console.warn('AMWEMARI product sync paused:',error);message('appMsg','Bidhaa '+item.payload.name+' bado inasubiri kutumwa. Mfumo utajaribu tena intaneti ikipatikana: '+(error.message||error),true);break}
+  }catch(error){
+   console.warn('AMWEMARI product sync paused:',error);
+   message('appMsg','Bidhaa '+item.payload.name+' bado inasubiri kutumwa. Mfumo utajaribu tena intaneti ikipatikana: '+(error.message||error),true);
+   break;
+  }
  }
  await renderPendingProducts();
  if(navigator.onLine)await refreshAll();
@@ -876,7 +876,7 @@ $('productForm').addEventListener('submit',async e=>{
  }catch(error){
   console.error('AMWEMARI product save failed:',error);
   const detail=[error?.message,error?.details,error?.hint,error?.code?'Code: '+error.code:''].filter(Boolean).join(' | ')||String(error);
-  if(/failed to fetch|fetch failed|network|load failed|timeout/i.test(detail)){
+  if(/failed to fetch|fetch failed|network|load failed|timeout|Muda wa kusubiri Supabase umeisha|Supabase haijahifadhi bidhaa ndani ya sekunde 25/i.test(detail)){
    try{
     await localPut('pending_products',pending);
     const localProduct={...payload,quantity:openingQty,is_active:true};
