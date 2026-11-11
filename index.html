@@ -127,7 +127,7 @@
  <div class="panel section"><h2>Ununuzi wa karibuni</h2><div id="purchasesTable" class="tablewrap"></div></div>
  <div class="panel section"><h2>Mikopo ya biashara na supplier</h2><div class="grid"><div class="card"><div class="muted">Jumla ya madeni ya mikopo yaliyorekodiwa</div><div class="metric" id="businessLoanOutstanding">TZS 0</div></div></div><div id="businessLoansTable" class="tablewrap">Inapakia...</div><p class="muted small">Salio hili linaonyesha mikopo iliyorekodiwa wakati wa kununua stock. Rekodi marejesho ya mkopo kwenye hatua ya usimamizi wa madeni itakapowashwa; usipunguze salio kwa kubadilisha rekodi ya ununuzi.</p></div>
 </section>
-   <section id="expenses" class="page hidden"><div class="panel"><h2>Rekodi matumizi</h2><form id="expenseForm"><div class="grid"><div class="field"><label>Aina ya matumizi</label><input id="eCategory" placeholder="Mf. Usafiri" required></div><div class="field"><label>Maelezo</label><input id="eDescription" required></div><div class="field"><label>Kiasi (TZS)</label><input id="eAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Njia ya malipo</label><select id="eMethod"><option value="cash">Taslimu</option><option value="mobile_money">Mobile money</option><option value="bank">Benki</option><option value="card">Kadi</option></select></div></div><button id="saveExpenseBtn" type="button">Hifadhi matumizi</button></form></div><div class="panel section"><h2>Matumizi ya karibuni</h2><div id="expensesTable" class="tablewrap"></div></div></section>
+   <section id="expenses" class="page hidden"><div class="panel"><h2>Rekodi matumizi</h2><form id="expenseForm"><div class="grid"><div class="field"><label>Aina ya matumizi</label><input id="eCategory" placeholder="Mf. Usafiri" required></div><div class="field"><label>Maelezo</label><input id="eDescription" required></div><div class="field"><label>Kiasi (TZS)</label><input id="eAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Njia ya malipo</label><select id="eMethod"><option value="cash">Taslimu</option><option value="mobile_money">Mobile money</option><option value="bank">Benki</option><option value="card">Kadi</option></select></div></div><button id="saveExpenseBtn" type="button" onclick="saveExpense(event)">Hifadhi matumizi</button><div id="expenseSaveStatus" class="notice hidden" role="status" aria-live="polite" style="margin-top:10px"></div></form></div><div class="panel section"><h2>Matumizi ya karibuni</h2><div id="expensesTable" class="tablewrap"></div></div></section>
    <section id="staff" class="page hidden"><div class="panel"><h2>Sajili mfanyakazi</h2><p class="muted small">Mfanyakazi atatumia username na password; hahitaji email. Password iwe na angalau herufi 8.</p><form id="staffForm"><div class="grid"><div class="field"><label>Jina kamili</label><input id="staffFullName" required maxlength="100"></div><div class="field"><label>Username</label><input id="staffUsername" required minlength="3" maxlength="30" pattern="[a-zA-Z0-9._-]+" autocomplete="off"></div><div class="field"><label>Password</label><input id="staffPassword" type="password" required minlength="8" maxlength="72" autocomplete="new-password"></div></div><button id="createStaffBtn" type="submit">Sajili mfanyakazi</button></form><div id="staffMessage" class="notice hidden"></div></div><div class="panel section"><div class="row"><h2>Wafanyakazi wa biashara</h2><button type="button" class="secondary" onclick="loadStaff()">Sasisha</button></div><div id="staffTable" class="tablewrap">Inapakia...</div></div></section>
    <section id="reports" class="page hidden"><div class="panel"><h2>Ripoti ya biashara</h2><p class="muted small">Chagua kipindi ili kuona mauzo, gharama ya bidhaa zilizouzwa, faida na matumizi.</p><div class="grid"><div class="field"><label>Kuanzia tarehe</label><input id="reportFrom" type="date"></div><div class="field"><label>Mpaka tarehe</label><input id="reportTo" type="date"></div></div><button onclick="loadBusinessReport()">Tengeneza ripoti</button><div class="actions section">
  <button type="button" onclick="setReportPeriod('week')">Ripoti ya wiki</button>
@@ -218,7 +218,7 @@ async function boot(){
  user=u;accountAccess=null;await checkSuperAdmin();
  $('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('userLabel').textContent=u.user_metadata?.full_name||u.email;
  if(!isSuperAdmin){
-  if(!navigator.onLine){message('appMsg','Unganisha intaneti ili kuthibitisha idhini na hali ya akaunti kabla ya kuendelea.',true);return;}
+  if(!navigator.onLine){showSaveStatus('Haijahifadhiwa: hakuna intaneti.',true);message('appMsg','Unganisha intaneti ili kuthibitisha idhini na hali ya akaunti kabla ya kuendelea.',true);return;}
   try{
    const {data,error}=await db.functions.invoke('amwemari-admin-subscriptions',{body:{action:'account_status'}});
    if(error)throw error;
@@ -706,7 +706,7 @@ updateProductEntryPreview();
 $('productForm').addEventListener('submit',async e=>{
  e.preventDefault();const form=e.target,submit=form.querySelector('button[type="submit"]');
  const units=Number($('pUnitsPerPack').value),packs=Number($('pOpeningPacks').value),loose=Number($('pOpeningLoose').value),packCost=Number($('pPackCost').value),retail=Number($('pPrice').value),wholesale=Number($('pWholesale').value);
- if(!store||!user){message('appMsg','Hujaingia kwenye biashara. Ingia tena ukiwa online kwanza.',true);return}
+ if(!store||!user){showSaveStatus('Haijahifadhiwa: akaunti au biashara haijapakiwa.',true);message('appMsg','Hujaingia kwenye biashara. Ingia tena ukiwa online kwanza.',true);return}
  const baseUnit=$('pBaseUnit').value.trim(),packName=$('pPackName').value.trim(),reorder=Number($('pReorder').value);if(!Number.isInteger(units)||units<1||!Number.isInteger(packs)||packs<0||!Number.isInteger(loose)||loose<0||!Number.isFinite(packCost)||packCost<0||!Number.isFinite(retail)||retail<=0||!Number.isFinite(wholesale)||wholesale<0||!Number.isFinite(reorder)||reorder<0){message('appMsg','Idadi ya vipande kwa kifungashio na stock ya kuanzia lazima ziwe namba kamili. Bei na kiwango cha tahadhari viwe sahihi.',true);return}if(!baseUnit||!packName||baseUnit.toLowerCase()===packName.toLowerCase()||/[0-9]/.test(baseUnit)||/[0-9]/.test(packName)){message('appMsg','Tenganisha majina: kipimo cha msingi mfano “chupa”; kifungashio mfano “katoni”. Usichanganye majina na namba.',true);return}
  if(store.owner_id!==user.id&&(packs>0||loose>0)){message('appMsg','Mfanyakazi anaweza kusajili bidhaa mpya, lakini hawezi kuweka stock ya kuanzia. Mmiliki aongeze stock kupitia Nunua stock.',true);return}
  const openingQty=packs*units+loose,unitCost=packCost/units;
@@ -873,15 +873,17 @@ window.removeCart=removeCart;
 let expenseSaveInProgress=false;
 async function saveExpense(event){
  if(event){event.preventDefault();event.stopPropagation();}
- const form=$('expenseForm'),btn=$('saveExpenseBtn');
+ const form=$('expenseForm'),btn=$('saveExpenseBtn'),status=$('expenseSaveStatus');
+ const showSaveStatus=(text,isError=false)=>{if(status){status.textContent=text;status.classList.remove('hidden','error');if(isError)status.classList.add('error')}};
  // Lock synchronously so a rapid double-tap cannot create duplicate expenses.
  if(expenseSaveInProgress)return;
  if(!store||!user){message('appMsg','Akaunti au biashara haijapakiwa. Hakuna matumizi yaliyohifadhiwa; taarifa zako zimeachwa kwenye fomu.',true);return}
  if(!navigator.onLine){message('appMsg','Intaneti haipo. Matumizi hayajahifadhiwa. Acha taarifa hizi kwenye fomu, unganisha intaneti kisha jaribu tena.',true);return}
  const amount=Number($('eAmount').value);
- if(!$('eCategory').value.trim()||!$('eDescription').value.trim()||!Number.isFinite(amount)||amount<=0){message('appMsg','Kagua aina, maelezo na kiasi cha matumizi.',true);return}
+ if(!$('eCategory').value.trim()||!$('eDescription').value.trim()||!Number.isFinite(amount)||amount<=0){showSaveStatus('Jaza aina, maelezo na kiasi sahihi kwanza.',true);message('appMsg','Kagua aina, maelezo na kiasi cha matumizi.',true);return}
  const payload={store_id:store.id,category:$('eCategory').value.trim(),description:$('eDescription').value.trim(),amount,payment_method:$('eMethod').value,recorded_by:user.id};
  expenseSaveInProgress=true;
+ showSaveStatus('Inahifadhi matumizi… tafadhali subiri.');
  if(btn){btn.disabled=true;btn.textContent='Inahifadhi matumizi…';btn.setAttribute('aria-live','polite')}
  try{
   const {data:{session},error:sessionError}=await db.auth.getSession();
@@ -892,12 +894,14 @@ async function saveExpense(event){
   // Clear inputs only after Supabase confirms the insert.
   form.reset();
   if(btn)btn.textContent='Matumizi yamehifadhiwa ✓';
+  showSaveStatus('Matumizi yamehifadhiwa kikamilifu ✓');
   message('appMsg','Matumizi yamehifadhiwa kikamilifu.');
   try{await refreshAll()}
   catch(refreshError){console.error('Expense saved but refresh failed:',refreshError);message('appMsg','Matumizi yamehifadhiwa kwenye database, lakini orodha haikuweza kusasishwa. Bonyeza Sasisha; usiingize matumizi haya tena.',false)}
  }catch(error){
   console.error('AMWEMARI expense save failed:',error);
   if(btn)btn.textContent='Haijahifadhiwa — jaribu tena';
+  showSaveStatus('Haijahifadhiwa: '+(error?.message||String(error)),true);
   message('appMsg','Matumizi hayajahifadhiwa: '+(error?.message||String(error))+' — taarifa ulizoingiza zimeachwa kwenye fomu.',true);
  }finally{
   expenseSaveInProgress=false;
@@ -906,7 +910,7 @@ async function saveExpense(event){
 }
 const expenseForm=$('expenseForm'),saveExpenseBtn=$('saveExpenseBtn');
 if(expenseForm)expenseForm.addEventListener('submit',saveExpense);
-if(saveExpenseBtn)saveExpenseBtn.addEventListener('click',event=>saveExpense(event));
+
 db.auth.getSession().then(({data})=>{if(data.session)boot().catch(showAuthFailure)}).catch(showAuthFailure);
 
 async function staffRequest(payload){
