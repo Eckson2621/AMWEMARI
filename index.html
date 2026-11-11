@@ -861,7 +861,7 @@ $('productForm').addEventListener('submit',async e=>{
     const localProduct={...payload,quantity:openingQty,is_active:true};
     const cached=(await window.localAll('products')).filter(p=>p.id!==payload.id);cached.push(localProduct);await localReplace('products',cached);
     products=cached.filter(p=>p.store_id===store.id&&p.is_active!==false);renderAll();form.reset();
-    message('appMsg','Muunganisho umekatika. Bidhaa imehifadhiwa KWENYE SIMU na itatumwa intaneti ikirudi. Usisajili tena bidhaa hii.');
+    const queuedMsg='Muunganisho umekatika. Bidhaa imehifadhiwa KWENYE SIMU na itatumwa Supabase intaneti ikirudi. Usisajili tena bidhaa hii.';productStatus(queuedMsg);message('appMsg',queuedMsg);
     await renderPendingProducts();
    }catch(queueError){productStatus('Haikuwezekana kuhifadhi bidhaa kwenye simu: '+(queueError.message||queueError),true);message('appMsg','Haikuwezekana kuhifadhi bidhaa kwenye simu: '+(queueError.message||queueError),true)}
   }else{productStatus('Bidhaa haijahifadhiwa: '+detail,true);message('appMsg','Bidhaa haijahifadhiwa: '+detail,true)}
