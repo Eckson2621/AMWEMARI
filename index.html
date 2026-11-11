@@ -100,7 +100,7 @@
 </div>
 <div id="businessGrowthPanel" class="panel section"><h2>Graph ya mwenendo wa biashara</h2><p class="muted small">Mauzo, faida/hasara na thamani ya stock kwa siku. Stock ya siku zilizopita ni makadirio yanayotumia movement history na gharama ya sasa ya bidhaa.</p><div id="businessGrowthChart"><p class="muted">Inapakia graph...</p></div></div>
 <div class="panel section"><h2>Bidhaa zinazokaribia kuisha</h2><div id="lowStockList" class="tablewrap"></div></div><div class="panel section"><h2>Mauzo ya hivi karibuni</h2><div id="recentSales" class="tablewrap"></div></div></section>
-   <section id="sales" class="page hidden"><div class="panel"><h2>Rekodi mauzo</h2><div class="grid"><div class="field"><label>Bidhaa</label><select id="saleProduct"></select></div><div class="field"><label>Aina ya mauzo</label><select id="saleUnit"><option value="single">Rejareja (kipande/chupa)</option><option value="pack">Jumla (katoni/boksi)</option></select></div><div class="field"><label>Kiasi</label><input id="saleQty" type="number" min=".001" step=".001" value="1"></div><div class="field"><label>Malipo yaliyopokelewa</label><input id="salePaid" type="number" min="0" step=".01" value="0"></div><div class="field"><label>Mteja wa mkopo (chagua tu kama ni mauzo ya mkopo)</label><select id="saleCreditCustomer"><option value="">Chagua mteja aliyesajiliwa</option></select></div><div class="field"><label>Njia ya malipo</label><select id="saleMethod"><option value="cash">Taslimu</option><option value="mobile_money">Mobile money</option><option value="card">Kadi</option><option value="bank">Benki</option><option value="credit">Mkopo</option></select></div><div class="field"><label>Aina ya kurekodi mauzo</label><select id="saleEntryMode"><option value="live">Mauzo ya papo hapo</option><option value="day_end">Mauzo ya mwisho wa siku</option></select></div></div><div id="dayEndFields" class="grid hidden"><div class="field"><label>Muda halisi ambao mauzo yalifanyika</label><input id="dayEndSoldAt" type="datetime-local"></div><div class="field"><label>Maelezo (hiari)</label><input id="dayEndReason" maxlength="250" placeholder="Mf. Mauzo yaliyofanyika wakati simu haikuwa na chaji"></div></div><p id="saleEntryHint" class="muted small">Rekodi kila mteja anaponunua. Mfumo utahifadhi muda wa mauzo na muda wa kurekodi.</p><div class="row"><div id="salePrice" class="muted">Chagua bidhaa</div><button id="addCartBtn" type="button">Ongeza bidhaa</button></div><div id="saleActionStatus" class="notice section" role="status" aria-live="polite">Chagua bidhaa, weka kiasi, kisha bonyeza Ongeza bidhaa.</div><div id="cartTable" class="tablewrap section"></div><div id="pendingSales" class="notice section">Mauzo yanayosubiri kusawazishwa: 0</div><div class="row section"><strong id="cartTotal">Jumla: TZS 0</strong><button id="completeSaleBtn" type="button">Thibitisha mauzo</button></div><p class="muted small">Ukiuza katoni, stock itapungua kwa idadi ya chupa zilizomo kwenye katoni. Mauzo yote yanatumia stock moja.</p></div><div class="panel section"><h2>Mauzo yaliyorekodiwa</h2><div id="salesTable" class="tablewrap"></div><div id="mySalesSummary" class="notice section">Muhtasari wa mauzo yangu utajitokeza hapa.</div></div></section>
+   <section id="sales" class="page hidden"><div class="panel"><h2>Rekodi mauzo</h2><div class="grid"><div class="field"><label>Bidhaa</label><select id="saleProduct"></select></div><div class="field"><label>Aina ya mauzo</label><select id="saleUnit"><option value="single">Rejareja (kipande/chupa)</option><option value="pack">Jumla (katoni/boksi)</option></select></div><div class="field"><label>Kiasi</label><input id="saleQty" type="number" min=".001" step=".001" value="1"></div><div class="field"><label>Malipo yaliyopokelewa</label><input id="salePaid" type="number" min="0" step=".01" value="0"></div><div class="field"><label>Mteja wa mkopo (chagua tu kama ni mauzo ya mkopo)</label><select id="saleCreditCustomer"><option value="">Chagua mteja aliyesajiliwa</option></select></div><div class="field"><label>Njia ya malipo</label><select id="saleMethod"><option value="cash">Taslimu</option><option value="mobile_money">Mobile money</option><option value="card">Kadi</option><option value="bank">Benki</option><option value="credit">Mkopo</option></select></div><div class="field"><label>Aina ya kurekodi mauzo</label><select id="saleEntryMode"><option value="live">Mauzo ya papo hapo</option><option value="day_end">Mauzo ya mwisho wa siku</option></select></div></div><div id="dayEndFields" class="grid hidden"><div class="field"><label>Muda halisi ambao mauzo yalifanyika</label><input id="dayEndSoldAt" type="datetime-local"></div><div class="field"><label>Maelezo (hiari)</label><input id="dayEndReason" maxlength="250" placeholder="Mf. Mauzo yaliyofanyika wakati simu haikuwa na chaji"></div></div><p id="saleEntryHint" class="muted small">Rekodi kila mteja anaponunua. Mfumo utahifadhi muda wa mauzo na muda wa kurekodi.</p><div class="row"><div id="salePrice" class="muted">Chagua bidhaa</div><button id="addCartBtn" type="button">Ongeza bidhaa</button></div><div id="saleActionStatus" class="notice section" role="status" aria-live="polite">Chagua bidhaa, weka kiasi, kisha bonyeza Ongeza bidhaa.</div><div id="cartTable" class="tablewrap section"></div><div id="pendingSales" class="notice section">Mauzo yanayosubiri kusawazishwa: 0</div><div id="salePaymentSummary" class="notice section" aria-live="polite">Jumla: TZS 0 · Malipo: TZS 0 · Salio: TZS 0</div><div class="row section"><strong id="cartTotal">Jumla: TZS 0</strong><button id="completeSaleBtn" type="button">Thibitisha mauzo</button></div><p class="muted small">Ukiuza katoni, stock itapungua kwa idadi ya chupa zilizomo kwenye katoni. Mauzo yote yanatumia stock moja.</p></div><div class="panel section"><h2>Mauzo yaliyorekodiwa</h2><div id="salesTable" class="tablewrap"></div><div id="mySalesSummary" class="notice section">Muhtasari wa mauzo yangu utajitokeza hapa.</div></div></section>
 <section id="debts" class="page hidden"><div class="panel"><div class="row"><div><h2>Madeni ya wateja</h2><p class="muted small">Mauzo ya mkopo yataonekana hapa. Mteja akilipa, chagua deni, kiasi na njia ya malipo kisha bonyeza Pokea malipo. Salio litapungua moja kwa moja.</p></div><button type="button" class="secondary" onclick="loadDebts()">Sasisha</button></div><div class="grid"><div class="card"><div class="muted">Madeni yaliyobaki</div><div class="metric" id="debtOutstandingTotal">TSh 0</div></div><div class="card"><div class="muted">Idadi ya mauzo yenye deni</div><div class="metric" id="debtSaleCount">0</div></div></div><div id="debtsTable" class="tablewrap section">Inapakia madeni...</div></div><div class="panel section"><h2>Pokea malipo ya deni</h2><form id="debtPaymentForm"><div class="grid"><div class="field"><label>Chagua deni / mteja</label><select id="debtSaleSelect" required><option value="">Chagua deni</option></select></div><div class="field"><label>Kiasi kilicholipwa (TSh)</label><input id="debtPaymentAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Njia ya malipo</label><select id="debtPaymentMethod"><option value="cash">Cash / Taslimu</option><option value="mobile_money">Mobile money</option><option value="bank">Benki</option><option value="card">Kadi</option></select></div></div><div class="field"><label>Maelezo (hiari)</label><input id="debtPaymentNote" maxlength="250" placeholder="Mf. Amelipa sehemu ya deni"></div><button id="receiveDebtPaymentBtn" type="submit">Pokea malipo na punguza deni</button></form><div id="debtPaymentMessage" class="notice hidden"></div></div><div class="panel section"><h2>Historia ya malipo ya madeni</h2><div id="debtPaymentsHistory" class="tablewrap">Inapakia...</div></div></section>
 <section id="products" class="page hidden"><div class="panel"><h2>Sajili bidhaa mpya</h2><p class="muted small">Ingiza stock ya kuanzia kwa idadi ya vifungashio. Mfano: katoni 3 zenye chupa 12 kila moja = chupa 36. Mfumo utahifadhi chupa 36 na kukuonyesha katoni 3 (chupa 36).</p><form id="productForm"><div class="grid"><div class="field"><label>Jina la bidhaa</label><input id="pName" required placeholder="Mf. Maji makubwa 1.6L"></div><div class="field"><label>Jina la kipande kimoja (kipimo cha msingi)</label><input id="pBaseUnit" value="chupa" maxlength="24" placeholder="Mf. chupa" required><small class="muted">Andika jina tu, bila namba.</small></div><div class="field"><label>Jina la kifungashio kikubwa</label><input id="pPackName" value="katoni" maxlength="24" placeholder="Mf. katoni" required><small class="muted">Andika jina tu, bila namba.</small></div><div class="field"><label>Idadi ya vipande ndani ya kifungashio kimoja</label><input id="pUnitsPerPack" type="number" min="1" step="1" value="12" required><small class="muted">Mfano: katoni moja ina chupa 12. Weka 12, si “chupa 12”.</small></div><div class="field"><label>Bei ya kununua kifungashio (TZS)</label><input id="pPackCost" type="number" min="0" step=".01" value="0" required></div><div class="field"><label>Bei ya rejareja kwa kipande (TZS)</label><input id="pPrice" type="number" min="0" step=".01" required></div><div class="field"><label>Bei ya jumla kwa kifungashio (TZS)</label><input id="pWholesale" type="number" min="0" step=".01" value="0" required></div><div class="field"><label>Katoni/vifungashio vya kuanzia</label><input id="pOpeningPacks" type="number" min="0" step="1" value="0" required></div><div class="field"><label>Chupa/vipande vya ziada (vilivyo nje ya katoni)</label><input id="pOpeningLoose" type="number" min="0" step="1" value="0" required><small class="muted">Mfano: katoni 3 na chupa 5 za ziada.</small></div><div class="field"><label>Kiwango cha tahadhari (vipande)</label><input id="pReorder" type="number" min="0" step=".001" value="3"></div></div><div id="productEntryPreview" class="notice" aria-live="polite">Mfano: katoni 3 × chupa 12 = chupa 36 zitakuwa stock ya kuanzia.</div><button id="saveProductBtn" type="submit">Hifadhi bidhaa</button><div id="productSaveStatus" class="notice hidden" role="status" aria-live="polite" style="margin-top:10px"></div></form></div><div class="panel section"><div class="row"><h2>Orodha ya bidhaa</h2><button id="ownerPinBtn" type="button" class="secondary hidden" onclick="openOwnerPinModal()">Weka/Badili PIN ya mmiliki</button></div><div id="productsTable" class="tablewrap"></div></div></section>
 <div id="editPinGateModal" class="hidden" style="position:fixed;inset:0;background:#10243acc;z-index:70;padding:16px;overflow:auto"><div class="panel" style="max-width:420px;margin:12vh auto"><div class="row"><h2>Thibitisha PIN ya mmiliki</h2><button type="button" class="secondary" onclick="closeEditPinGate()">Funga</button></div><p class="muted small">Ingiza PIN ya mmiliki ili kuruhusiwa kufungua sehemu ya kuhariri bidhaa.</p><form id="editPinGateForm"><div class="field"><label>PIN ya tarakimu nne</label><input id="editGatePin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" autocomplete="off" required></div><p id="editGateError" class="error hidden"></p><button id="verifyEditPinBtn" type="submit">Thibitisha na endelea</button></form></div></div>
@@ -938,7 +938,7 @@ function updateSalePrice(){
 }
 $('saleProduct').addEventListener('change',updateSalePrice);
 $('saleUnit').addEventListener('change',updateSalePrice);
-let saleAddInProgress=false;
+let saleAddInProgress=false,saleSubmitInProgress=false;
 function readSaleInputs(){
  const productSelect=$('saleProduct');
  const qtyInput=$('saleQty');
@@ -1029,66 +1029,126 @@ async function ongezaBidhaa(event){
 async function loadDebts(){if(!store)return;const box=$('debtsTable');box.textContent='Inapakia madeni...';try{const [sr,cr,pr]=await Promise.all([db.from('sales').select('id,receipt_no,total,amount_paid,payment_method,sold_at,customer_id').eq('store_id',store.id).eq('status','completed').order('sold_at',{ascending:false}).limit(500),db.from('customers').select('id,full_name,phone').eq('store_id',store.id),db.from('customer_payments').select('id,sale_id,amount,payment_method,paid_at,notes').eq('store_id',store.id).order('paid_at',{ascending:false}).limit(100)]);for(const x of [sr,cr,pr])if(x.error)throw x.error;const customers=new Map((cr.data||[]).map(c=>[c.id,c]));const rows=(sr.data||[]).filter(x=>Number(x.total)-Number(x.amount_paid)>.009&&x.customer_id).map(x=>({...x,customer:customers.get(x.customer_id)}));const outstanding=rows.reduce((a,x)=>a+Number(x.total)-Number(x.amount_paid),0);$('debtOutstandingTotal').textContent=money(outstanding);$('debtSaleCount').textContent=String(rows.length);$('debtSaleSelect').innerHTML='<option value="">Chagua deni</option>'+rows.map(x=>'<option value="'+x.id+'">'+esc(x.customer?.full_name||'Mteja')+' · '+esc(x.receipt_no)+' · Deni '+money(Number(x.total)-Number(x.amount_paid))+'</option>').join('');box.innerHTML=rows.length?'<table><thead><tr><th>Mteja</th><th>Simu</th><th>Risiti</th><th>Tarehe</th><th>Jumla</th><th>Amelipa</th><th>Deni</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(x.customer?.full_name||'—')+'</td><td>'+esc(x.customer?.phone||'—')+'</td><td>'+esc(x.receipt_no)+'</td><td>'+new Date(x.sold_at).toLocaleDateString('sw-TZ')+'</td><td>'+money(x.total)+'</td><td>'+money(x.amount_paid)+'</td><td><strong>'+money(Number(x.total)-Number(x.amount_paid))+'</strong></td></tr>').join('')+'</tbody></table>':'<p class="muted">Hakuna deni linalosubiri malipo. Mauzo yenye salio yataonekana hapa kama mteja aliandikwa wakati wa mauzo.</p>';const payments=pr.data||[];$('debtPaymentsHistory').innerHTML=payments.length?'<table><thead><tr><th>Tarehe</th><th>Kiasi</th><th>Njia</th><th>Risiti</th><th>Maelezo</th></tr></thead><tbody>'+payments.map(p=>'<tr><td>'+new Date(p.paid_at).toLocaleString('sw-TZ')+'</td><td>'+money(p.amount)+'</td><td>'+paymentMethodLabel(p.payment_method)+'</td><td>'+esc((sr.data||[]).find(x=>x.id===p.sale_id)?.receipt_no||'—')+'</td><td>'+esc(p.notes||'—')+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Bado hakuna malipo ya deni yaliyorekodiwa.</p>';}catch(e){box.textContent='Imeshindikana kupakia madeni: '+(e.message||e);}}
 $('debtPaymentForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('receiveDebtPaymentBtn'),saleId=$('debtSaleSelect').value,amount=Number($('debtPaymentAmount').value),method=$('debtPaymentMethod').value;if(!saleId||!Number.isFinite(amount)||amount<=0){message('debtPaymentMessage','Chagua deni na weka kiasi sahihi.',true);return}btn.disabled=true;btn.textContent='Inahifadhi malipo...';try{const {data,error}=await db.rpc('record_customer_debt_payment',{p_store_id:store.id,p_sale_id:saleId,p_amount:amount,p_payment_method:method,p_notes:$('debtPaymentNote').value.trim()});if(error)throw error;const r=Array.isArray(data)?data[0]:data;$('debtPaymentAmount').value='';$('debtPaymentNote').value='';message('debtPaymentMessage','Malipo yamepokelewa. Salio la deni lililobaki: '+money(r.balance_due)+'.');await loadDebts();await refreshAll();}catch(error){message('debtPaymentMessage','Malipo hayajahifadhiwa: '+(error.message||error),true)}finally{btn.disabled=false;btn.textContent='Pokea malipo na punguza deni';}});
 $('debtSaleSelect').addEventListener('change',()=>{const selected=$('debtSaleSelect').selectedOptions[0];const match=selected?.textContent.match(/Deni\s+([\d,\.]+)/);if(match)$('debtPaymentAmount').placeholder='Deni lililobaki: '+match[1];});
-function renderCart(){const total=cart.reduce((a,x)=>a+x.quantity*x.unit_price,0);$('cartTotal').textContent='Jumla: '+money(total);$('cartTable').innerHTML=cart.length?'<table><thead><tr><th>Bidhaa</th><th>Kiasi kilichouzwa</th><th>Jumla</th><th></th></tr></thead><tbody>'+cart.map((x,i)=>'<tr><td>'+esc(x.name)+'</td><td>'+x.display_quantity+' '+esc(x.display_unit)+' <span class="muted small">('+x.quantity+' stock units)</span></td><td>'+money(x.quantity*x.unit_price)+'</td><td><button class="danger" onclick="removeCart('+i+')">Ondoa</button></td></tr>').join('')+'</tbody></table>':'<p class="muted">Bado hujaongeza bidhaa kwenye mauzo.</p>'}
-function removeCart(i){cart.splice(i,1);renderCart()}
+function salePaymentState(){
+ const total=Number(cart.reduce((sum,item)=>sum+Number(item.quantity)*Number(item.unit_price),0).toFixed(2));
+ const method=$('saleMethod')?.value||'cash';
+ const raw=$('salePaid')?.value;
+ const entered=raw===''?0:Number(raw||0);
+ const paid=(method!=='credit'&&entered===0)?total:entered;
+ return {total,method,entered,paid,balance:Number(Math.max(0,total-paid).toFixed(2))};
+}
+function updateSaleWorkflowSummary(){
+ const host=$('salePaymentSummary');
+ if(!host)return;
+ const x=salePaymentState();
+ if(!cart.length){host.textContent='Jumla: TZS 0 · Malipo: TZS 0 · Salio: TZS 0';return}
+ if(!Number.isFinite(x.entered)||x.entered<0||x.paid>x.total){
+  host.textContent='Kagua kiasi cha malipo. Hakiwezi kuwa hasi au kuzidi jumla ya mauzo.';
+  host.classList.add('error');host.classList.remove('success');return;
+ }
+ host.classList.remove('error','success');
+ host.textContent='Jumla: '+money(x.total)+' · Imepokelewa: '+money(x.paid)+' · Salio: '+money(x.balance)+(x.balance>0?' · Chagua mteja wa deni.':' · Malipo yamekamilika.');
+}
+function renderCart(){
+ const total=cart.reduce((a,x)=>a+x.quantity*x.unit_price,0);
+ $('cartTotal').textContent='Jumla: '+money(total);
+ $('cartTable').innerHTML=cart.length?'<table><thead><tr><th>Bidhaa</th><th>Kiasi kilichouzwa</th><th>Jumla</th><th></th></tr></thead><tbody>'+cart.map((x,i)=>'<tr><td>'+esc(x.name)+'</td><td>'+x.display_quantity+' '+esc(x.display_unit)+' <span class="muted small">('+x.quantity+' stock units)</span></td><td>'+money(x.quantity*x.unit_price)+'</td><td><button type="button" class="danger" onclick="removeCart('+i+')">Ondoa</button></td></tr>').join('')+'</tbody></table>':'<p class="muted">Bado hujaongeza bidhaa kwenye mauzo.</p>';
+ updateSaleWorkflowSummary();
+}
+function removeCart(i){if(!Number.isInteger(i)||i<0||i>=cart.length)return;cart.splice(i,1);renderCart()}
+$('salePaid').addEventListener('input',updateSaleWorkflowSummary);
+$('saleMethod').addEventListener('change',updateSaleWorkflowSummary);
+$('saleCreditCustomer').addEventListener('change',updateSaleWorkflowSummary);
 function localDateTimeInputValue(date=new Date()){const d=new Date(date.getTime()-date.getTimezoneOffset()*60000);return d.toISOString().slice(0,16)}
 function toggleSaleEntryMode(){const mode=$('saleEntryMode').value,dayEnd=mode==='day_end';$('dayEndFields').classList.toggle('hidden',!dayEnd);$('saleEntryHint').textContent=dayEnd?'Ingiza muda ambao mauzo yalifanyika. Mfumo utahifadhi pia muda wa sasa ambao taarifa imeingizwa.':'Rekodi kila mteja anaponunua. Mfumo utahifadhi muda wa mauzo na muda wa kurekodi.';if(dayEnd&&!$('dayEndSoldAt').value)$('dayEndSoldAt').value=localDateTimeInputValue()}
 $('saleEntryMode').addEventListener('change',toggleSaleEntryMode);
 async function completeSale(){
  const btn=$('completeSaleBtn');
- if(btn?.disabled)return;
- if(!cart.length){message('appMsg','Ongeza bidhaa kwenye kikapu kwanza.',true);return}
- const total=cart.reduce((a,x)=>a+x.quantity*x.unit_price,0);
- const method=$('saleMethod').value;
- // A normal cash/mobile/card/bank sale is fully paid when the user leaves the
- // amount-received field at its default zero. Select "Mkopo" for an unpaid sale;
- // enter a positive amount for a partial payment.
- const enteredPaid=Number($('salePaid').value);
- const paid=(method!=='credit'&&enteredPaid===0)?total:enteredPaid;
- const entryMode=$('saleEntryMode').value;
- if(!Number.isFinite(total)||total<=0){message('appMsg','Jumla ya mauzo si sahihi. Ondoa bidhaa kisha uziweke tena.',true);return}
- if(!Number.isFinite(paid)||paid<0||paid>total){message('appMsg','Malipo hayawezi kuwa chini ya sifuri au kuzidi jumla.',true);return}if(method==='credit'&&paid>0){message('appMsg','Ukishapokea sehemu ya fedha, chagua njia halisi ya malipo. Mkopo utakuwa salio ambalo halijalipwa.',true);return}
+ if(saleSubmitInProgress||btn?.disabled)return false;
+ if(!store||!user){message('appMsg','Akaunti au biashara haijapakiwa. Mauzo hayajahifadhiwa.',true);return false}
+ if(!cart.length){message('appMsg','Ongeza bidhaa kwenye kikapu kwanza.',true);return false}
+ const state=salePaymentState(),total=state.total,method=state.method,paid=state.paid;
+ const entryMode=$('saleEntryMode')?.value||'live';
+ if(!Number.isFinite(total)||total<=0){message('appMsg','Jumla ya mauzo si sahihi. Kagua bidhaa kwenye kikapu.',true);return false}
+ if(!Number.isFinite(state.entered)||state.entered<0||paid>total){message('appMsg','Malipo hayawezi kuwa hasi au kuzidi jumla ya mauzo.',true);return false}
+ if(method==='credit'&&paid>0){message('appMsg','Kwa mauzo ya mkopo, kiasi kilichopokelewa kiwe sifuri. Kwa malipo ya sehemu, chagua njia halisi ya malipo.',true);return false}
+ const hasBalance=paid<total;
+ if(hasBalance&&!navigator.onLine){message('appMsg','Mauzo yenye deni yanahitaji intaneti. Unganisha intaneti kabla ya kuthibitisha.',true);return false}
+ let customerId=null;
+ if(hasBalance){
+  customerId=$('saleCreditCustomer')?.value||null;
+  if(!customerId){message('appMsg','Chagua mteja aliyesajiliwa kwa sababu mauzo haya yana salio la '+money(total-paid)+'.',true);return false}
+ }
  let soldAt=new Date().toISOString();
  if(entryMode==='day_end'){
-  const raw=$('dayEndSoldAt').value;
-  if(!raw){message('appMsg','Weka tarehe na muda ambao mauzo yalifanyika.',true);return}
-  soldAt=new Date(raw).toISOString();
-  if(Number.isNaN(Date.parse(soldAt))||Date.parse(soldAt)>Date.now()+5*60000){message('appMsg','Muda wa mauzo si sahihi au uko mbele ya muda wa sasa.',true);return}
+  const raw=$('dayEndSoldAt')?.value;
+  if(!raw){message('appMsg','Weka tarehe na muda ambao mauzo yalifanyika.',true);return false}
+  const parsed=new Date(raw);
+  if(Number.isNaN(parsed.getTime())||parsed.getTime()>Date.now()+5*60000){message('appMsg','Muda wa mauzo si sahihi au uko mbele ya muda wa sasa.',true);return false}
+  soldAt=parsed.toISOString();
  }
- let customerId=null;const hasBalance=paid<total;if(hasBalance&&!navigator.onLine){message('appMsg','Kurekodi mauzo ya mkopo kunahitaji intaneti.',true);return}if(hasBalance){customerId=$('saleCreditCustomer')?.value||null;if(!customerId){message('appMsg','Chagua mteja aliyesajiliwa kwenye sehemu ya Mteja wa mkopo. Mauzo ya kawaida hayahitaji taarifa za mteja.',true);return}}
- const payload={request_id:crypto.randomUUID(),store_id:store.id,seller_id:user.id,items:cart.map(x=>({product_id:x.product_id,quantity:x.quantity,unit_price:x.unit_price})),customer_id:customerId,amount_paid:paid,payment_method:method,total,entry_mode:entryMode,sold_at:soldAt,created_at:new Date().toISOString(),notes:entryMode==='day_end'?$('dayEndReason').value.trim():''};
- if(btn){btn.disabled=true;btn.textContent='Inahifadhi mauzo...'}
- message('appMsg','Inatuma mauzo kuhifadhiwa. Subiri tafadhali...');
+ const payload={
+  request_id:crypto.randomUUID(),store_id:store.id,seller_id:user.id,
+  items:cart.map(x=>({product_id:x.product_id,quantity:x.quantity,unit_price:x.unit_price})),
+  customer_id:customerId,amount_paid:paid,payment_method:method,total,
+  entry_mode:entryMode,sold_at:soldAt,created_at:new Date().toISOString(),
+  notes:entryMode==='day_end'?($('dayEndReason')?.value||'').trim():''
+ };
+ saleSubmitInProgress=true;
+ if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent='Inahifadhi mauzo...'}
+ message('appMsg','Inahifadhi mauzo. Usibonyeze tena mpaka majibu yatokee.');
+ const resetSaleForm=async()=>{
+  cart=[];
+  $('saleQty').value='1';
+  $('salePaid').value='0';
+  $('saleCreditCustomer').value='';
+  $('saleMethod').value='cash';
+  $('dayEndReason').value='';
+  $('dayEndSoldAt').value='';
+  $('saleEntryMode').value='live';
+  toggleSaleEntryMode();
+  renderCart();
+  updateSalePrice();
+  await renderPendingSales();
+ };
  try{
   if(!navigator.onLine){
    await localPut('pending_sales',payload);
-   cart=[];$('salePaid').value='0';$('dayEndReason').value='';renderCart();await renderPendingSales();
-   message('appMsg','Mauzo yamehifadhiwa kwenye simu na yanasubiri intaneti. Usifute data za kivinjari.');
-   return;
+   await resetSaleForm();
+   message('appMsg','Mauzo yamehifadhiwa kwenye simu na yanasubiri intaneti. Yatasawazishwa ukirudi online; usifute data za kivinjari.');
+   return true;
   }
-  const {data,error}=await db.rpc('create_sale',{p_store_id:store.id,p_items:payload.items,p_customer_id:customerId,p_amount_paid:paid,p_payment_method:method,p_discount:0,p_tax:0,p_notes:'AMWEMARI_META|'+entryMode+'|'+soldAt+'|'+payload.notes,p_request_id:payload.request_id});
+  const {data,error}=await db.rpc('create_sale',{
+   p_store_id:store.id,p_items:payload.items,p_customer_id:customerId,
+   p_amount_paid:paid,p_payment_method:method,p_discount:0,p_tax:0,
+   p_notes:'AMWEMARI_META|'+entryMode+'|'+soldAt+'|'+payload.notes,
+   p_request_id:payload.request_id
+  });
   if(error){
    const networkError=/fetch|network|load failed|failed to fetch|timeout/i.test(error.message||'');
    if(networkError){
     await localPut('pending_sales',payload);
-    cart=[];$('salePaid').value='0';$('dayEndReason').value='';renderCart();await renderPendingSales();
-    message('appMsg','Majibu ya mtandao yamekatika. Ombi limewekwa kwenye foleni kwa kitambulisho kilekile ili lisirekodiwe mara mbili.');
-    return;
+    await resetSaleForm();
+    message('appMsg','Mtandao umekatika kabla ya jibu. Ombi limehifadhiwa kwenye foleni kwa request ID ileile ili kuzuia mauzo kujirudia.');
+    return true;
    }
    throw new Error(error.message||'Supabase imeshindwa kuhifadhi mauzo.');
   }
   const receipt=Array.isArray(data)?data[0]:data;
-  if(!receipt?.sale_id){throw new Error('Supabase haijarudisha namba ya mauzo. Kikapu kimeachwa bila kufutwa; kagua orodha ya mauzo kabla ya kujaribu tena.');}
-  cart=[];$('salePaid').value='0';$('dayEndReason').value='';renderCart();
-  message('appMsg','Mauzo yamehifadhiwa. Risiti: '+(receipt.receipt_no||'imeundwa')+'. Jumla '+money(receipt.total)+'. Salio '+money(receipt.balance_due));
-  try{await refreshAll()}catch(refreshError){console.error('Sale saved but refresh failed:',refreshError);message('appMsg','Mauzo yamehifadhiwa kikamilifu. Orodha haikuweza kujisasisha; refresh ukurasa kuona risiti.',false);}
+  if(!receipt?.sale_id)throw new Error('Supabase haijarudisha sale_id. Kikapu kimeachwa salama; usijaribu tena kabla ya kukagua mauzo yaliyorekodiwa.');
+  await resetSaleForm();
+  let refreshProblem='';
+  try{await refreshAll();if(hasBalance)await loadDebts()}catch(refreshError){console.error('Sale saved but refresh failed:',refreshError);refreshProblem=' Mauzo yamehifadhiwa, lakini orodha haikujisasisha; bonyeza Sasisha.'}
+  message('appMsg','Mauzo yamehifadhiwa kikamilifu. Risiti: '+(receipt.receipt_no||'imeundwa')+'. Jumla '+money(receipt.total)+'. Imepokelewa '+money(receipt.amount_paid)+'. Salio '+money(receipt.balance_due)+'.'+refreshProblem,false);
+  return true;
  }catch(error){
   console.error('AMWEMARI completeSale error:',error);
-  message('appMsg','Mauzo hayajahifadhiwa: '+(error?.message||'Hitilafu isiyojulikana. Angalia intaneti kisha jaribu tena.'),true);
+  message('appMsg','Mauzo hayajahifadhiwa: '+(error?.message||'Hitilafu isiyojulikana. Kikapu kimeachwa ili ujaribu tena.'),true);
+  return false;
  }finally{
-  if(btn){btn.disabled=false;btn.textContent='Thibitisha mauzo'}
+  saleSubmitInProgress=false;
+  if(btn){btn.disabled=false;btn.removeAttribute('aria-busy');btn.textContent='Thibitisha mauzo'}
  }
-
 }
 // One authoritative click handler for the sales cart.
 // Keep the button outside form submission and call the in-scope function directly.
