@@ -939,39 +939,80 @@ function updateSalePrice(){
 $('saleProduct').addEventListener('change',updateSalePrice);
 $('saleUnit').addEventListener('change',updateSalePrice);
 let saleAddInProgress=false;
+function readSaleInputs(){
+ const productSelect=$('saleProduct');
+ const qtyInput=$('saleQty');
+ const paidInput=$('salePaid');
+ const unitSelect=$('saleUnit');
+ const entryModeSelect=$('saleEntryMode');
+ if(!productSelect||!qtyInput||!paidInput||!unitSelect||!entryModeSelect){
+  throw new Error('Sehemu za mauzo hazijakamilika. Inahitajika saleProduct, saleQty, salePaid, saleUnit na saleEntryMode.');
+ }
+ const selectedId=String(productSelect.value||'').trim();
+ const quantity=Number(qtyInput.value);
+ const paid=Number(paidInput.value||0);
+ const unit=String(unitSelect.value||'single');
+ const entryMode=String(entryModeSelect.value||'live');
+ const product=products.find(item=>String(item.id)===selectedId);
+ console.log('[AMWEMARI][Rekodi Mauzo] Taarifa zilizosomwa:',{
+  productId:selectedId,
+  productName:product?.name||null,
+  quantity,
+  amountPaid:paid,
+  saleUnit:unit,
+  entryMode,
+  stockBaseUnits:product?.quantity,
+  unitsPerPack:product?.units_per_pack
+ });
+ return {productSelect,qtyInput,paidInput,unitSelect,entryModeSelect,selectedId,quantity,paid,unit,entryMode,product};
+}
 async function addCart(){
  const btn=$('addCartBtn'),status=$('saleActionStatus');
  if(saleAddInProgress)return false;
  saleAddInProgress=true;
  if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true');btn.textContent='Inaongeza bidhaa...'}
- if(status)status.textContent='Inakagua bidhaa na stock...';
+ if(status)status.textContent='Inasoma bidhaa na kiasi...';
  try{
-  const productSelect=$('saleProduct'),qtyInput=$('saleQty'),unitSelect=$('saleUnit');
-  if(!productSelect||!qtyInput||!unitSelect)throw new Error('Sehemu za kuchagua bidhaa hazijapakiwa. Refresh ukurasa kisha jaribu tena.');
-  const selectedId=String(productSelect.value||'').trim();
-  const p=products.find(x=>String(x.id)===selectedId);
-  updateSalePrice();
-  const q=Number(qtyInput.value),pack=unitSelect.value==='pack';
-  if(!selectedId||!p)throw new Error('Chagua bidhaa iliyopo kwenye orodha kwanza.');
+  const input=readSaleInputs();
+  const p=input.product;
+  if(!input.selectedId||!p)throw new Error('Chagua bidhaa iliyopo kwenye orodha kwanza.');
+  const q=input.quantity,pack=input.unit==='pack';
   if(!Number.isFinite(q)||q<=0)throw new Error('Weka kiasi sahihi zaidi ya sifuri.');
+  if(!Number.isFinite(input.paid)||input.paid<0)throw new Error('Kiasi cha malipo si sahihi.');
   const units=Number(p.units_per_pack||1);
-  if(!Number.isInteger(units)||units<1)throw new Error('Kipimo cha kifungashio si sahihi. Rekebisha taarifa za bidhaa.');
-  const baseQty=pack?q*units:q,packPrice=Number(p.wholesale_pack_price||0);
-  const basePrice=pack?packPrice/units:Number(p.selling_price),stock=Number(p.quantity);
-  if(!Number.isFinite(basePrice)||basePrice<=0)throw new Error('Bei ya bidhaa haijawekwa au si sahihi.');
+  if(!Number.isInteger(units)||units<1)throw new Error('Idadi ya chupa/vipande kwenye katoni si sahihi.');
+  // Product quantity is stored in BASE UNITS. For example 7 cartons + 2
+  // bottles with 6 bottles per carton is 44, not 7.44 and not 44 cartons.
+  const stockValue=p.quantity;
+  const stock=stockValue!==null&&stockValue!==undefined&&stockValue!==''?
+   Number(stockValue):
+   (Number(p.stock_packs||0)*units+Number(p.stock_loose_units||0));
+  const baseQty=pack?q*units:q;
+  const packPrice=Number(p.wholesale_pack_price||0);
+  const basePrice=pack?packPrice/units:Number(p.selling_price);
+  if(!Number.isFinite(basePrice)||basePrice<=0)throw new Error('Bei ya rejareja/jumla ya bidhaa haijawekwa au si sahihi.');
   if(pack&&packPrice<=0)throw new Error('Weka kwanza bei ya jumla ya kifungashio.');
   if(!Number.isFinite(stock)||stock<0)throw new Error('Stock ya bidhaa haijasomeka vizuri. Sasisha orodha ya bidhaa.');
-  // Cart entry is a local UI action. Never wait for IndexedDB/offline queue here:
-  // a blocked browser database must not leave the Add button spinning forever.
   const existing=cart.reduce((sum,item)=>sum+(String(item.product_id)===String(p.id)?Number(item.quantity):0),0);
-  if(existing+baseQty>stock)throw new Error('Stock haitoshi. Iliyopo: '+stock+' '+(p.base_unit||'vipande')+'. Tayari kwenye kikapu: '+existing+'.');
-  cart.push({product_id:p.id,name:p.name,quantity:baseQty,unit_price:basePrice,display_quantity:q,display_unit:pack?(p.pack_name||'pakiti'):(p.base_unit||'kipande')});
+  if(existing+baseQty>stock){
+   const stockPacks=Math.floor(stock/units),stockLoose=Number((stock-stockPacks*units).toFixed(3));
+   throw new Error('Stock haitoshi. Iliyopo: '+stockPacks+' '+(p.pack_name||'katoni')+(stockLoose?' + '+stockLoose+' '+(p.base_unit||'chupa'):'')+' ('+stock+' '+(p.base_unit||'vipande')+'). Tayari kwenye kikapu: '+existing+'.');
+  }
+  const line={product_id:p.id,name:p.name,quantity:baseQty,unit_price:basePrice,display_quantity:q,display_unit:pack?(p.pack_name||'pakiti'):(p.base_unit||p.unit||'kipande')};
+  cart.push(line);
+  console.log('[AMWEMARI][Rekodi Mauzo] Bidhaa imeongezwa:',{
+   product:line.name,quantity:line.display_quantity,unit:line.display_unit,
+   stockUnits:line.quantity,unitPrice:line.unit_price,
+   lineTotal:line.quantity*line.unit_price,amountPaidInput:input.paid,
+   cartItems:cart.length
+  });
   renderCart();
+  updateSalePrice();
   clearMessage('appMsg');
-  if(status)status.textContent='✓ '+p.name+' imeongezwa kwenye kikapu. Unaweza kuongeza bidhaa nyingine au kuthibitisha mauzo.';
+  if(status)status.textContent='✓ '+p.name+' imeongezwa kwenye kikapu. Jumla sasa ni '+money(cart.reduce((sum,item)=>sum+item.quantity*item.unit_price,0))+'.';
   return true;
  }catch(error){
-  console.error('AMWEMARI addCart validation failed:',error);
+  console.error('[AMWEMARI][Rekodi Mauzo] Ongeza bidhaa imeshindwa:',error);
   if(status)status.textContent='Haijaongezwa: '+(error?.message||String(error));
   message('appMsg','Bidhaa haijaongezwa: '+(error?.message||String(error)),true);
   return false;
@@ -980,6 +1021,11 @@ async function addCart(){
   if(btn){btn.disabled=false;btn.removeAttribute('aria-busy');btn.textContent='Ongeza bidhaa'}
  }
 }
+async function ongezaBidhaa(event){
+ if(event){event.preventDefault();event.stopPropagation();}
+ return addCart();
+}
+
 async function loadDebts(){if(!store)return;const box=$('debtsTable');box.textContent='Inapakia madeni...';try{const [sr,cr,pr]=await Promise.all([db.from('sales').select('id,receipt_no,total,amount_paid,payment_method,sold_at,customer_id').eq('store_id',store.id).eq('status','completed').order('sold_at',{ascending:false}).limit(500),db.from('customers').select('id,full_name,phone').eq('store_id',store.id),db.from('customer_payments').select('id,sale_id,amount,payment_method,paid_at,notes').eq('store_id',store.id).order('paid_at',{ascending:false}).limit(100)]);for(const x of [sr,cr,pr])if(x.error)throw x.error;const customers=new Map((cr.data||[]).map(c=>[c.id,c]));const rows=(sr.data||[]).filter(x=>Number(x.total)-Number(x.amount_paid)>.009&&x.customer_id).map(x=>({...x,customer:customers.get(x.customer_id)}));const outstanding=rows.reduce((a,x)=>a+Number(x.total)-Number(x.amount_paid),0);$('debtOutstandingTotal').textContent=money(outstanding);$('debtSaleCount').textContent=String(rows.length);$('debtSaleSelect').innerHTML='<option value="">Chagua deni</option>'+rows.map(x=>'<option value="'+x.id+'">'+esc(x.customer?.full_name||'Mteja')+' · '+esc(x.receipt_no)+' · Deni '+money(Number(x.total)-Number(x.amount_paid))+'</option>').join('');box.innerHTML=rows.length?'<table><thead><tr><th>Mteja</th><th>Simu</th><th>Risiti</th><th>Tarehe</th><th>Jumla</th><th>Amelipa</th><th>Deni</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(x.customer?.full_name||'—')+'</td><td>'+esc(x.customer?.phone||'—')+'</td><td>'+esc(x.receipt_no)+'</td><td>'+new Date(x.sold_at).toLocaleDateString('sw-TZ')+'</td><td>'+money(x.total)+'</td><td>'+money(x.amount_paid)+'</td><td><strong>'+money(Number(x.total)-Number(x.amount_paid))+'</strong></td></tr>').join('')+'</tbody></table>':'<p class="muted">Hakuna deni linalosubiri malipo. Mauzo yenye salio yataonekana hapa kama mteja aliandikwa wakati wa mauzo.</p>';const payments=pr.data||[];$('debtPaymentsHistory').innerHTML=payments.length?'<table><thead><tr><th>Tarehe</th><th>Kiasi</th><th>Njia</th><th>Risiti</th><th>Maelezo</th></tr></thead><tbody>'+payments.map(p=>'<tr><td>'+new Date(p.paid_at).toLocaleString('sw-TZ')+'</td><td>'+money(p.amount)+'</td><td>'+paymentMethodLabel(p.payment_method)+'</td><td>'+esc((sr.data||[]).find(x=>x.id===p.sale_id)?.receipt_no||'—')+'</td><td>'+esc(p.notes||'—')+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Bado hakuna malipo ya deni yaliyorekodiwa.</p>';}catch(e){box.textContent='Imeshindikana kupakia madeni: '+(e.message||e);}}
 $('debtPaymentForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('receiveDebtPaymentBtn'),saleId=$('debtSaleSelect').value,amount=Number($('debtPaymentAmount').value),method=$('debtPaymentMethod').value;if(!saleId||!Number.isFinite(amount)||amount<=0){message('debtPaymentMessage','Chagua deni na weka kiasi sahihi.',true);return}btn.disabled=true;btn.textContent='Inahifadhi malipo...';try{const {data,error}=await db.rpc('record_customer_debt_payment',{p_store_id:store.id,p_sale_id:saleId,p_amount:amount,p_payment_method:method,p_notes:$('debtPaymentNote').value.trim()});if(error)throw error;const r=Array.isArray(data)?data[0]:data;$('debtPaymentAmount').value='';$('debtPaymentNote').value='';message('debtPaymentMessage','Malipo yamepokelewa. Salio la deni lililobaki: '+money(r.balance_due)+'.');await loadDebts();await refreshAll();}catch(error){message('debtPaymentMessage','Malipo hayajahifadhiwa: '+(error.message||error),true)}finally{btn.disabled=false;btn.textContent='Pokea malipo na punguza deni';}});
 $('debtSaleSelect').addEventListener('change',()=>{const selected=$('debtSaleSelect').selectedOptions[0];const match=selected?.textContent.match(/Deni\s+([\d,\.]+)/);if(match)$('debtPaymentAmount').placeholder='Deni lililobaki: '+match[1];});
@@ -1047,28 +1093,13 @@ async function completeSale(){
 // One authoritative click handler for the sales cart.
 // Keep the button outside form submission and call the in-scope function directly.
 window.addCart=addCart;
+window.ongezaBidhaa=ongezaBidhaa;
 window.completeSale=completeSale;
 window.removeCart=removeCart;
 const addCartButton=$('addCartBtn');
-if(addCartButton&&!addCartButton.dataset.amwBound){
- addCartButton.dataset.amwBound='1';
+if(addCartButton){
  addCartButton.type='button';
- addCartButton.addEventListener('click',async function(event){
-  event.preventDefault();
-  event.stopPropagation();
-  if(addCartButton.disabled)return;
-  try{
-   const added=await addCart();
-   if(!added&&$('saleActionStatus')&&!$('saleActionStatus').textContent.trim()){
-    $('saleActionStatus').textContent='Bidhaa haijaongezwa. Kagua bidhaa, kiasi na stock kisha ujaribu tena.';
-   }
-  }catch(error){
-   console.error('AMWEMARI addCart click failed:',error);
-   const detail=error&&error.message?error.message:String(error);
-   if($('saleActionStatus'))$('saleActionStatus').textContent='Bidhaa haijaongezwa: '+detail;
-   message('appMsg','Bidhaa haijaongezwa: '+detail,true);
-  }
- });
+ addCartButton.onclick=ongezaBidhaa;
 }
 const completeSaleButton=$('completeSaleBtn');
 if(completeSaleButton&&!completeSaleButton.dataset.amwBound){
