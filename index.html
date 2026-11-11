@@ -1132,7 +1132,7 @@ $('staffForm').addEventListener('submit',async e=>{
   clickedButton=button;
   if(button)setTimeout(()=>{if(clickedButton===button)clickedButton=null},0);
  },true);
- const actionNames=['signOut','loadAdminPanel','refreshAll','loadDebts','completeSale','recordPurchase','loadStaff','loadBusinessReport','exportBusinessReport','loadStaffSalesReport','grantTrial','approveStoreSubscription','markAccountDelete','restorePendingAccount','archiveProduct','deleteExpense','adjustStock','loadBusinessLoans','loadCashFlow','loadFinancialPosition','loadCustomersSuppliers','loadAppointments','loadJobs','loadProjects','loadLoanRepayments'];
+ const actionNames=['signOut','loadAdminPanel','refreshAll','loadDebts','recordPurchase','loadStaff','loadBusinessReport','exportBusinessReport','loadStaffSalesReport','grantTrial','approveStoreSubscription','markAccountDelete','restorePendingAccount','archiveProduct','deleteExpense','adjustStock','loadBusinessLoans','loadCashFlow','loadFinancialPosition','loadCustomersSuppliers','loadAppointments','loadJobs','loadProjects','loadLoanRepayments'];
  actionNames.forEach(name=>{
   const original=window[name];
   if(typeof original!=='function'||original.constructor?.name!=='AsyncFunction'||original.__amwBusyWrapped)return;
