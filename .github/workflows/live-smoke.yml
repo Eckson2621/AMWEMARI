@@ -19,7 +19,7 @@ jobs:
       - name: Install Playwright
         run: npm install --no-save @playwright/test@1.58.2
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium --only-shell
       - name: Run live application checks
         env:
           AMWEMARI_TEST_EMAIL: ${{ secrets.AMWEMARI_TEST_EMAIL }}
