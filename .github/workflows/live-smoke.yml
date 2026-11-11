@@ -3,6 +3,8 @@ name: AMWEMARI live smoke tests
 on:
   push:
     branches: [qa/live-smoke]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:
