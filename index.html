@@ -873,7 +873,8 @@ if(completeSaleButton){
 window.addCart=addCart;
 window.completeSale=completeSale;
 window.removeCart=removeCart;
-let expenseSaveInProgress=false;
+// Use var so early event callbacks cannot hit a lexical temporal-dead-zone.
+var expenseSaveInProgress=false;
 async function saveExpense(event){
  if(event){event.preventDefault();event.stopPropagation();}
  const form=$('expenseForm'),btn=$('saveExpenseBtn'),status=$('expenseSaveStatus');
