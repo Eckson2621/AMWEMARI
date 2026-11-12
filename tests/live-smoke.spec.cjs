@@ -30,7 +30,22 @@ test('test account can sign in and remains signed in after refresh', async ({ pa
 
   await expect(page.locator('#authForm')).toBeHidden({ timeout: 30000 });
   await expect(page.locator('#dashboard')).toBeVisible({ timeout: 30000 });
+
+  // First-login guide should appear, be skippable, and remain available from Help.
+  await expect(page.locator('#amwGuideOverlay')).toBeVisible({ timeout: 30000 });
+  await expect(page.locator('#amwGuideTitle')).toContainText(/Karibu AMWEMARI!/);
+  await page.locator('#amwGuideNext').click();
+  await expect(page.locator('#amwGuideTitle')).toContainText(/Dashboard/);
+  await page.locator('[data-amw-guide-skip]').click();
+  await expect(page.locator('#amwGuideOverlay')).toBeHidden();
+  await expect(page.locator('#amwGuideButton')).toBeVisible();
+  await page.locator('#amwGuideButton').click();
+  await expect(page.locator('#amwGuideOverlay')).toBeVisible();
+  await page.locator('[data-amw-guide-skip]').click();
+  await expect(page.locator('#amwGuideOverlay')).toBeHidden();
+
   await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('#amwGuideOverlay')).toBeHidden({ timeout: 30000 });
   await expect(page.locator('#authForm')).toBeHidden({ timeout: 30000 });
   await expect(page.locator('#dashboard')).toBeVisible({ timeout: 30000 });
   expect(pageErrors, 'Uncaught browser JavaScript errors during sign-in/refresh').toEqual([]);
