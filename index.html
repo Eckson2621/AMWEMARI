@@ -117,7 +117,7 @@
  </form>
  <div class="section"><h3>Historia ya mtaji</h3><div id="capitalTransactionsTable" class="tablewrap">Hakuna taarifa bado.</div></div>
 </div>
-<div id="businessGrowthPanel" class="panel section"><h2>Graph ya mwenendo wa biashara</h2><p class="muted small">Mauzo, faida/hasara na thamani ya stock kwa siku. Stock ya siku zilizopita ni makadirio yanayotumia movement history na gharama ya sasa ya bidhaa.</p><div id="businessGrowthChart"><p class="muted">Inapakia graph...</p></div></div>
+<div id="businessGrowthPanel" class="panel section"><div class="row" style="align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap"><div><h2>Graph ya mwenendo wa biashara</h2><p class="muted small">Chagua kipindi kuona mabadiliko ya mauzo, faida/hasara na thamani ya stock. Kila graph ina kipimo chake ili takwimu zisifunikane.</p></div><div class="row" style="gap:6px;flex-wrap:wrap" role="group" aria-label="Kipindi cha graph"><button type="button" class="secondary" data-growth-days="7">Siku 7</button><button type="button" class="secondary" data-growth-days="30">Siku 30</button><button type="button" class="secondary" data-growth-days="90" aria-pressed="true">Siku 90</button></div></div><div id="businessGrowthChart"><p class="muted">Inapakia graph...</p></div></div>
 <div class="panel section"><h2>Bidhaa zinazokaribia kuisha</h2><div id="lowStockList" class="tablewrap"></div></div><div class="panel section"><h2>Mauzo ya hivi karibuni</h2><div id="recentSales" class="tablewrap"></div></div></section>
    <section id="sales" class="page hidden"><div class="panel"><h2>Rekodi mauzo</h2><div class="grid"><div class="field"><label>Bidhaa</label><select id="saleProduct"></select></div><div class="field"><label>Aina ya mauzo</label><select id="saleUnit"><option value="single">Rejareja (kipande/chupa)</option><option value="pack">Jumla (katoni/boksi)</option></select></div><div class="field"><label>Kiasi</label><input id="saleQty" type="number" min=".001" step=".001" value="1"></div><div class="field"><label>Malipo yaliyopokelewa (kiasi halisi)</label><input id="salePaid" type="number" min="0" step=".01" value="0"><small class="muted">Kwa mauzo ya kawaida mfumo hujaza jumla moja kwa moja. Badili kama amelipa sehemu; kwa mkopo weka 0.</small></div><div class="field"><label>Mteja wa mkopo (chagua tu kama ni mauzo ya mkopo)</label><select id="saleCreditCustomer"><option value="">Chagua mteja aliyesajiliwa</option></select></div><div class="field"><label>Njia ya malipo</label><select id="saleMethod"><option value="cash">Taslimu</option><option value="mobile_money">Mobile money</option><option value="card">Kadi</option><option value="bank">Benki</option><option value="credit">Mkopo</option></select></div><div class="field"><label>Aina ya kurekodi mauzo</label><select id="saleEntryMode"><option value="live">Mauzo ya papo hapo</option><option value="day_end">Mauzo ya mwisho wa siku</option></select></div></div><div id="dayEndFields" class="grid hidden"><div class="field"><label>Muda halisi ambao mauzo yalifanyika</label><input id="dayEndSoldAt" type="datetime-local"></div><div class="field"><label>Maelezo (hiari)</label><input id="dayEndReason" maxlength="250" placeholder="Mf. Mauzo yaliyofanyika wakati simu haikuwa na chaji"></div></div><p id="saleEntryHint" class="muted small">Rekodi kila mteja anaponunua. Mfumo utahifadhi muda wa mauzo na muda wa kurekodi.</p><div class="row"><div id="salePrice" class="muted">Chagua bidhaa</div><button id="addCartBtn" type="button">Ongeza bidhaa</button></div><div id="saleActionStatus" class="notice section" role="status" aria-live="polite">Chagua bidhaa, weka kiasi, kisha bonyeza Ongeza bidhaa.</div><div id="cartTable" class="tablewrap section"></div><div id="pendingSales" class="notice section">Mauzo yanayosubiri kusawazishwa: 0</div><div id="salePaymentSummary" class="notice section" aria-live="polite">Jumla: TZS 0 · Malipo: TZS 0 · Salio: TZS 0</div><div class="row section"><strong id="cartTotal">Jumla: TZS 0</strong><button id="completeSaleBtn" type="button">Thibitisha mauzo</button></div><p class="muted small">Ukiuza katoni, stock itapungua kwa idadi ya chupa zilizomo kwenye katoni. Mauzo yote yanatumia stock moja.</p></div><div class="panel section"><h2>Mauzo yaliyorekodiwa</h2><div id="salesTable" class="tablewrap"></div><div id="mySalesSummary" class="notice section">Muhtasari wa mauzo yangu utajitokeza hapa.</div></div></section>
 <section id="debts" class="page hidden"><div class="panel"><div class="row"><div><h2>Madeni ya wateja</h2><p class="muted small">Mauzo ya mkopo yataonekana hapa. Mteja akilipa, chagua deni, kiasi na njia ya malipo kisha bonyeza Pokea malipo. Salio litapungua moja kwa moja.</p></div><button type="button" class="secondary" onclick="loadDebts()">Sasisha</button></div><div class="grid"><div class="card"><div class="muted">Madeni yaliyobaki</div><div class="metric" id="debtOutstandingTotal">TSh 0</div></div><div class="card"><div class="muted">Idadi ya mauzo yenye deni</div><div class="metric" id="debtSaleCount">0</div></div></div><div id="debtsTable" class="tablewrap section">Inapakia madeni...</div></div><div class="panel section"><h2>Pokea malipo ya deni</h2><form id="debtPaymentForm"><div class="grid"><div class="field"><label>Chagua deni / mteja</label><select id="debtSaleSelect" required><option value="">Chagua deni</option></select></div><div class="field"><label>Kiasi kilicholipwa (TSh)</label><input id="debtPaymentAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Njia ya malipo</label><select id="debtPaymentMethod"><option value="cash">Cash / Taslimu</option><option value="mobile_money">Mobile money</option><option value="bank">Benki</option><option value="card">Kadi</option></select></div></div><div class="field"><label>Maelezo (hiari)</label><input id="debtPaymentNote" maxlength="250" placeholder="Mf. Amelipa sehemu ya deni"></div><button id="receiveDebtPaymentBtn" type="submit">Pokea malipo na punguza deni</button></form><div id="debtPaymentMessage" class="notice hidden"></div></div><div class="panel section"><h2>Historia ya malipo ya madeni</h2><div id="debtPaymentsHistory" class="tablewrap">Inapakia...</div></div></section>
@@ -556,25 +556,43 @@ async function loadCashFlow(){
   note.textContent='Hii ni movement ya fedha kwa rekodi zilizopo baada ya kutoa marejesho ya mikopo ('+money(loanRepayments)+'), si salio halisi. Salio halisi linahitaji kulinganisha cash, mobile money na benki pamoja na kurekodi kila fedha inayoingia/kutoka. Stock iliyonunuliwa ni mali; si gharama ya faida mpaka iuzwe.';
  }
 }
+let businessGrowthDays=90;
 function renderBusinessGrowth(rows){
  const host=$('businessGrowthChart');if(!host)return;
- const data=(rows||[]).slice(-7);
- if(!data.length){host.innerHTML='<p class="muted">Bado hakuna historia ya kutosha kutengeneza graph.</p>';return;}
+ const all=(rows||[]).slice().sort((a,b)=>String(a.report_date).localeCompare(String(b.report_date)));
+ const data=all.slice(-businessGrowthDays);
+ if(!data.length){host.innerHTML='<div class="notice">Bado hakuna rekodi za siku za kuonyesha. Rekodi mauzo au weka tarehe ya kuanza biashara; graph itajijaza yenyewe.</div>';return;}
  const series=[
-  {label:'Mauzo ya siku',key:'net_sales',color:'#1769aa'},
-  {label:'Faida / hasara ya siku',key:'net_profit_loss',color:'#16845b'},
-  {label:'Thamani ya stock (makadirio)',key:'estimated_stock_value',color:'#7c3aed'}
+  {label:'Mauzo halisi',key:'net_sales',color:'#1769aa',description:'Jumla ya mauzo bila kodi.'},
+  {label:'Faida / hasara',key:'net_profit_loss',color:'#16845b',description:'Mauzo ukitoa gharama ya bidhaa zilizouzwa na matumizi yaliyorekodiwa.'},
+  {label:'Thamani ya stock',key:'estimated_stock_value',color:'#7c3aed',description:'Makadirio ya thamani ya stock kwa gharama ya movement zilizorekodiwa.'}
  ];
  const escDate=d=>new Date(d+'T12:00:00+03:00').toLocaleDateString('sw-TZ',{day:'2-digit',month:'short'});
- host.innerHTML=series.map(s=>{
-  const vals=data.map(x=>Number(x[s.key]||0)),min=Math.min(0,...vals),max=Math.max(1,...vals),span=max-min||1;
-  const pts=vals.map((v,i)=>({x:20+i*(560/Math.max(1,vals.length-1)),y:105-((v-min)/span)*82}));
-  const line=pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
-  const dots=pts.map(p=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="4" fill="'+s.color+'"/>').join('');
-  const last=vals[vals.length-1];
-  return '<div class="card section"><div class="row"><strong>'+s.label+'</strong><strong>'+money(last)+'</strong></div><svg viewBox="0 0 600 125" role="img" aria-label="'+s.label+'" style="width:100%;height:auto;display:block;margin-top:8px"><line x1="15" y1="105" x2="585" y2="105" stroke="#dbe3ec" stroke-width="1"/><polyline points="'+line+'" fill="none" stroke="'+s.color+'" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div class="row muted small">'+data.map(x=>'<span>'+escDate(x.report_date)+'</span>').join('')+'</div></div>';
+ const compact=n=>(Number(n)||0).toLocaleString('en-TZ',{maximumFractionDigits:0});
+ const rangeLabel=businessGrowthDays+' siku za mwisho';
+ host.innerHTML='<p class="muted small">Inaonyesha '+rangeLabel+' ('+escDate(data[0].report_date)+' – '+escDate(data[data.length-1].report_date)+'). Kiasi ni TZS.</p>'+
+ series.map(s=>{
+  const vals=data.map(x=>Number(x[s.key]||0)),lo=Math.min(0,...vals),hi=Math.max(1,...vals),span=(hi-lo)||1;
+  const left=62,right=586,top=14,bottom=116,width=right-left,height=bottom-top;
+  const xAt=i=>data.length===1?(left+right)/2:left+i*(width/(data.length-1));
+  const yAt=v=>bottom-((v-lo)/span)*height;
+  const pts=vals.map((v,i)=>({x:xAt(i),y:yAt(v),v,date:data[i].report_date}));
+  const poly=pts.map(p=>p.x.toFixed(1)+','+p.y.toFixed(1)).join(' ');
+  const ticks=[lo,lo+(hi-lo)/2,hi];
+  const grid=ticks.map(v=>'<g><line x1="'+left+'" y1="'+yAt(v).toFixed(1)+'" x2="'+right+'" y2="'+yAt(v).toFixed(1)+'" stroke="var(--border,#dbe3ec)" stroke-dasharray="3 4"/><text x="'+(left-8)+'" y="'+(yAt(v)+4).toFixed(1)+'" text-anchor="end" font-size="10" fill="currentColor">'+compact(v)+'</text></g>').join('');
+  const dots=pts.map(p=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="4" fill="'+s.color+'" stroke="white" stroke-width="1.5"><title>'+escDate(p.date)+': '+money(p.v)+'</title></circle>').join('');
+  const labelIdx=[...new Set([0,Math.floor((data.length-1)/2),data.length-1])];
+  const xLabels=labelIdx.map(i=>'<text x="'+xAt(i).toFixed(1)+'" y="134" text-anchor="middle" font-size="10" fill="currentColor">'+escDate(data[i].report_date)+'</text>').join('');
+  const last=vals[vals.length-1],previous=vals.length>1?vals[vals.length-2]:null;
+  const change=previous===null?'Hakuna siku ya kulinganisha':(last-previous>=0?'Ongezeko la ':'Upungufu wa ')+money(Math.abs(last-previous))+' dhidi ya siku iliyotangulia';
+  return '<div class="card section" style="padding:14px"><div class="row" style="justify-content:space-between;align-items:flex-start;gap:8px"><div><strong>'+s.label+'</strong><div class="muted small">'+s.description+'</div></div><div style="text-align:right"><strong>'+money(last)+'</strong><div class="muted small">'+change+'</div></div></div><svg viewBox="0 0 600 145" role="img" aria-label="'+s.label+' kwa '+rangeLabel+'" style="width:100%;height:auto;display:block;margin-top:8px;overflow:visible">'+grid+'<polyline points="'+poly+'" fill="none" stroke="'+s.color+'" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'+dots+xLabels+'</svg></div>';
  }).join('');
 }
+document.querySelectorAll('[data-growth-days]').forEach(btn=>btn.addEventListener('click',()=>{
+ businessGrowthDays=Number(btn.dataset.growthDays)||90;
+ document.querySelectorAll('[data-growth-days]').forEach(b=>{const active=Number(b.dataset.growthDays)===businessGrowthDays;b.setAttribute('aria-pressed',String(active));b.classList.toggle('primary',active);});
+ renderBusinessGrowth(window.__amwemariGrowthRows||[]);
+}));
 async function loadBusinessLoans(){
  if(!store||store.owner_id!==user.id)return;
  const {data,error}=await db.from('store_business_loans').select('*').eq('store_id',store.id).order('loan_date',{ascending:false}).limit(100);
@@ -626,7 +644,7 @@ async function loadFinancialPosition(){
   const cashNote=$('cashFlowPanel').querySelector('p.muted.small');
   if(cashNote)cashNote.textContent+=' Tahadhari: hesabu inaonyesha upungufu wa '+money(Math.abs(Number(r.estimated_available_funds)))+'. Kagua salio la kuanzia, malipo yaliyorekodiwa na miamala ambayo haijaingizwa kabla ya kuhitimisha kuwa mtaji umeliwa.';
  }
- renderBusinessGrowth(dailyResult.data||[]);
+ window.__amwemariGrowthRows=dailyResult.data||[];renderBusinessGrowth(window.__amwemariGrowthRows);
  await loadCapitalTransactions();
 }
 
