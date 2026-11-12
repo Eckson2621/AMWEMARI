@@ -560,8 +560,28 @@ let businessGrowthDays=90;
 function renderBusinessGrowth(rows){
  const host=$('businessGrowthChart');if(!host)return;
  const all=(rows||[]).slice().sort((a,b)=>String(a.report_date).localeCompare(String(b.report_date)));
- const data=all.slice(-businessGrowthDays);
- if(!data.length){host.innerHTML='<div class="notice">Bado hakuna rekodi za siku za kuonyesha. Rekodi mauzo au weka tarehe ya kuanza biashara; graph itajijaza yenyewe.</div>';return;}
+ // Tengeneza kila siku ya kipindi kilichochaguliwa, hata kama siku hiyo haikuwa na muamala.
+ // Hii huzuia graph kuonyesha tarehe moja tu pale rekodi za kila siku hazipo.
+ const todayKey=localToday();
+ const [yy,mm,dd]=todayKey.split('-').map(Number);
+ const endUtc=Date.UTC(yy,mm-1,dd);
+ const data=[];
+ let carriedStock=0;
+ const firstKey=new Date(endUtc-(businessGrowthDays-1)*86400000).toISOString().slice(0,10);
+ const prior=all.filter(x=>String(x.report_date)<firstKey).slice(-1)[0];
+ if(prior)carriedStock=Number(prior.estimated_stock_value||0);
+ const byDate=new Map(all.map(x=>[String(x.report_date),x]));
+ for(let i=0;i<businessGrowthDays;i++){
+  const key=new Date(endUtc-(businessGrowthDays-1-i)*86400000).toISOString().slice(0,10);
+  const row=byDate.get(key);
+  if(row&&row.estimated_stock_value!==null&&row.estimated_stock_value!==undefined)carriedStock=Number(row.estimated_stock_value||0);
+  data.push({
+   report_date:key,
+   net_sales:Number(row?.net_sales||0),
+   net_profit_loss:Number(row?.net_profit_loss||0),
+   estimated_stock_value:carriedStock
+  });
+ }
  const series=[
   {label:'Mauzo halisi',key:'net_sales',color:'#1769aa',description:'Jumla ya mauzo bila kodi.'},
   {label:'Faida / hasara',key:'net_profit_loss',color:'#16845b',description:'Mauzo ukitoa gharama ya bidhaa zilizouzwa na matumizi yaliyorekodiwa.'},
