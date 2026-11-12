@@ -30,6 +30,24 @@
 @keyframes adminGrow{from{transform:scaleY(.08);opacity:.45}to{transform:scaleY(1);opacity:1}}
 @keyframes adminSpin{from{transform:rotate(-35deg);opacity:.65}to{transform:rotate(0);opacity:1}}
 @media(max-width:700px){.admin-charts{grid-template-columns:1fr}.admin-chart{padding:13px}.admin-bars{height:145px}}
+
+/* AMWEMARI first-login guide — isolated UI layer */
+.amw-guide-overlay{position:fixed;inset:0;z-index:90;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,22,38,.72);overflow:auto}
+.amw-guide-overlay.hidden{display:none!important}
+.amw-guide-card{width:min(100%,620px);max-height:min(92vh,760px);overflow:auto;background:#fff;border:1px solid #dbe4ef;border-radius:18px;padding:clamp(18px,4vw,28px);box-shadow:0 24px 80px #06162955;outline:none}
+.amw-guide-top,.amw-guide-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.amw-guide-top{margin-bottom:20px}
+.amw-guide-count{font-size:12px;color:#64748b;font-weight:700;margin:0 0 9px}
+.amw-guide-track{height:7px;background:#e8eef5;border-radius:20px;overflow:hidden;margin-bottom:23px}
+.amw-guide-track span{display:block;height:100%;width:16.6667%;background:#1769aa;border-radius:20px;transition:width .2s ease}
+.amw-guide-card h2{font-size:clamp(21px,4vw,27px);line-height:1.25;margin:0 0 12px;color:#10243a}
+.amw-guide-copy{font-size:15px;line-height:1.7;color:#334155;margin:0 0 17px}
+.amw-guide-tip{padding:12px 14px;border-radius:10px;background:#edf5ff;color:#174a75;font-size:13px;line-height:1.6;margin:0 0 22px}
+.amw-guide-actions{border-top:1px solid #e2e8f0;padding-top:17px}
+.amw-guide-actions button{min-width:112px}
+.amw-guide-foot{font-size:12px;color:#64748b;line-height:1.5;margin:14px 0 0}
+@media(max-width:520px){.amw-guide-overlay{padding:9px;align-items:flex-end}.amw-guide-card{max-height:94vh;border-radius:17px 17px 12px 12px;padding:17px}.amw-guide-actions button{flex:1}}
+
 </style></head>
 <body>
 <div id="authView" class="wrap auth">
@@ -63,7 +81,7 @@
   <section id="deletionGate" class="panel hidden" style="max-width:560px;margin:8vh auto"><div class="brand">AMWEMARI</div><h2>Akaunti ipo kwenye Delete Pending</h2><p>Akaunti hii imepangwa kufutwa kabisa. Bado unaweza kuingia kuona taarifa hii, lakini huduma za biashara zimesimamishwa.</p><div class="notice error"><strong>TAARIFA MUHIMU:</strong> Ndani ya siku 90 tangu tarehe ya kusitishwa, au siku zitakazobaki, taarifa za biashara na akaunti zitafutwa kabisa. Ukishalipa TSh 5,000 na mmiliki akathibitisha malipo, akaunti itafunguliwa na kufutwa kutasitishwa.</div><div id="deletionCountdown" class="metric"></div><div class="notice" style="margin-top:14px"><strong>Call only: 0613794448</strong><br><strong>Owner name: Eckson Mwampaja.</strong></div><button type="button" class="secondary" style="width:100%" onclick="signOut()">Toka</button></section>
   <section id="storeSetup" class="panel hidden"><h2>Sajili biashara yako</h2><p class="muted">Weka taarifa za biashara ili kuanza kurekodi mauzo.</p><form id="storeForm"><div class="field"><label>Jina la biashara</label><input id="storeName" required></div><div class="field"><label>Aina ya biashara</label><select id="storeType" required><option value="">Chagua aina ya biashara</option><option value="beverages">Vinywaji na bites</option><option value="grocery">Duka la vyakula</option><option value="retail">Rejareja</option><option value="clothing">Nguo na viatu</option><option value="electronics">Elektroniki</option><option value="hardware">Vifaa vya ujenzi (hardware)</option><option value="motorcycles">Pikipiki</option><option value="cars">Magari</option><option value="restaurant">Mgahawa / chakula</option><option value="pharmacy">Duka la dawa</option><option value="auto_parts">Vipuri vya magari</option><option value="salon">Saluni / urembo</option><option value="furniture">Samani</option><option value="stationery">Stationery</option><option value="agriculture">Kilimo</option><option value="livestock">Mifugo</option><option value="construction">Ujenzi / miradi</option><option value="services">Huduma za kitaalamu</option><option value="other">Biashara nyingine</option></select></div><div class="field"><label>Namba ya simu</label><input id="storePhone"></div><div class="field"><label>Mahali biashara ilipo</label><input id="storeAddress"></div><button type="submit">Hifadhi biashara</button></form></section>
   <div id="workspace" class="hidden">
-   <nav class="tabs"><button class="active" data-page="dashboard">Muhtasari</button><button data-page="products">Bidhaa</button><button data-page="purchases">Nunua stock</button><button data-page="sales">Rekodi mauzo</button><button data-page="debts">Madeni</button><button data-page="expenses">Matumizi</button><button data-page="reports">Ripoti</button><button data-page="staff" id="staffNav" class="hidden">Wafanyakazi</button></nav>
+   <nav class="tabs"><button class="active" data-page="dashboard">Muhtasari</button><button data-page="products">Bidhaa</button><button data-page="purchases">Nunua stock</button><button data-page="sales">Rekodi mauzo</button><button data-page="debts">Madeni</button><button data-page="expenses">Matumizi</button><button data-page="reports">Ripoti</button><button data-page="staff" id="staffNav" class="hidden">Wafanyakazi</button><button type="button" class="secondary" id="amwGuideButton" data-amw-open-guide> Msaada / Mwongozo </button></nav>
    <section id="dashboard" class="page">
    <div id="dashboardSubscription" class="panel section">
     <h2>Subscription ya AMWEMARI</h2><div class="muted small">Mwezi mmoja: TSh 5,000</div>
@@ -136,6 +154,19 @@
  <button type="button" class="secondary" onclick="exportBusinessReport('pdf')">Pakua PDF / Chapisha</button>
 </div><div id="reportMessage" class="notice hidden"></div><div class="panel section"><h2>Ripoti za wafanyakazi</h2><p class="muted small">Mmiliki anaweza kuona mauzo ya kila mfanyakazi kwa kipindi alichochagua hapo juu.</p><div class="row"><div class="field" style="min-width:220px;flex:1"><label>Chagua mfanyakazi</label><select id="staffReportFilter"><option value="all">Wafanyakazi wote</option></select></div><button type="button" onclick="loadStaffSalesReport()">Tengeneza ripoti ya wafanyakazi</button></div><div id="staffSalesReport" class="tablewrap">Bonyeza tengeneza ripoti baada ya kuchagua tarehe.</div></div><div class="grid section"><div class="card"><div class="muted">Idadi ya mauzo</div><div class="metric" id="reportCount">0</div></div><div class="card"><div class="muted">Jumla ya mauzo</div><div class="metric" id="reportSales">TZS 0</div></div><div class="card"><div class="muted">Fedha zilizopokelewa</div><div class="metric" id="reportReceived">TZS 0</div></div><div class="card"><div class="muted">Madeni ya wateja</div><div class="metric" id="reportBalance">TZS 0</div></div><div class="card"><div class="muted">Gharama ya bidhaa zilizouzwa</div><div class="metric" id="reportCogs">TZS 0</div></div><div class="card"><div class="muted">Faida ghafi</div><div class="metric" id="reportGrossProfit">TZS 0</div></div><div class="card"><div class="muted">Matumizi ya biashara</div><div class="metric" id="reportExpenses">TZS 0</div></div><div class="card"><div class="muted">Faida baada ya matumizi</div><div class="metric" id="reportNet">TZS 0</div></div><div class="card"><div class="muted">Manunuzi ya stock (si matumizi ya faida)</div><div class="metric" id="reportPurchases">TZS 0</div></div></div><p class="muted small section">Faida ghafi = thamani ya bidhaa zilizouzwa ukiondoa gharama ya kununua bidhaa hizo. Faida baada ya matumizi = faida ghafi ukiondoa matumizi yaliyorekodiwa. Manunuzi ya stock yanaonyeshwa tofauti ili yasihesabiwe mara mbili.</p></div></section>
   </div>
+
+  <section id="amwGuideOverlay" class="amw-guide-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="amwGuideTitle" aria-describedby="amwGuideCopy">
+   <div class="amw-guide-card" id="amwGuideCard" tabindex="-1">
+    <div class="amw-guide-top"><div class="brand">AMWEMARI</div><button type="button" class="secondary" data-amw-guide-skip>Ruka mwongozo</button></div>
+    <p id="amwGuideCount" class="amw-guide-count">Hatua ya 1 kati ya 6</p>
+    <div class="amw-guide-track" role="progressbar" aria-label="Maendeleo ya mwongozo" aria-valuemin="1" aria-valuemax="6" aria-valuenow="1"><span id="amwGuideProgressBar"></span></div>
+    <h2 id="amwGuideTitle">Karibu AMWEMARI!</h2>
+    <p id="amwGuideCopy" class="amw-guide-copy"></p>
+    <p id="amwGuideTip" class="amw-guide-tip"></p>
+    <div class="amw-guide-actions"><button type="button" id="amwGuidePrev" class="secondary" disabled>Nyuma</button><button type="button" id="amwGuideNext">Endelea</button><button type="button" id="amwGuideFinish" class="hidden">Nimeelewa, anza kutumia</button></div>
+    <p id="amwGuideFoot" class="amw-guide-foot">Unaweza kufungua mwongozo huu tena wakati wowote kupitia kitufe cha Msaada / Mwongozo.</p>
+   </div>
+  </section>
  </main>
 </div>
 <script>
@@ -1491,7 +1522,7 @@ function bindForms(){
  });
 }
 const dict={
- 'Muhtasari':'Dashboard','Bidhaa':'Products','Nunua stock':'Purchases','Rekodi mauzo':'Record sales','Madeni':'Debts','Matumizi':'Expenses','Ripoti':'Reports','Wafanyakazi':'Staff','Wateja':'Customers','Suppliers':'Suppliers','Appointments':'Appointments','Service jobs':'Service jobs','Miradi':'Projects','Marejesho':'Loan repayments','Aina ya biashara':'Business type','Sajili mteja':'Add customer','Jina kamili':'Full name','Hifadhi mteja':'Save customer','Sajili supplier':'Add supplier','Jina la supplier':'Supplier name','Hifadhi supplier':'Save supplier','Weka appointment':'Create appointment','Huduma inayohitajika':'Service required','Hifadhi appointment':'Save appointment','Fungua kazi ya huduma':'Create service job','Jina la kazi':'Job title','Fungua kazi':'Create job','Sajili mradi':'Create project','Jina la mradi':'Project name','Hifadhi mradi':'Save project','Rekodi marejesho':'Record repayment','Chagua mkopo':'Select loan','Kiasi kilicholipwa':'Amount paid','Hifadhi marejesho':'Save repayment','Chagua aina ya biashara':'Choose business type','Namba ya simu':'Phone number','Mahali biashara ilipo':'Business address','Hifadhi biashara':'Save business','Jina la biashara':'Business name',
+ 'Muhtasari':'Dashboard','Msaada / Mwongozo':'Help / Guide','Bidhaa':'Products','Nunua stock':'Purchases','Rekodi mauzo':'Record sales','Madeni':'Debts','Matumizi':'Expenses','Ripoti':'Reports','Wafanyakazi':'Staff','Wateja':'Customers','Suppliers':'Suppliers','Appointments':'Appointments','Service jobs':'Service jobs','Miradi':'Projects','Marejesho':'Loan repayments','Aina ya biashara':'Business type','Sajili mteja':'Add customer','Jina kamili':'Full name','Hifadhi mteja':'Save customer','Sajili supplier':'Add supplier','Jina la supplier':'Supplier name','Hifadhi supplier':'Save supplier','Weka appointment':'Create appointment','Huduma inayohitajika':'Service required','Hifadhi appointment':'Save appointment','Fungua kazi ya huduma':'Create service job','Jina la kazi':'Job title','Fungua kazi':'Create job','Sajili mradi':'Create project','Jina la mradi':'Project name','Hifadhi mradi':'Save project','Rekodi marejesho':'Record repayment','Chagua mkopo':'Select loan','Kiasi kilicholipwa':'Amount paid','Hifadhi marejesho':'Save repayment','Chagua aina ya biashara':'Choose business type','Namba ya simu':'Phone number','Mahali biashara ilipo':'Business address','Hifadhi biashara':'Save business','Jina la biashara':'Business name',
  'Akaunti inasubiri idhini':'Account pending approval','Subscription inahitajika':'Subscription required','Akaunti ipo kwenye Delete Pending':'Account pending deletion','Sajili biashara yako':'Register your business','Subscription ya AMWEMARI':'AMWEMARI subscription','SUPER ADMIN — Usimamizi wa akaunti':'SUPER ADMIN — Account management','DELETE PENDING':'DELETE PENDING','Muhtasari wa biashara':'Business overview','Fedha za biashara':'Business cash','Hali halisi ya mtaji, stock na faida':'Capital, stock and profit position','Mtaji wa mmiliki na ukuaji wa biashara':'Owner capital and business growth','Graph ya mwenendo wa biashara':'Business performance chart','Bidhaa zinazokaribia kuisha':'Low-stock products','Mauzo ya hivi karibuni':'Recent sales','Mauzo yaliyorekodiwa':'Recorded sales','Madeni ya wateja':'Customer debts','Pokea malipo ya deni':'Receive debt payment','Historia ya malipo ya madeni':'Debt payment history','Sajili bidhaa mpya':'Add new product','Orodha ya bidhaa':'Product list','Thibitisha PIN ya mmiliki':'Verify owner PIN','Hariri bidhaa':'Edit product','PIN ya mmiliki':'Owner PIN','Rekodi ununuzi wa stock':'Record stock purchase','Ununuzi wa karibuni':'Recent purchases','Mikopo ya biashara na supplier':'Business and supplier loans','Rekodi matumizi':'Record expenses','Matumizi ya karibuni':'Recent expenses','Sajili mfanyakazi':'Add staff member','Wafanyakazi wa biashara':'Business staff','Ripoti ya biashara':'Business report','Ripoti za wafanyakazi':'Staff reports','Mauzo':'Sales','Manunuzi ya stock':'Stock purchases','Stock iliyopo sasa':'Current stock','Rekodi mtaji au fedha binafsi':'Record capital or owner funds','Historia ya mtaji':'Capital history','Usajili wa biashara':'Business registration','Hali za akaunti':'Account statuses',
  'Nenosiri':'Password','Fedha uliyokuwa nayo mwanzoni (TZS)':'Opening cash balance (TZS)','Tarehe ya kuanzia kuhesabu':'Opening date','Aina ya muamala':'Transaction type','Kiasi (TZS)':'Amount (TZS)','Njia / aina ya mtaji':'Payment / capital type','Maelezo (hiari)':'Notes (optional)','Aina ya mauzo':'Sale type','Malipo yaliyopokelewa':'Amount received','Jina la mteja (lazima kama kuna deni)':'Customer name (required for credit)','Simu ya mteja (hiari)':'Customer phone (optional)','Njia ya malipo':'Payment method','Aina ya kurekodi mauzo':'Sales entry mode','Muda halisi ambao mauzo yalifanyika':'Actual sale date and time','Chagua deni / mteja':'Select debt / customer','Kiasi kilicholipwa (TSh)':'Amount paid (TZS)','Jina la kipande kimoja (kipimo cha msingi)':'Single unit name','Jina la kifungashio kikubwa':'Pack name','Idadi ya vipande ndani ya kifungashio kimoja':'Units per pack','Bei ya kununua kifungashio (TZS)':'Purchase price per pack (TZS)','Bei ya rejareja kwa kipande (TZS)':'Retail price per unit (TZS)','Bei ya jumla kwa kifungashio (TZS)':'Wholesale price per pack (TZS)','Katoni/vifungashio vya kuanzia':'Opening packs','Chupa/vipande vya ziada (vilivyo nje ya katoni)':'Opening loose units','Kiwango cha tahadhari (vipande)':'Low-stock alert level (units)','PIN ya tarakimu nne':'Four-digit PIN','Kipimo cha msingi':'Base unit','Vipande kwa kifungashio':'Units per pack','Katoni/vifungashio vilivyopo':'Packs in stock','Chupa/vipande vya ziada vilivyopo':'Loose units in stock','PIN mpya':'New PIN','Rudia PIN mpya':'Confirm new PIN','Katoni/vifungashio ulivyonunua':'Packs purchased','Vipande vya ziada vilivyonunuliwa':'Loose units purchased','Bei ya kifungashio kimoja (TZS)':'Cost per pack (TZS)','Tarehe ya ununuzi':'Purchase date','Chanzo cha fedha za ununuzi':'Purchase funding source','Jina la aliyekukopesha / supplier':'Lender / supplier name','Tarehe ya kulipa (hiari)':'Due date (optional)','Aina ya matumizi':'Expense category','Kuanzia tarehe':'From date','Mpaka tarehe':'To date','Chagua mfanyakazi':'Select staff member','Tengeneza ripoti':'Generate report','Pakua Excel (CSV)':'Download Excel (CSV)','Pakua PDF / Chapisha':'Download PDF / Print','Hifadhi salio la kuanzia':'Save opening balance','Hifadhi muamala':'Save transaction','Ongeza bidhaa':'Add product','Thibitisha mauzo':'Complete sale','Pokea malipo na punguza deni':'Receive payment and reduce debt','Hifadhi bidhaa':'Save product','Weka/Badili PIN ya mmiliki':'Set / change owner PIN','Hifadhi mabadiliko':'Save changes','Ghairi':'Cancel','Hifadhi PIN':'Save PIN','Hifadhi ununuzi':'Save purchase','Hifadhi matumizi':'Save expense','Ripoti ya wiki':'Weekly report','Ripoti ya mwezi':'Monthly report','Sasisha orodha':'Refresh list','Sasisha':'Refresh','Toka':'Sign out','Ingia':'Sign in','Fungua akaunti':'Create account','Mfanyakazi':'Staff','Ingia kama mfanyakazi':'Sign in as staff','Hariri':'Edit','Futa':'Delete','Ondoa':'Remove','FUTA MFANYAKAZI':'DELETE STAFF MEMBER'
 };
@@ -1523,14 +1554,116 @@ function addLanguage(){
   try{localStorage.setItem('amwemari_lang',l)}catch(e){console.warn('Language preference could not be saved:',e)}
   // Translate in place: do not reload the page or interrupt the authenticated Supabase session.
   translateStatic();
+  if(amwGuideOpen)amwGuideRender();
  };
  $id('amwLangSw').onclick=()=>apply('sw');
  $id('amwLangEn').onclick=()=>apply('en');
  translateStatic();
 }
+
+let amwGuideOpen=false,amwGuideIndex=0,amwGuidePreviousFocus=null,amwGuidePreviousOverflow='';
+const amwGuideDoneMemory=new Set();
+const amwGuideSteps={
+ sw:[
+  {title:'Karibu AMWEMARI!',copy:'AMWEMARI inakusaidia kusimamia biashara yako kwa kumbukumbu sahihi. Mwongozo huu mfupi utakuelekeza hatua muhimu za kuanza.',tip:'Kumbuka: mfumo huhesabu kutokana na taarifa unazoingiza. Taarifa zisizo sahihi zitaleta ripoti zisizo sahihi.'},
+  {title:'1. Anza na Muhtasari (Dashboard)',copy:'Dashboard inaonyesha hali ya biashara: mauzo ya leo, idadi ya bidhaa, stock inayokaribia kuisha, fedha na muhtasari wa faida. Bonyeza “Sasisha” kuona taarifa mpya.',tip:'Kagua Dashboard mara kwa mara, lakini usichukulie makadirio ya fedha kama hesabu ya pesa halisi bila kulinganisha na droo, simu na benki.'},
+  {title:'2. Sajili bidhaa na stock',copy:'Fungua “Bidhaa” kisha sajili kila bidhaa. Jaza jina, kipimo, bei ya kununua, bei ya kuuza na stock ya kuanzia kwa usahihi. Weka kiwango cha tahadhari ya stock ikiwezekana.',tip:'Usisajili bidhaa ileile mara mbili. Stock ya mwanzo iwe idadi iliyopo kweli dukani siku unapoanza kutumia mfumo.'},
+  {title:'3. Rekodi kila ununuzi',copy:'Unaponunua bidhaa, fungua “Nunua stock”, chagua bidhaa, weka idadi, gharama na tarehe. Chagua chanzo sahihi cha fedha: fedha za biashara, mtaji mpya wa mmiliki au mkopo.',tip:'Usirekodi ununuzi mara mbili. Kama bidhaa ni mtaji ulioingizwa bila kulipwa na biashara, chagua chanzo kinacholingana na hali halisi.'},
+  {title:'4. Rekodi mauzo na madeni',copy:'Kila bidhaa inapouzwa, fungua “Rekodi mauzo”, chagua bidhaa, kiasi na aina ya mauzo, kisha weka malipo na uthibitishe. Mauzo ya mkopo yawekwe kwa jina la mteja ili yaonekane kwenye “Madeni”.',tip:'Usibonyeze “Thibitisha mauzo” mara mbili. Rekodi malipo ya deni pale mteja anapolipa.'},
+  {title:'5. Matumizi, wafanyakazi na ripoti',copy:'Rekodi gharama zote za biashara kwenye “Matumizi”. Mmiliki anaweza kusajili wafanyakazi kwenye “Wafanyakazi”. Tumia “Ripoti” kuchagua tarehe na kuona mauzo, gharama na faida/hasara.',tip:'Baadhi ya sehemu huonekana kwa mmiliki pekee. Usimpe mtu mwingine nenosiri lako. Ukikwama, fungua tena Msaada / Mwongozo.'}
+ ],
+ en:[
+  {title:'Welcome to AMWEMARI!',copy:'AMWEMARI helps you manage your business using accurate records. This short guide shows you the key steps to get started.',tip:'Remember: the system calculates from the information you enter. Incorrect entries produce incorrect reports.'},
+  {title:'1. Start with the Dashboard',copy:'The Dashboard shows your business overview: today’s sales, product count, low stock, cash and profit summary. Tap “Refresh” to load the latest information.',tip:'Compare estimated cash with the actual money in your cash drawer, mobile money and bank before treating it as a real balance.'},
+  {title:'2. Register products and stock',copy:'Open “Products” and register each item. Enter its name, unit, purchase cost, selling price and actual opening stock. Set a low-stock alert where possible.',tip:'Do not register the same product twice. Opening stock should match the quantity physically available when you start.'},
+  {title:'3. Record every purchase',copy:'When you buy stock, open “Purchase stock”, select the product, enter quantity, cost and date. Choose the correct funding source: business cash, new owner capital or a loan.',tip:'Do not record the same purchase twice. Select the funding source that reflects what really happened.'},
+  {title:'4. Record sales and debts',copy:'For every sale, open “Record sales”, select the product, quantity and sale type, enter the payment and complete the sale. Record credit sales against a customer so they appear under “Debts”.',tip:'Do not tap “Complete sale” twice. Record debt payments when the customer actually pays.'},
+  {title:'5. Expenses, staff and reports',copy:'Record all business costs under “Expenses”. The owner can register employees under “Staff”. Use “Reports” to select a date range and review sales, costs and profit or loss.',tip:'Some sections are available to the owner only. Never share your password. Open Help / Guide again whenever you need it.'}
+ ]
+};
+function amwGuideStorageKey(){return user&&user.id?'amwemari_guide_completed_v1_'+user.id:null}
+function amwGuideIsDone(){
+ const key=amwGuideStorageKey();if(!key)return true;
+ if(amwGuideDoneMemory.has(key))return true;
+ try{return localStorage.getItem(key)==='1'}catch(e){return false}
+}
+function amwGuideMarkDone(){
+ const key=amwGuideStorageKey();if(!key)return;
+ amwGuideDoneMemory.add(key);
+ try{localStorage.setItem(key,'1')}catch(e){console.warn('AMWEMARI guide preference could not be saved:',e)}
+}
+function amwGuideRender(){
+ const steps=amwGuideSteps[lang==='en'?'en':'sw'];const step=steps[amwGuideIndex];if(!step)return;
+ const count=document.getElementById('amwGuideCount'),bar=document.getElementById('amwGuideProgressBar'),track=bar?.parentElement;
+ document.getElementById('amwGuideTitle').textContent=step.title;
+ document.getElementById('amwGuideCopy').textContent=step.copy;
+ document.getElementById('amwGuideTip').textContent=step.tip;
+ count.textContent=(lang==='en'?'Step ':'Hatua ya ')+(amwGuideIndex+1)+(lang==='en'?' of ':' kati ya ')+steps.length;
+ bar.style.width=((amwGuideIndex+1)/steps.length*100)+'%';
+ if(track)track.setAttribute('aria-valuenow',String(amwGuideIndex+1));
+ const prev=document.getElementById('amwGuidePrev'),next=document.getElementById('amwGuideNext'),finish=document.getElementById('amwGuideFinish');
+ prev.disabled=amwGuideIndex===0;
+ next.classList.toggle('hidden',amwGuideIndex===steps.length-1);
+ finish.classList.toggle('hidden',amwGuideIndex!==steps.length-1);
+ prev.textContent=lang==='en'?'Back':'Nyuma';
+ next.textContent=lang==='en'?'Continue':'Endelea';
+ finish.textContent=lang==='en'?'I understand, start using AMWEMARI':'Nimeelewa, anza kutumia';
+ document.getElementById('amwGuideFoot').textContent=lang==='en'?'You can reopen this guide at any time using the Help / Guide button.':'Unaweza kufungua mwongozo huu tena wakati wowote kupitia kitufe cha Msaada / Mwongozo.';
+ document.querySelector('[data-amw-guide-skip]').textContent=lang==='en'?'Skip guide':'Ruka mwongozo';
+}
+function amwGuideClose(markDone=true){
+ const overlay=document.getElementById('amwGuideOverlay');if(!overlay)return;
+ if(markDone)amwGuideMarkDone();
+ overlay.classList.add('hidden');amwGuideOpen=false;
+ document.body.style.overflow=amwGuidePreviousOverflow;
+ if(amwGuidePreviousFocus&&document.contains(amwGuidePreviousFocus))amwGuidePreviousFocus.focus();
+}
+function amwGuideShow(force=false){
+ const overlay=document.getElementById('amwGuideOverlay');if(!overlay||!user||!store)return;
+ const workspace=document.getElementById('workspace');
+ if(!workspace||workspace.classList.contains('hidden'))return;
+ if(!force&&amwGuideIsDone())return;
+ amwGuideIndex=0;amwGuidePreviousFocus=document.activeElement;
+ amwGuidePreviousOverflow=document.body.style.overflow;
+ document.body.style.overflow='hidden';overlay.classList.remove('hidden');amwGuideOpen=true;
+ amwGuideRender();document.getElementById('amwGuideCard').focus();
+}
+function amwGuideKeydown(e){
+ if(!amwGuideOpen)return;
+ if(e.key==='Escape'){e.preventDefault();amwGuideClose(true);return}
+ if(e.key==='Tab'){
+  const overlay=document.getElementById('amwGuideOverlay');
+  const focusable=[...overlay.querySelectorAll('button:not([disabled]):not(.hidden)')];
+  if(!focusable.length)return;
+  const first=focusable[0],last=focusable[focusable.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}
+ }
+}
+function amwGuideInit(){
+ const workspace=document.getElementById('workspace');if(!workspace)return;
+ if(!document.body.dataset.amwGuideBound){
+  document.body.dataset.amwGuideBound='1';
+  document.addEventListener('click',e=>{
+   if(e.target.closest('[data-amw-open-guide]')){e.preventDefault();amwGuideShow(true);return}
+   if(e.target.closest('[data-amw-guide-skip]')){amwGuideClose(true);return}
+   if(e.target.closest('#amwGuidePrev')){if(amwGuideIndex>0){amwGuideIndex--;amwGuideRender()}return}
+   if(e.target.closest('#amwGuideNext')){const steps=amwGuideSteps[lang==='en'?'en':'sw'];if(amwGuideIndex<steps.length-1){amwGuideIndex++;amwGuideRender()}return}
+   if(e.target.closest('#amwGuideFinish')){amwGuideClose(true);return}
+  });
+  document.addEventListener('keydown',amwGuideKeydown);
+ }
+ const observer=new MutationObserver(()=>{
+  if(user&&store&&!workspace.classList.contains('hidden')&&!amwGuideOpen&&!amwGuideIsDone())amwGuideShow(false);
+ });
+ observer.observe(workspace,{attributes:true,attributeFilter:['class']});
+ if(user&&store&&!workspace.classList.contains('hidden')&&!amwGuideIsDone())amwGuideShow(false);
+}
+
 function init(){
  if(!$id('workspace'))return;
  setupPages();bindForms();addLanguage();
+ amwGuideInit();
  const oldLoadStore=window.loadStore;
  // Patch only after original store loader has finished, without replacing its core logic.
  const observer=new MutationObserver(()=>{if(store&&$id('amwProfileTitle')){loadBusinessProfile().catch(()=>{});loadExtraData().catch(()=>{});translateStatic();addLanguage();}});
