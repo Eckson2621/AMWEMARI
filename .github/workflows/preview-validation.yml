@@ -1,0 +1,30 @@
+name: Preview validation
+
+on:
+  push:
+    branches:
+      - multi-business-preview
+  pull_request:
+    branches:
+      - main
+    paths:
+      - index.html
+      - tests/**
+      - .github/workflows/preview-validation.yml
+
+permissions:
+  contents: read
+
+jobs:
+  business-profile-tests:
+    name: Business profile registry tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate the 19 business profiles
+        run: node --test tests/business-profiles.test.cjs
