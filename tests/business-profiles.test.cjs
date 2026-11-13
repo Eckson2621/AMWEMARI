@@ -62,6 +62,12 @@ test('stored canonical business_type values resolve to their own profile', () =>
   }
 });
 
+test('legacy business_type values used by main map to preview profiles', () => {
+  assert.equal(businessKind('retail'), 'general_retail');
+  assert.equal(businessKind('cars'), 'vehicles');
+  assert.equal(businessKind('car'), 'vehicles');
+});
+
 test('vehicle profiles retain their identifying fields', () => {
   for (const type of ['motorcycles', 'vehicles']) {
     for (const field of ['brand', 'model', 'year', 'engine_no', 'chassis_no', 'registration']) {
