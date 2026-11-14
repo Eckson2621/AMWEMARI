@@ -82,3 +82,40 @@ test('expiry-sensitive profiles expose batch and expiry fields', () => {
     assert.ok(profiles[type].detailFields.includes('expiry_date'), type + ': missing expiry_date');
   }
 });
+
+const workspaceMatch = html.match(/const BUSINESS_WORKSPACES=(\{[\s\S]*?\});\s*function businessKind/);
+assert.ok(workspaceMatch, 'BUSINESS_WORKSPACES must exist before businessKind().');
+const workspaces = vm.runInNewContext('(' + workspaceMatch[1] + ')');
+
+test('all 19 business types have a dynamic workspace configuration', () => {
+  assert.deepEqual(Object.keys(workspaces).sort(), [...expectedTypes].sort());
+  for (const type of expectedTypes) {
+    assert.equal(typeof workspaces[type].navLabel, 'string', type + ': navigation label');
+    assert.equal(typeof workspaces[type].dashboardTitle, 'string', type + ': dashboard title');
+    assert.ok(Array.isArray(workspaces[type].modules), type + ': module list');
+    assert.ok(workspaces[type].modules.includes('suppliers'), type + ': shared supplier module');
+  }
+});
+
+test('service and project modules are enabled only for mapped business types', () => {
+  assert.ok(workspaces.salon.modules.includes('appointments'));
+  assert.ok(workspaces.services.modules.includes('appointments'));
+  assert.ok(workspaces.services.modules.includes('jobs'));
+  assert.ok(workspaces.electronics.modules.includes('jobs'));
+  assert.ok(workspaces.furniture.modules.includes('jobs'));
+  assert.ok(workspaces.furniture.modules.includes('projects'));
+  assert.ok(workspaces.agriculture.modules.includes('projects'));
+  assert.ok(workspaces.construction.modules.includes('jobs'));
+  assert.ok(workspaces.construction.modules.includes('projects'));
+  assert.ok(!workspaces.grocery.modules.includes('appointments'));
+  assert.ok(!workspaces.grocery.modules.includes('projects'));
+});
+
+test('dashboard module metrics are present and refreshed by the owner dashboard flow', () => {
+  for (const id of ['dashboardCustomerCount', 'dashboardSupplierCount', 'dashboardAppointmentCount', 'dashboardJobCount', 'dashboardProjectCount']) {
+    assert.match(html, new RegExp('id="' + id + '"'));
+  }
+  assert.match(html, /function applyBusinessWorkspace\(\)/);
+  assert.match(html, /async function loadBusinessDashboardModules\(\)/);
+  assert.match(html, /await loadBusinessDashboardModules\(\)/);
+});
