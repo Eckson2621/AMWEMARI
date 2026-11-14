@@ -55,3 +55,15 @@ AMWEMARI is one multi-tenant platform. Each store has one normalized business ty
 
 ## Release rule
 All work stays on a preview branch until build checks and end-to-end tests pass. No production merge/deployment and no destructive database changes as part of the module rollout without a separate verified migration and explicit approval.
+
+## Preview progress snapshot — 2026-11-14
+
+This section records verified implementation scope, not a production release claim.
+
+- The preview frontend contains 19 canonical business profiles and legacy type normalization.
+- A 19-entry business workspace registry now drives the Operations tab label, visibility of supplier/appointment/job/project panels, and business-specific dashboard headings.
+- The owner dashboard now requests store-scoped counts for customers and suppliers, plus appointments, jobs, or projects only when enabled for that business type.
+- The shared Operations page currently supports create/list flows for suppliers, appointments, service jobs, and projects. Editing records, workflow status transitions, staff assignment, and richer industry-specific processes remain outstanding.
+- Supabase already contains the shared customer/supplier/service/project tables. Current inspection confirms RLS is enabled and member/owner policies exist; same-store foreign keys protect customer and appointment references. No database migration was required for this frontend increment.
+- Automated source-level tests cover the 19 workspace mappings. Browser/E2E testing and two-tenant isolation testing have not yet been completed, so these modules are not declared production-ready.
+- The preview branch remains divergent from main; reconcile branch history before considering a merge. No production merge or deployment is authorized by this roadmap.
