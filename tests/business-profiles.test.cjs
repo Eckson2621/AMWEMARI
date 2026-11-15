@@ -120,3 +120,16 @@ test('dashboard module metrics are present and refreshed by the owner dashboard 
   assert.match(html, /async function loadBusinessDashboardModules\(\)/);
   assert.match(html, /await loadBusinessDashboardModules\(\)/);
 });
+
+test('customer register is shared across all business workspaces and store-scoped', () => {
+  assert.match(html, /data-business-module="customers"/);
+  assert.match(html, /el\.dataset\.businessModule!=='customers'/);
+  assert.match(html, /db\.from\('customers'\)\.select\('id,full_name,phone,email,address,notes'\)\.eq\('store_id',store\.id\)/);
+  assert.match(html, /db\.from\('customers'\)\.insert\(payload\)/);
+});
+
+test('business-specific records are queried only when enabled for the selected type', () => {
+  assert.match(html, /cfg\.modules\.includes\('appointments'\)\?db\.from\('service_appointments'\)/);
+  assert.match(html, /cfg\.modules\.includes\('jobs'\)\?db\.from\('service_jobs'\)/);
+  assert.match(html, /cfg\.modules\.includes\('projects'\)\?db\.from\('business_projects'\)/);
+});
