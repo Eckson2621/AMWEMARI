@@ -6,7 +6,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-const registryMatch = html.match(/const BUSINESS_PROFILES=(\{[\s\S]*?\});\s*function businessKind/);
+const registryMatch = html.match(/const BUSINESS_PROFILES=(\{[\s\S]*?\});\s*const BUSINESS_WORKSPACES=/);
 assert.ok(registryMatch, 'BUSINESS_PROFILES registry must exist before businessKind().');
 
 const profiles = vm.runInNewContext('(' + registryMatch[1] + ')');
