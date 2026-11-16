@@ -136,7 +136,7 @@ test('business-specific records are queried only when enabled for the selected t
 
 test('customer editing is owner-guarded and scoped to the active store', () => {
   assert.match(html, /data-edit-customer=/);
-  assert.match(html, /requireOperationsOwner\(\);const \{data,error\}=await db\.from\('customers'\)\.select\('id,full_name,phone,email,address,notes'\)\.eq\('store_id',store\.id'\)/);
+  assert.match(html, /requireOperationsOwner\(\);const \{data,error\}=await db\.from\('customers'\)\.select\('id,full_name,phone,email,address,notes'\)\.eq\('store_id',store\.id\)\.eq\('id',btn\.dataset\.editCustomer\)\.maybeSingle\(\)/);
   assert.match(html, /db\.from\('customers'\)\.update\(payload\)\.eq\('id',editingId\)\.eq\('store_id',store\.id\)/);
   assert.match(html, /customerCancelEdit/);
 });
