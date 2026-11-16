@@ -67,3 +67,12 @@ This section records verified implementation scope, not a production release cla
 - Supabase already contains the shared customer/supplier/service/project tables. Current inspection confirms RLS is enabled and member/owner policies exist; same-store foreign keys protect customer and appointment references. No database migration was required for this frontend increment.
 - Automated source-level tests cover the 19 workspace mappings. Browser/E2E testing and two-tenant isolation testing have not yet been completed, so these modules are not declared production-ready.
 - The preview branch remains divergent from main; reconcile branch history before considering a merge. No production merge or deployment is authorized by this roadmap.
+
+## Preview progress snapshot — 2026-11-16
+
+- Added owner-only customer editing to the shared Customers panel. The edit lookup and update both constrain by the active `store_id`; the existing database owner-update policy remains the enforcement boundary.
+- No customer delete action was added. The current customer row count was inspected before the change; no customer records were modified by this development task.
+- The preview JavaScript scripts and test file pass syntax parsing; the 13 source-level test assertions pass in an isolated JavaScript harness. This is not a GitHub Actions or browser/E2E result.
+- Supabase schema and policies were inspected before this UI-only increment. No migration or database write was performed.
+- Browser interaction and two-tenant isolation testing remain outstanding. The latest PR head has no reported GitHub status contexts or PR workflow runs from the available GitHub check endpoints, and Cloudflare Preview status could not be independently confirmed for this head.
+- Branch reconciliation remains blocked by divergence from `main`; do not merge or deploy until the changes are reconciled and the required checks pass.
