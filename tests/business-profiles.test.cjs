@@ -133,3 +133,14 @@ test('business-specific records are queried only when enabled for the selected t
   assert.match(html, /cfg\.modules\.includes\('jobs'\)\?db\.from\('service_jobs'\)/);
   assert.match(html, /cfg\.modules\.includes\('projects'\)\?db\.from\('business_projects'\)/);
 });
+
+test('customer editing is owner-guarded and scoped to the active store', () => {
+  assert.match(html, /data-edit-customer=/);
+  assert.match(html, /requireOperationsOwner\(\);const \{data,error\}=await db\.from\('customers'\)\.select\('id,full_name,phone,email,address,notes'\)\.eq\('store_id',store\.id'\)/);
+  assert.match(html, /db\.from\('customers'\)\.update\(payload\)\.eq\('id',editingId\)\.eq\('store_id',store\.id\)/);
+  assert.match(html, /customerCancelEdit/);
+});
+
+test('customer update flow does not introduce a customer delete action', () => {
+  assert.doesNotMatch(html, /db\.from\('customers'\)\.delete\(/);
+});
