@@ -76,3 +76,13 @@ This section records verified implementation scope, not a production release cla
 - Supabase schema and policies were inspected before this UI-only increment. No migration or database write was performed.
 - Browser interaction and two-tenant isolation testing remain outstanding. The latest PR head has no reported GitHub status contexts or PR workflow runs from the available GitHub check endpoints, and Cloudflare Preview status could not be independently confirmed for this head.
 - Branch reconciliation remains blocked by divergence from `main`; do not merge or deploy until the changes are reconciled and the required checks pass.
+
+
+## Preview progress snapshot — 2026-11-17
+
+- Added a local customer-list search for name, phone, and email. It filters only the already-loaded, store-scoped customer rows and performs no database writes.
+- The search UI explicitly remains a presentation filter; the existing query limit of 100 rows is unchanged. Server-side search/pagination is a separate follow-up.
+- Added source-level regression assertions for the search field, filter keys, input handler, and no-delete behavior.
+- No Supabase migration or data write was performed. Current Supabase management/schema inspection was unavailable in this run, so no schema-dependent changes were attempted.
+- Current PR head checks returned no workflow runs/status contexts; Cloudflare Preview for the head is unconfirmed. Browser/E2E and two-tenant isolation tests remain outstanding.
+- Live/main were not changed; no merge or production deployment was performed.
