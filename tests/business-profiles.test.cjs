@@ -144,3 +144,12 @@ test('customer editing is owner-guarded and scoped to the active store', () => {
 test('customer update flow does not introduce a customer delete action', () => {
   assert.doesNotMatch(html, /db\.from\('customers'\)\.delete\(/);
 });
+
+test('customer list can be searched locally by name, phone, or email without changing stored rows', () => {
+  assert.match(html, /id="customerSearch" type="search"/);
+  assert.match(html, /function renderCustomerList\(\)/);
+  assert.match(html, /\[x\.full_name,x\.phone,x\.email\]\.some/);
+  assert.match(html, /customerSearch'\)\.addEventListener\('input',renderCustomerList\)/);
+  assert.match(html, /customerRowsForOperations=cu\.data\|\|\[\];renderCustomerList\(\)/);
+  assert.doesNotMatch(html, /db\.from\('customers'\)\.delete\(/);
+});
