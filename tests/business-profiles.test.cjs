@@ -153,3 +153,13 @@ test('customer list can be searched locally by name, phone, or email without cha
   assert.match(html, /customerRowsForOperations=cu\.data\|\|\[\];renderCustomerList\(\)/);
   assert.doesNotMatch(html, /db\.from\('customers'\)\.delete\(/);
 });
+
+test('customer list pagination loads further rows only for the active store and owner', () => {
+  assert.match(html, /id="customerLoadMore"/);
+  assert.match(html, /id="customerListMeta"/);
+  assert.match(html, /const CUSTOMER_PAGE_SIZE=100/);
+  assert.match(html, /customerLoadMore'\)\.addEventListener\('click',async\(\)=>\{try\{requireOperationsOwner\(\)/);
+  assert.match(html, /db\.from\('customers'\)\.select\('id,full_name,phone,email,address,notes'\)\.eq\('store_id',store\.id\)\.order\('full_name',\{ascending:true\}\)\.range\(from,to\)/);
+  assert.match(html, /customerRowsForOperations\.push\(\.\.\.next\.filter/);
+  assert.match(html, /customerHasMore=next\.length===CUSTOMER_PAGE_SIZE/);
+});
