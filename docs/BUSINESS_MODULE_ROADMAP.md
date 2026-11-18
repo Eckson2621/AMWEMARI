@@ -86,3 +86,11 @@ This section records verified implementation scope, not a production release cla
 - No Supabase migration or data write was performed. Current Supabase management/schema inspection was unavailable in this run, so no schema-dependent changes were attempted.
 - Current PR head checks returned no workflow runs/status contexts; Cloudflare Preview for the head is unconfirmed. Browser/E2E and two-tenant isolation tests remain outstanding.
 - Live/main were not changed; no merge or production deployment was performed.
+
+
+## Preview progress snapshot — 2026-11-18
+
+- Added explicit customer-list pagination in 100-row pages. The first and subsequent page queries both constrain by the active `store_id`; loading another page is guarded by the existing owner check.
+- Customer search remains a local filter over rows already loaded. The UI now makes that scope visible and allows loading more rows rather than silently stopping at the first 100.
+- Added source-level regression assertions for pagination, store scoping, and owner gating. No database schema, RLS policy, migration, or stored record was changed.
+- Browser/E2E and two-tenant isolation tests remain outstanding; this is not a production-complete module.
