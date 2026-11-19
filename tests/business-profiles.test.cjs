@@ -178,8 +178,8 @@ test('supplier editing does not add a delete action', () => {
 });
 
 test('inline application scripts parse without syntax errors', () => {
-  const scripts = [...html.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)]
-    .map(match => match[1].trim())
+  const scripts = html.split(/<script[^>]*>/i).slice(1)
+    .map(part => part.split('</script>')[0].trim())
     .filter(Boolean);
   assert.ok(scripts.length > 0, 'At least one inline application script must exist.');
   scripts.forEach((script, index) => {
