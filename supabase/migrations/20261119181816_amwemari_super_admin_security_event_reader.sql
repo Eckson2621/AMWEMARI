@@ -1,4 +1,4 @@
-create or replace function public.amwemari_get_security_events(p_admin_user_id uuid, p_limit integer default 100)
+create or replace function public.amwemari_get_security_events(p_limit integer default 100)
 returns table (
   id uuid,
   occurred_at timestamptz,
@@ -19,14 +19,7 @@ security definer
 set search_path = ''
 as $$
 begin
-  if p_admin_user_id is null or not exists (
-    select 1
-    from public.amwemari_super_admins a
-    join auth.users u on u.id = a.user_id
-    where a.user_id = p_admin_user_id
-      and lower(a.email) = 'mwalimueckson2104@gmail.com'
-      and lower(coalesce(u.email, '')) = 'mwalimueckson2104@gmail.com'
-  ) then
+  if not private.is_amwemari_super_admin() then
     raise exception 'Super Admin access required' using errcode = '42501';
   end if;
 
@@ -40,5 +33,5 @@ begin
 end;
 $$;
 
-revoke all on function public.amwemari_get_security_events(uuid, integer) from public, anon, authenticated;
-grant execute on function public.amwemari_get_security_events(uuid, integer) to service_role;
+revoke all on function public.amwemari_get_security_events(integer) from public, anon;
+grant execute on function public.amwemari_get_security_events(integer) to authenticated;
