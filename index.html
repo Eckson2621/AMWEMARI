@@ -137,6 +137,12 @@
      </div>
      <div id="cyberLabMessage" class="cyber-lab-muted" role="status">Tayari. Chagua faili kisha bonyeza Scan Now.</div>
      <div id="cyberLabResults" class="cyber-lab-results"></div>
+     <div class="section">
+      <div class="row"><h3>Server Security Incidents</h3><button type="button" class="secondary" onclick="loadCyberIncidents()">Sasisha matukio</button></div>
+      <p class="cyber-lab-muted">Hapa huonekana matukio yaliyoandikwa na vyanzo vya server vilivyoidhinishwa. Matokeo ya uchunguzi wa faili kwenye browser hayawezi kuitwa Critical bila uthibitisho wa server.</p>
+      <div id="cyberIncidentMessage" class="cyber-lab-muted" role="status">Bonyeza Sasisha matukio ili kuangalia kumbukumbu za server.</div>
+      <div id="cyberIncidentList" class="cyber-lab-results"></div>
+     </div>
      <div class="section"><h3>Security Notes</h3><p class="cyber-lab-muted">Toleo hili hukagua SHA-256, alama za mwanzo za aina za faili (file signatures), viendelezi visivyolingana na maudhui, na viashiria vya majaribio. Hakuna ufuatiliaji wa siri wa simu au mfumo mzima. Historia ya ripoti huhifadhiwa kwenye kifaa/kivinjari hiki tu.</p></div>
     </section>
    </div>
@@ -493,7 +499,7 @@ function toggleCyberLab(){
  const panel=$('cyberLabPanel'),btn=$('cyberLabToggle');if(!panel||!btn)return;
  const opening=panel.classList.contains('hidden');panel.classList.toggle('hidden',!opening);
  btn.textContent=opening?'Funga Cyber Lab':'Fungua Cyber Lab';
- if(opening)panel.scrollIntoView({behavior:'smooth',block:'start'});
+ if(opening){panel.scrollIntoView({behavior:'smooth',block:'start'});loadCyberIncidents();}
 }
 let cyberScanResults=[];
 const CYBER_MAX_FILE_BYTES=20*1024*1024;
@@ -558,6 +564,30 @@ async function runCyberScan(){
   try{localStorage.setItem('amwemari_cyber_last_report',JSON.stringify({created_at:new Date().toISOString(),results:cyberScanResults}));}catch(e){console.warn('Cyber report local save unavailable',e)}
  }catch(e){msg.textContent='Uchunguzi haujakamilika: '+(e.message||String(e));}
  finally{btn.disabled=false;}
+}
+async function loadCyberIncidents(){
+ if(!isSuperAdmin)return;
+ const msg=$('cyberIncidentMessage'),box=$('cyberIncidentList');
+ if(!msg||!box)return;
+ msg.textContent='Inasoma kumbukumbu za server...';box.innerHTML='';
+ try{
+  const {data,error}=await db.functions.invoke('amwemari-cyber-admin',{body:{action:'dashboard'}});
+  if(error)throw error;
+  if(!data?.ok)throw new Error(data?.error||'Kumbukumbu hazijapatikana.');
+  const rows=Array.isArray(data.incidents)?data.incidents:[];
+  if(!rows.length){
+   msg.textContent='Hakuna tukio la server lililorekodiwa kwa sasa. Hii haimaanishi kuwa kifaa au mfumo wote umethibitishwa kuwa salama.';
+   return;
+  }
+  msg.textContent='Matukio '+rows.length+' ya karibuni. Matukio Critical yanahitaji uthibitisho wa chanzo cha server.';
+  box.innerHTML=rows.map(x=>{
+   const sev=String(x.severity||'info').toUpperCase();
+   const when=x.occurred_at?new Date(x.occurred_at).toLocaleString('sw-TZ'):'Muda haujulikani';
+   return '<article class="cyber-result"><span class="cyber-status '+(sev==='CRITICAL'?'review':'')+'">'+escapeHtml(sev)+'</span><strong>'+escapeHtml(x.event_type||'Security event')+'</strong><small>'+escapeHtml(when)+' · Chanzo: '+escapeHtml(x.source||'unknown')+'</small><small>'+escapeHtml(x.summary||'Hakuna maelezo.')+'</small></article>';
+  }).join('');
+ }catch(e){
+  msg.textContent=e?.context?.json?.error||e.message||'Imeshindikana kusoma matukio ya server.';
+ }
 }
 function downloadCyberReport(){
  if(!isSuperAdmin)return;
