@@ -20,6 +20,7 @@ Cyber Lab access follows the fixed AMWEMARI Super Admin identity across devices.
 - The browser never receives the service-role key or the stored device proof hash.
 - Device secrets are returned only during enrollment and stored as SHA-256 hashes server-side.
 - Revocation is immediate for subsequent requests.
+- During rollout only, the existing Super Admin dashboard remains compatible until the first device is enrolled. After at least one active device exists, device proof is mandatory for protected Cyber Admin actions.
 - Browser local storage is a prototype credential store and is exposed to same-origin script compromise. Production native Android/Windows agents should use OS-protected storage (Android Keystore / Windows DPAPI or Credential Manager).
 
 ## Current limitations
