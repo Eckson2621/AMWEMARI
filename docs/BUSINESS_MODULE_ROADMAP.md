@@ -94,3 +94,13 @@ This section records verified implementation scope, not a production release cla
 - Customer search remains a local filter over rows already loaded. The UI now makes that scope visible and allows loading more rows rather than silently stopping at the first 100.
 - Added source-level regression assertions for pagination, store scoping, and owner gating. No database schema, RLS policy, migration, or stored record was changed.
 - Browser/E2E and two-tenant isolation tests remain outstanding; this is not a production-complete module.
+
+
+## Preview progress snapshot — 2026-11-19
+
+- Added owner-only supplier editing to the shared Suppliers panel, including the already-existing `suppliers.notes` field. The edit lookup and update both constrain by the active `store_id`; `requireOperationsOwner()` is the UI guard and the existing `suppliers_update_owner` RLS policy remains the database enforcement boundary.
+- Read-only Supabase inspection confirmed `suppliers.store_id` is NOT NULL; the table has the expected contact, address, tax number, notes and active-state columns. Existing RLS policies allow member SELECT/INSERT and owner UPDATE/DELETE through `private.is_store_member` and `private.is_store_owner`. The owner helper checks owner identity, active store/subscription and the delete-pending gate.
+- The supplier table contained 0 rows at inspection. No supplier/customer/business records were changed, and no database migration was required or applied.
+- Added source-level regression assertions for the owner guard, store-scoped edit lookup/update, and absence of a supplier delete operation. Browser/E2E and two-tenant isolation tests remain outstanding; this module is not declared production-ready.
+- Current preview head before this increment was `d3c028327434b6d0ae6ebccc330eb0805c9a247e`. GitHub comparison against current `main` showed 42 commits ahead and 111 behind. PR #1 remains open, draft and unmerged. The Cloudflare Workers build check on that head was `failure`; no successful Preview was verified.
+- All changes in this snapshot are confined to `multi-business-preview`. No merge, production deployment, live-app change or database write was performed.

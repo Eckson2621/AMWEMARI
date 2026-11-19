@@ -163,3 +163,16 @@ test('customer list pagination loads further rows only for the active store and 
   assert.match(html, /customerRowsForOperations\.push\(\.\.\.next\.filter/);
   assert.match(html, /customerHasMore=next\.length===CUSTOMER_PAGE_SIZE/);
 });
+
+test('supplier editing is owner-guarded and scoped to the active store', () => {
+  assert.match(html, /id="supplierId"/);
+  assert.match(html, /data-edit-supplier=/);
+  assert.match(html, /supplierCancelEdit/);
+  assert.match(html, /db\\.from\\('suppliers'\\)\\.select\\('id,name,contact_person,phone,email,address,tax_number,notes,is_active'\\)\\.eq\\('store_id',store\\.id\\)\\.eq\\('id',btn\\.dataset\\.editSupplier\\)\\.maybeSingle\\(\\)/);
+  assert.match(html, /db\\.from\\('suppliers'\\)\\.update\\(payload\\)\\.eq\\('id',editingId\\)\\.eq\\('store_id',store\\.id\\)\\.select\\('id'\\)\\.maybeSingle\\(\\)/);
+  assert.match(html, /requireOperationsOwner\\(\\);const editingId=\\$\\('supplierId'\\)\\.value/);
+});
+
+test('supplier editing does not add a delete action', () => {
+  assert.doesNotMatch(html, /db\\.from\\('suppliers'\\)\\.delete\\(/);
+});
