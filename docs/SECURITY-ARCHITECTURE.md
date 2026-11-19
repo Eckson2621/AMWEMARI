@@ -45,7 +45,9 @@
 - The RPC is `SECURITY DEFINER` with an empty search path, checks the fixed Super Admin user ID/email against Auth, is executable only by `service_role`, and clamps result count to 1–200. The Edge Function performs JWT + allow-list checks first, then calls the RPC server-side.
 - Local/browser scan findings are untrusted. The Edge Function now rejects client-local `critical` severity and `malicious` verdicts; those require independent server verification.
 - The Super Admin incident viewer is now included in `index.html` on branch `security-foundation`; it calls the protected dashboard action. It is not yet merged to `main` or deployed.
-- The ledger is not yet connected to a trusted event-ingestion endpoint or push sender.
+- A validated service-role-only event-ingestion RPC now writes server-originated events into the private ledger. The Edge Function uses it for authenticated non-admin access attempts, malformed/unsupported actions, and Super Admin alert-status changes.
+- Missing/invalid JWT requests are rejected by the Supabase Edge gateway because JWT verification remains enabled; those gateway rejections are not written into this application ledger.
+- The ledger is not yet connected to platform-wide Auth/Storage/database audit feeds or a push sender.
 
 ## Required next steps before production activation
 
