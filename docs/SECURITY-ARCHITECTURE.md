@@ -41,7 +41,8 @@
 
 - The private append-only `private.security_events` ledger is applied in production Supabase migration `20261119181645_amwemari_security_event_ledger`.
 - Verified: forced RLS is enabled; `anon` and `authenticated` have no SELECT/INSERT access; `service_role` has SELECT/INSERT; UPDATE/DELETE are blocked by a trigger.
-- The `amwemari-cyber-admin` Edge Function is version 2. It verifies the JWT and the exact Super Admin allow-list before any Cyber Lab action.
+- The `amwemari-cyber-admin` Edge Function is version 3. It verifies the JWT and exact Super Admin allow-list before any Cyber Lab action, and its dashboard action now reads incident records through the restricted `public.amwemari_get_security_events` RPC.
+- The RPC is `SECURITY DEFINER` with an empty search path, checks the fixed Super Admin helper, is executable only by `authenticated`, and clamps result count to 1–200.
 - Local/browser scan findings are untrusted. The Edge Function now rejects client-local `critical` severity and `malicious` verdicts; those require independent server verification.
 - This ledger is not yet connected to a trusted event-ingestion endpoint, incident read UI, or push sender.
 
