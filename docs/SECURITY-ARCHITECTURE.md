@@ -37,15 +37,22 @@
 - The receiver validates that the navigation target is a same-origin relative path.
 - This is notification-display plumbing only. It does not register subscriptions, send push messages, detect intrusions, or claim an alert is active.
 
+## Current implementation status (2026-11-19)
+
+- The private append-only `private.security_events` ledger is applied in production Supabase migration `20261119181645_amwemari_security_event_ledger`.
+- Verified: forced RLS is enabled; `anon` and `authenticated` have no SELECT/INSERT access; `service_role` has SELECT/INSERT; UPDATE/DELETE are blocked by a trigger.
+- The `amwemari-cyber-admin` Edge Function is version 2. It verifies the JWT and the exact Super Admin allow-list before any Cyber Lab action.
+- Local/browser scan findings are untrusted. The Edge Function now rejects client-local `critical` severity and `malicious` verdicts; those require independent server verification.
+- This ledger is not yet connected to a trusted event-ingestion endpoint, incident read UI, or push sender.
+
 ## Required next steps before production activation
 
-1. Add a migration for an append-only security event table in a non-public schema or tightly RLS-protected exposed schema; define least-privilege insert/read policies.
-2. Add a server-side event ingestion function with schema validation, rate limits, idempotency, and redaction.
-3. Add an incident query endpoint restricted to the verified Super Admin.
-4. Add push subscription registration and encrypted storage; keep VAPID private key in Cloudflare/Supabase secrets.
-5. Add an authenticated push sender and test delivery on the actual Android device with app closed, browser closed, battery saver, and notification permission denied/granted.
-6. Add Android companion as a separate native project and validate Play policy/Android permission constraints.
-7. Run RLS, auth/session, tenant-isolation, dependency, and abuse-case tests before merging to main or deploying.
+1. Add a trusted server-side event ingestion function with schema validation, rate limits, idempotency, and redaction.
+2. Add an incident query endpoint restricted to the verified Super Admin.
+3. Add push subscription registration and encrypted storage; keep VAPID private key in Cloudflare/Supabase secrets.
+4. Add an authenticated push sender and test delivery on the actual Android device with app closed, browser closed, battery saver, and notification permission denied/granted.
+5. Build and test the Android companion as a separate native project and validate Android permission constraints.
+6. Run RLS, auth/session, tenant-isolation, dependency, and abuse-case tests before merging to main or deploying.
 
 ## Acceptance criteria
 
