@@ -1,0 +1,56 @@
+# AMWEMARI Cybersecurity Foundation
+
+## Current repository facts
+
+- The production application is a static Progressive Web App (PWA): `index.html`, `manifest.json`, and `sw.js`.
+- `src/index.js` currently delegates requests to Cloudflare static assets; it is not yet an API/security gateway.
+- Supabase is used by the browser application. The public publishable key is expected to be present in the client; no service-role key may be added to browser code.
+- The existing Cyber Lab is a user-selected local file triage tool. It computes SHA-256, checks a few file signatures/extensions, and scans a small set of test markers. It is not an antivirus engine, does not inspect every file on Android, and does not establish that a file is clean.
+- The Android companion is a separate native Android deliverable; this repository currently has no Android project.
+
+## Security architecture
+
+1. **Detection and evidence**
+   - Record security events server-side with event ID, UTC timestamp, event category, severity, actor/user ID where known, store/tenant ID where applicable, request correlation ID, and minimized network metadata.
+   - Never store passwords, access tokens, refresh tokens, full payment data, or private user files in incident logs.
+   - Treat client-reported events as untrusted signals. Server-side verification is authoritative.
+2. **Authorization**
+   - Super Admin authorization must be checked server-side against a fixed allow-list and trusted database/app metadata.
+   - Never authorize using editable user metadata or a client-side boolean.
+   - Keep tenant/store isolation in RLS. Enable RLS on every exposed table and use explicit ownership predicates.
+   - Keep service-role/secret keys only in server-side secrets.
+3. **Response**
+   - Start with reversible containment: revoke the affected session where supported, block repeated abusive requests with rate limits, and require re-authentication/MFA for sensitive actions.
+   - Preserve evidence and provide a human-reviewed unblock path. Do not automatically delete user data or block a person solely from geolocation/IP reputation.
+4. **Notifications**
+   - Web Push requires a user-granted notification permission, a Push API subscription, VAPID keys held server-side, and a trusted backend sender. The service worker now has a receiver for incoming push messages; delivery is not active until the subscription and sender are implemented and tested.
+   - Critical notifications may request persistent display and vibration, subject to browser, Android, device, and user notification settings. No web app can guarantee bypassing Do Not Disturb or OS restrictions.
+5. **Android companion**
+   - Build a native Android app with transparent permission prompts, app inventory limited to permitted PackageManager visibility, Storage Access Framework/MediaStore scanning of user-selected or otherwise permitted files, URL reputation checks, and FCM alerts.
+   - Do not collect other apps' private data, credentials, messages, or files. No covert monitoring, device takeover, or retaliatory access.
+   - A real antivirus verdict requires reputable threat intelligence/signature updates and/or a specialist scanning service; hashes and file magic bytes alone are insufficient.
+
+## Initial implementation in this branch
+
+- Service worker cache version advanced to v43.
+- Added a Web Push event receiver and notification-click routing.
+- The receiver validates that the navigation target is a same-origin relative path.
+- This is notification-display plumbing only. It does not register subscriptions, send push messages, detect intrusions, or claim an alert is active.
+
+## Required next steps before production activation
+
+1. Add a migration for an append-only security event table in a non-public schema or tightly RLS-protected exposed schema; define least-privilege insert/read policies.
+2. Add a server-side event ingestion function with schema validation, rate limits, idempotency, and redaction.
+3. Add an incident query endpoint restricted to the verified Super Admin.
+4. Add push subscription registration and encrypted storage; keep VAPID private key in Cloudflare/Supabase secrets.
+5. Add an authenticated push sender and test delivery on the actual Android device with app closed, browser closed, battery saver, and notification permission denied/granted.
+6. Add Android companion as a separate native project and validate Play policy/Android permission constraints.
+7. Run RLS, auth/session, tenant-isolation, dependency, and abuse-case tests before merging to main or deploying.
+
+## Acceptance criteria
+
+- No production business calculations, sales, stock, subscription, or existing access-control behavior changes.
+- Every server-detected critical event has an immutable audit record.
+- Only verified Super Admin can read global incidents.
+- A notification is marked delivered only after provider/device evidence supports that status; otherwise it remains queued/unknown.
+- No claim of full-device scanning, exact attacker identity/location, or guaranteed 30-second identification.
