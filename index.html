@@ -48,6 +48,27 @@
 .amw-guide-foot{font-size:12px;color:#64748b;line-height:1.5;margin:14px 0 0}
 @media(max-width:520px){.amw-guide-overlay{padding:9px;align-items:flex-end}.amw-guide-card{max-height:94vh;border-radius:17px 17px 12px 12px;padding:17px}.amw-guide-actions button{flex:1}}
 
+
+/* AMWEMARI CYBER LAB — Super Admin only, touch-first */
+.cyber-lab-launch{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:16px;border:1px solid #1e3a5f;border-radius:16px;background:linear-gradient(135deg,#071827,#102d46);color:#e6f4ff;margin-top:18px}
+.cyber-lab-launch .cyber-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:14px;background:#123d52;color:#5eead4;font-size:25px}
+.cyber-lab-launch h3{margin:0 0 4px;font-size:17px}.cyber-lab-launch p{margin:0;color:#a9c5d8;font-size:13px}
+.cyber-lab-panel{margin-top:12px;padding:16px;border:1px solid #23435d;border-radius:16px;background:#071827;color:#e6f4ff}
+.cyber-lab-panel h3{margin:0 0 8px}.cyber-lab-muted{color:#a9c5d8;font-size:13px;line-height:1.55}
+.cyber-lab-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px;margin:14px 0}
+.cyber-lab-panel button{min-height:48px;border-radius:12px;background:#0e7490;color:#fff;padding:12px 14px}
+.cyber-lab-panel button.secondary{background:#18364d;color:#d9efff}.cyber-lab-panel button:disabled{opacity:.55}
+.cyber-lab-drop{display:grid;gap:10px;padding:18px;border:1px dashed #3b7895;border-radius:14px;background:#0b2235;text-align:center}
+.cyber-lab-drop input{width:100%;max-width:100%;color:#d9efff}
+.cyber-lab-results{display:grid;gap:10px;margin-top:14px}
+.cyber-result{padding:13px;border:1px solid #25445d;border-radius:12px;background:#0b2235;overflow-wrap:anywhere}
+.cyber-result strong{display:block;margin-bottom:5px}.cyber-result small{display:block;color:#a9c5d8;line-height:1.5}
+.cyber-status{display:inline-block;padding:4px 9px;border-radius:20px;background:#18364d;color:#c8e7f5;font-size:11px;font-weight:800;margin-bottom:7px}
+.cyber-status.review{background:#553b12;color:#fde68a}.cyber-status.clean{background:#123d35;color:#99f6e4}
+.cyber-lab-stat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.cyber-lab-stat div{padding:12px;border-radius:11px;background:#102d46}.cyber-lab-stat b{display:block;font-size:22px}.cyber-lab-stat span{font-size:11px;color:#a9c5d8}
+@media(max-width:520px){.cyber-lab-panel{padding:12px}.cyber-lab-stat{grid-template-columns:1fr 1fr 1fr}.cyber-lab-actions button{width:100%}}
+
 </style></head>
 <body>
 <div id="authView" class="wrap auth">
@@ -94,6 +115,30 @@
     <div id="adminPanelMessage" class="notice">Inapakia biashara...</div><div id="adminAnalytics" class="admin-analytics" aria-live="polite"></div>
     <div id="adminStoresList" class="tablewrap"></div>
     <div class="section"><h2>DELETE PENDING</h2><p class="muted small">Akaunti zilizosimamishwa; taarifa zitafutwa kabisa siku 90 zikikamilika.</p><div id="adminDeletePendingList" class="tablewrap"></div></div>
+
+    <div class="cyber-lab-launch">
+     <div class="cyber-icon" aria-hidden="true">⌁</div>
+     <div style="flex:1;min-width:180px"><h3>AMWEMARI CYBER LAB</h3><p>Sehemu ya ukaguzi wa usalama — Super Admin pekee</p></div>
+     <button type="button" id="cyberLabToggle" onclick="toggleCyberLab()">Fungua Cyber Lab</button>
+    </div>
+    <section id="cyberLabPanel" class="cyber-lab-panel hidden" aria-label="AMWEMARI Cyber Lab">
+     <div class="row"><div><h3>Security Operations Center</h3><div class="cyber-lab-muted">Professional dark cybersecurity dashboard · V1.0</div></div><span class="cyber-status clean">LOCAL SCAN</span></div>
+     <p class="cyber-lab-muted">Chagua faili unazotaka kuchunguza. Uchunguzi hufanyika ndani ya kivinjari hiki; faili hazipak hairishwi kwenye server. Scanner hii ni ya awali na haiwezi kuthibitisha kuwa faili ni salama au ku-scan simu nzima.</p>
+     <div class="cyber-lab-stat"><div><b id="cyberScanned">0</b><span>Faili zilizochunguzwa</span></div><div><b id="cyberReview">0</b><span>Zinahitaji ukaguzi</span></div><div><b id="cyberDuplicates">0</b><span>Duplicate hashes</span></div></div>
+     <div class="cyber-lab-drop">
+      <strong>Chagua faili kutoka kwenye simu</strong>
+      <input id="cyberFileInput" type="file" multiple aria-label="Chagua mafaili ya kuchunguza">
+      <span class="cyber-lab-muted">Kikomo: 20 MB kwa kila faili. Faili hazitatekelezwa, kubadilishwa wala kufutwa.</span>
+     </div>
+     <div class="cyber-lab-actions">
+      <button type="button" id="cyberScanButton" onclick="runCyberScan()">Scan Now</button>
+      <button type="button" class="secondary" onclick="downloadCyberReport()">Pakua ripoti</button>
+      <button type="button" class="secondary" onclick="clearCyberResults()">Futa matokeo ya skrini</button>
+     </div>
+     <div id="cyberLabMessage" class="cyber-lab-muted" role="status">Tayari. Chagua faili kisha bonyeza Scan Now.</div>
+     <div id="cyberLabResults" class="cyber-lab-results"></div>
+     <div class="section"><h3>Security Notes</h3><p class="cyber-lab-muted">Toleo hili hukagua SHA-256, alama za mwanzo za aina za faili (file signatures), viendelezi visivyolingana na maudhui, na viashiria vya majaribio. Hakuna ufuatiliaji wa siri wa simu au mfumo mzima. Historia ya ripoti huhifadhiwa kwenye kifaa/kivinjari hiki tu.</p></div>
+    </section>
    </div>
 <div class="row"><h2>Muhtasari wa biashara</h2><button onclick="refreshAll()" class="secondary">↻ Sasisha</button></div><div class="grid"><div class="card"><div class="muted">Mauzo ya leo</div><div class="metric" id="todaySales">TZS 0</div></div><div class="card"><div class="muted">Idadi ya mauzo leo</div><div class="metric" id="todayCount">0</div></div><div class="card"><div class="muted">Bidhaa</div><div class="metric" id="productCount">0</div></div><div class="card"><div class="muted">Stock inayokaribia kuisha</div><div class="metric" id="lowStock">0</div></div></div><div id="cashFlowPanel" class="panel section"><div class="row"><div><h2>Fedha za biashara</h2><div class="muted small">Makadirio ya fedha taslimu, mobile money na benki tangu tarehe ya salio la kuanzia.</div></div><div><div class="muted small">Mabadiliko ya fedha yanayotokana na miamala iliyorekodiwa</div><strong id="cashOnHand" class="metric">TZS 0</strong></div></div><div class="grid"><div class="card"><div class="muted">Fedha zilizopokelewa kutoka mauzo</div><div class="metric" id="cashSalesTotal">TZS 0</div></div><div class="card"><div class="muted">Manunuzi yaliyolipwa (njia zinazojulikana)</div><div class="metric" id="cashPurchasesTotal">TZS 0</div></div><div class="card"><div class="muted">Matumizi yaliyolipwa (njia zinazojulikana)</div><div class="metric" id="cashExpensesTotal">TZS 0</div></div><div class="card"><div class="muted">Salio la kuanzia</div><div class="metric" id="cashOpeningDisplay">TZS 0</div></div><div class="card"><div class="muted">Madeni ya wateja ambayo bado hayajalipwa</div><div class="metric" id="cashUnallocatedTotal">TZS 0</div></div></div><form id="openingCashForm" class="section"><div class="grid"><div class="field"><label>Fedha uliyokuwa nayo mwanzoni (TZS)</label><input id="openingCashAmount" type="number" min="0" step=".01" value="0" required></div><div class="field"><label>Tarehe ya kuanzia kuhesabu</label><input id="openingCashDate" type="date" required></div></div><button type="submit">Hifadhi salio la kuanzia</button><span id="openingCashMessage" class="muted small"></span></form><div id="cashPositionAlert" class="notice hidden"></div><p class="muted small">Hii ni hesabu ya mabadiliko ya fedha kutokana na miamala iliyorekodiwa, si uthibitisho wa pesa halisi iliyopo. Hesabu: salio la kuanzia + mauzo yaliyopokelewa + mtaji wa fedha − manunuzi yaliyorekodiwa kuwa yamelipwa − matumizi yaliyolipwa − fedha binafsi zilizochukuliwa. Madeni ya mauzo yanaonyeshwa tofauti; malipo ya awali na marejesho huhesabiwa siku yalipopokelewa. Linganisha na fedha halisi kwenye droo, simu na benki.</p></div><div id="financialPositionPanel" class="panel section"><h2>Hali halisi ya mtaji, stock na faida</h2><p class="muted small">Muhtasari wa historia yote ya biashara. Stock inathaminiwa kwa gharama ya wastani ya kununua; faida ghafi ni mauzo ya bidhaa ukitoa gharama ya bidhaa zilizouzwa.</p><div class="grid"><div class="card"><div class="muted">Jumla ya mauzo</div><div class="metric" id="financeSalesTotal">TZS 0</div></div><div class="card"><div class="muted">Jumla ya manunuzi ya stock</div><div class="metric" id="financePurchasesTotal">TZS 0</div></div><div class="card"><div class="muted">Gharama ya stock iliyouzwa</div><div class="metric" id="financeCogsTotal">TZS 0</div></div><div class="card"><div class="muted">Faida ghafi iliyopatikana</div><div class="metric" id="financeGrossProfit">TZS 0</div></div><div class="card"><div class="muted">Faida / hasara halisi</div><div class="metric" id="financeNetProfit">TZS 0</div></div><div class="card"><div class="muted">Thamani ya stock iliyobaki</div><div class="metric" id="financeStockValue">TZS 0</div></div><div class="card"><div class="muted">Idadi ya stock iliyobaki</div><div class="metric" id="financeStockUnits">0</div></div><div class="card"><div class="muted">Mabadiliko ya fedha kwa rekodi zilizopo (si salio halisi)</div><div class="metric" id="financeCashOnHand">TZS 0</div></div></div><p id="financePositionNote" class="muted small section">Inasoma taarifa za biashara...</p></div>
 <div id="capitalManagementPanel" class="panel section">
@@ -440,6 +485,90 @@ function renderAdminAnalytics(rows,pending){
   '<div class="admin-charts"><div class="admin-chart"><h3>Usajili wa biashara</h3><div class="admin-chart-sub">Idadi ya biashara zilizosajiliwa kwa siku 7 zilizopita</div><div class="admin-bars">'+days.map(d=>'<div class="admin-bar-col"><b>'+d.count+'</b><div class="admin-bar" style="height:'+Math.max(3,d.count/max*115)+'px"></div><small>'+d.label+'</small></div>').join('')+'</div></div>'+
   '<div class="admin-chart"><h3>Hali za akaunti</h3><div class="admin-chart-sub">Mgawanyo wa akaunti zote kulingana na hali iliyopo</div><div class="admin-status-layout"><div class="admin-donut" style="background:conic-gradient('+gradient+')"><span>'+total+'</span></div><div class="admin-legend">'+[['Active',counts.active],['Majaribio',counts.trial],['Inasubiri idhini',counts.pending],['Imeisha / haijalipiwa',counts.expired]].map((x,i)=>'<div><span><i style="background:'+colors[i]+'"></i>'+x[0]+'</span><strong>'+x[1]+'</strong></div>').join('')+'</div></div></div></div>'+
   '<div class="muted small">Takwimu zimekokotolewa kutoka kwenye orodha halisi ya akaunti iliyorejeshwa na Supabase. Hakuna mauzo au mapato yaliyokadiriwa.</div>';
+}
+
+
+function toggleCyberLab(){
+ if(!isSuperAdmin)return;
+ const panel=$('cyberLabPanel'),btn=$('cyberLabToggle');if(!panel||!btn)return;
+ const opening=panel.classList.contains('hidden');panel.classList.toggle('hidden',!opening);
+ btn.textContent=opening?'Funga Cyber Lab':'Fungua Cyber Lab';
+ if(opening)panel.scrollIntoView({behavior:'smooth',block:'start'});
+}
+let cyberScanResults=[];
+const CYBER_MAX_FILE_BYTES=20*1024*1024;
+const CYBER_MARKERS=['suspicious_test_marker','fake_malware_indicator','unauthorized_access_test'];
+function cyberHex(bytes){return Array.from(bytes).map(x=>x.toString(16).padStart(2,'0')).join('');}
+function cyberSignature(bytes){
+ const h=cyberHex(bytes.slice(0,16)).toUpperCase();
+ if(h.startsWith('25504446'))return 'PDF';
+ if(h.startsWith('89504E470D0A1A0A'))return 'PNG';
+ if(h.startsWith('FFD8FF'))return 'JPEG';
+ if(h.startsWith('47494638'))return 'GIF';
+ if(h.startsWith('504B0304'))return 'ZIP / Office archive';
+ if(h.startsWith('4D5A'))return 'Windows executable (MZ)';
+ if(h.startsWith('7F454C46'))return 'ELF executable';
+ if(h.startsWith('52494646'))return 'RIFF container';
+ if(h.startsWith('1F8B'))return 'GZIP';
+ return 'Unknown / text / unsupported';
+}
+function cyberExpectedExtension(name){
+ const n=name.toLowerCase();
+ if(n.endsWith('.pdf'))return 'PDF';
+ if(n.endsWith('.png'))return 'PNG';
+ if(n.endsWith('.jpg')||n.endsWith('.jpeg'))return 'JPEG';
+ if(n.endsWith('.gif'))return 'GIF';
+ if(n.endsWith('.zip')||n.endsWith('.docx')||n.endsWith('.xlsx')||n.endsWith('.pptx'))return 'ZIP / Office archive';
+ if(n.endsWith('.exe')||n.endsWith('.dll'))return 'Windows executable (MZ)';
+ if(n.endsWith('.apk'))return 'ZIP / Office archive';
+ return null;
+}
+async function runCyberScan(){
+ if(!isSuperAdmin)return;
+ const input=$('cyberFileInput'),files=Array.from(input?.files||[]),msg=$('cyberLabMessage'),out=$('cyberLabResults'),btn=$('cyberScanButton');
+ if(!files.length){msg.textContent='Chagua angalau faili moja kwanza.';return;}
+ btn.disabled=true;msg.textContent='Inachunguza faili...';out.innerHTML='';cyberScanResults=[];
+ const hashSeen=new Map();let reviewed=0,duplicates=0;
+ try{
+  for(const file of files){
+   const item={name:file.name,size:file.size,type:file.type||'unknown',modified:new Date(file.lastModified).toISOString(),hash:'Haijahesabiwa',signature:'Unknown',status:'LOW REVIEW',reasons:[]};
+   if(file.size>CYBER_MAX_FILE_BYTES){item.status='REVIEW REQUIRED';item.reasons.push('Faili limezidi kikomo cha 20 MB; maudhui hayakuchunguzwa.');}
+   else{
+    const buffer=await file.arrayBuffer(),bytes=new Uint8Array(buffer),head=bytes.slice(0,16);
+    item.signature=cyberSignature(head);
+    if(!crypto?.subtle)throw new Error('Kivinjari hiki hakijawezesha SHA-256 Web Crypto.');
+    const digest=await crypto.subtle.digest('SHA-256',buffer);
+    item.hash=cyberHex(new Uint8Array(digest));
+    if(hashSeen.has(item.hash)){item.reasons.push('Maudhui yana hash sawa na '+hashSeen.get(item.hash)+'.');duplicates++;}
+    else hashSeen.set(item.hash,file.name);
+    const expected=cyberExpectedExtension(file.name);
+    if(expected&&item.signature!==expected)item.reasons.push('Saini ya faili ('+item.signature+') haiendani na extension inayotarajiwa ('+expected+').');
+    if(/\.(exe|dll|bat|cmd|ps1|sh|apk)$/i.test(file.name))item.reasons.push('Aina ya faili inayoweza kutekelezeka; ichunguzwe kwa uangalifu.');
+    const sample=new TextDecoder('utf-8',{fatal:false}).decode(bytes.slice(0,Math.min(bytes.length,2*1024*1024))).toLowerCase();
+    const found=CYBER_MARKERS.filter(x=>sample.includes(x));
+    if(found.length)item.reasons.push('Viashiria vya majaribio vimepatikana: '+found.join(', ')+'.');
+    if(item.reasons.length)item.status='REVIEW REQUIRED';
+   }
+   if(item.status==='REVIEW REQUIRED')reviewed++;
+   cyberScanResults.push(item);
+  }
+  $('cyberScanned').textContent=String(cyberScanResults.length);$('cyberReview').textContent=String(reviewed);$('cyberDuplicates').textContent=String(duplicates);
+  out.innerHTML=cyberScanResults.map(x=>'<article class="cyber-result"><span class="cyber-status '+(x.status==='REVIEW REQUIRED'?'review':'clean')+'">'+x.status+'</span><strong>'+escapeHtml(x.name)+'</strong><small>Ukubwa: '+(x.size/1024).toFixed(1)+' KB · Signature: '+escapeHtml(x.signature)+'</small><small>SHA-256: '+escapeHtml(x.hash)+'</small><small>'+escapeHtml(x.reasons.join(' ')||'Hakuna kiashiria kilichopatikana na ukaguzi huu wa msingi.')+'</small></article>').join('');
+  msg.textContent='Uchunguzi umekamilika: '+cyberScanResults.length+' faili · '+reviewed+' zinahitaji ukaguzi. Hii si hukumu ya mwisho ya usalama.';
+  try{localStorage.setItem('amwemari_cyber_last_report',JSON.stringify({created_at:new Date().toISOString(),results:cyberScanResults}));}catch(e){console.warn('Cyber report local save unavailable',e)}
+ }catch(e){msg.textContent='Uchunguzi haujakamilika: '+(e.message||String(e));}
+ finally{btn.disabled=false;}
+}
+function downloadCyberReport(){
+ if(!isSuperAdmin)return;
+ let report;try{report=JSON.parse(localStorage.getItem('amwemari_cyber_last_report')||'null')}catch(e){report=null}
+ if(!report?.results?.length){$('cyberLabMessage').textContent='Hakuna ripoti. Fanya Scan Now kwanza.';return;}
+ const lines=['AMWEMARI CYBER LAB — BASIC FILE REVIEW','Tarehe: '+report.created_at,'TAHADHARI: Matokeo haya si uthibitisho wa kuwa faili ni salama au lina malware.','','Jina | Size(bytes) | SHA-256 | Signature | Status | Notes',...report.results.map(x=>[x.name,x.size,x.hash,x.signature,x.status,x.reasons.join('; ')].join(' | '))];
+ const blob=new Blob([lines.join('\n')],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='amwemari-cyber-report-'+new Date().toISOString().slice(0,10)+'.txt';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+}
+function clearCyberResults(){
+ if(!isSuperAdmin)return;
+ cyberScanResults=[];$('cyberLabResults').innerHTML='';$('cyberScanned').textContent='0';$('cyberReview').textContent='0';$('cyberDuplicates').textContent='0';$('cyberLabMessage').textContent='Matokeo ya skrini yameondolewa. Ripoti iliyohifadhiwa haijafutwa.';
 }
 
 async function loadAdminPanel(){
