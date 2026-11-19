@@ -26,3 +26,14 @@ This folder reserves the native Android companion scope. It is intentionally not
 
 ## First milestone
 Create the Android Gradle project, app identity, notification permission onboarding, a test-only local critical alert, FCM token registration authenticated to the AMWEMARI account, and secure token revocation on logout/device removal. Do not connect live threat events until backend authorization and event validation are complete.
+
+
+## Android prototype now present on this branch
+
+A minimal native Kotlin Android project has been bootstrapped under this folder:
+- Gradle project and app module configuration.
+- Android 13+ notification permission request.
+- High-importance notification channel with vibration.
+- A user-triggered local test notification, clearly labeled as a test.
+
+This is only a notification-permission and local-display prototype. It does not yet connect to Firebase, AMWEMARI accounts, Supabase, or live security events. It has not been built into an APK or tested on a physical phone. Import `android-companion/` into Android Studio and build it before treating it as a runnable app.
