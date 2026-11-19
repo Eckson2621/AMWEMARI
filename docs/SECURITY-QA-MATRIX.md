@@ -43,10 +43,11 @@ This is a pre-production verification checklist. Passing a source review is not 
 - [ ] Verify only confirmed critical incidents trigger the loud alert.
 - [ ] Verify DND, force-stop, and OS restrictions are accurately communicated.
 
-## Current status
+## Current status (2026-11-19)
 
 - Service worker push receiver exists on branch `security-foundation`.
 - Same-origin notification navigation has been hardened with URL parsing and origin checks.
-- Database migration is a draft and has not been applied.
+- Private append-only `private.security_events` ledger is applied in production; forced RLS, service-role-only SELECT/INSERT, and update/delete trigger were verified.
+- `amwemari-cyber-admin` Edge Function v2 rejects client-local `critical` and `malicious` findings; independent server verification is required.
 - No event ingestion endpoint, push sender, FCM registration, or Android APK is active.
 - Production deployment has not been performed.
