@@ -44,16 +44,16 @@
 - The `amwemari-cyber-admin` Edge Function is version 3. It verifies the JWT and exact Super Admin allow-list before any Cyber Lab action, and its dashboard action now reads incident records through the restricted `public.amwemari_get_security_events` RPC.
 - The RPC is `SECURITY DEFINER` with an empty search path, checks the fixed Super Admin helper, is executable only by `authenticated`, and clamps result count to 1–200.
 - Local/browser scan findings are untrusted. The Edge Function now rejects client-local `critical` severity and `malicious` verdicts; those require independent server verification.
-- This ledger is not yet connected to a trusted event-ingestion endpoint, incident read UI, or push sender.
+- The Super Admin incident viewer is now included in `index.html` on branch `security-foundation`; it calls the protected dashboard action. It is not yet merged to `main` or deployed.
+- The ledger is not yet connected to a trusted event-ingestion endpoint or push sender.
 
 ## Required next steps before production activation
 
 1. Add a trusted server-side event ingestion function with schema validation, rate limits, idempotency, and redaction.
-2. Add an incident query endpoint restricted to the verified Super Admin.
-3. Add push subscription registration and encrypted storage; keep VAPID private key in Cloudflare/Supabase secrets.
-4. Add an authenticated push sender and test delivery on the actual Android device with app closed, browser closed, battery saver, and notification permission denied/granted.
-5. Build and test the Android companion as a separate native project and validate Android permission constraints.
-6. Run RLS, auth/session, tenant-isolation, dependency, and abuse-case tests before merging to main or deploying.
+2. Add push subscription registration and encrypted storage; keep VAPID private key in Cloudflare/Supabase secrets.
+3. Add an authenticated push sender and test delivery on the actual Android device with app closed, browser closed, battery saver, and notification permission denied/granted.
+4. Build and test the Android companion as a separate native project and validate Android permission constraints.
+5. Run RLS, auth/session, tenant-isolation, dependency, and abuse-case tests before merging the UI/service-worker branch to main or deploying.
 
 ## Acceptance criteria
 
