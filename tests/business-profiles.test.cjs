@@ -165,14 +165,24 @@ test('customer list pagination loads further rows only for the active store and 
 });
 
 test('supplier editing is owner-guarded and scoped to the active store', () => {
-  assert.match(html, /id="supplierId"/);
-  assert.match(html, /data-edit-supplier=/);
-  assert.match(html, /supplierCancelEdit/);
-  assert.match(html, /db\\.from\\('suppliers'\\)\\.select\\('id,name,contact_person,phone,email,address,tax_number,notes,is_active'\\)\\.eq\\('store_id',store\\.id\\)\\.eq\\('id',btn\\.dataset\\.editSupplier\\)\\.maybeSingle\\(\\)/);
-  assert.match(html, /db\\.from\\('suppliers'\\)\\.update\\(payload\\)\\.eq\\('id',editingId\\)\\.eq\\('store_id',store\\.id\\)\\.select\\('id'\\)\\.maybeSingle\\(\\)/);
-  assert.match(html, /requireOperationsOwner\\(\\);const editingId=\\$\\('supplierId'\\)\\.value/);
+  assert.ok(html.includes('id="supplierId"'));
+  assert.ok(html.includes('data-edit-supplier='));
+  assert.ok(html.includes('supplierCancelEdit'));
+  assert.ok(html.includes("db.from('suppliers').select('id,name,contact_person,phone,email,address,tax_number,notes,is_active').eq('store_id',store.id).eq('id',btn.dataset.editSupplier).maybeSingle()"));
+  assert.ok(html.includes("db.from('suppliers').update(payload).eq('id',editingId).eq('store_id',store.id).select('id').maybeSingle()"));
+  assert.ok(html.includes("requireOperationsOwner();const editingId=$('supplierId').value"));
 });
 
 test('supplier editing does not add a delete action', () => {
-  assert.doesNotMatch(html, /db\\.from\\('suppliers'\\)\\.delete\\(/);
+  assert.ok(!html.includes("db.from('suppliers').delete("));
+});
+
+test('inline application scripts parse without syntax errors', () => {
+  const scripts = [...html.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)]
+    .map(match => match[1].trim())
+    .filter(Boolean);
+  assert.ok(scripts.length > 0, 'At least one inline application script must exist.');
+  scripts.forEach((script, index) => {
+    assert.doesNotThrow(() => new vm.Script(script), 'inline script ' + (index + 1));
+  });
 });
