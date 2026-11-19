@@ -27,6 +27,15 @@ self.addEventListener('activate',event=>{
  })());
 });
 
+function safeAppPath(value){
+ try{
+  if(typeof value!=='string'||value.length>2048)return '/';
+  const parsed=new URL(value,self.location.origin);
+  if(parsed.origin!==self.location.origin||parsed.username||parsed.password)return '/';
+  return parsed.pathname+parsed.search+parsed.hash;
+ }catch(error){return '/'}
+}
+
 // Receive server-originated security notifications when a push subscription
 // has been registered and the backend has sent a Web Push message.
 // This handler does not itself create a subscription or detect attacks.
@@ -38,7 +47,7 @@ self.addEventListener('push',event=>{
   const critical=severity==='critical';
   const title=critical?'AMWEMARI — CRITICAL SECURITY ALERT':String(payload.title||'AMWEMARI Security');
   const body=String(payload.body||'Kuna taarifa mpya ya usalama. Fungua Security Center.').slice(0,240);
-  const target=typeof payload.url==='string'&&payload.url.startsWith('/')&&!payload.url.startsWith('//')?payload.url:'/';
+  const target=safeAppPath(payload.url);
   await self.registration.showNotification(title,{
    body,
    tag:critical?'amwemari-critical-security':'amwemari-security',
@@ -53,7 +62,7 @@ self.addEventListener('push',event=>{
 
 self.addEventListener('notificationclick',event=>{
  event.notification.close();
- const target=event.notification.data&&typeof event.notification.data.url==='string'?event.notification.data.url:'/';
+ const target=safeAppPath(event.notification.data&&event.notification.data.url);
  event.waitUntil((async()=>{
   const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
   for(const client of windows){
