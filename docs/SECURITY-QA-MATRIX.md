@@ -48,6 +48,7 @@ This is a pre-production verification checklist. Passing a source review is not 
 - Service worker push receiver exists on branch `security-foundation`.
 - Same-origin notification navigation has been hardened with URL parsing and origin checks.
 - Private append-only `private.security_events` ledger is applied in production; forced RLS, service-role-only SELECT/INSERT, and update/delete trigger were verified.
-- `amwemari-cyber-admin` Edge Function v2 rejects client-local `critical` and `malicious` findings; independent server verification is required.
+- `amwemari-cyber-admin` Edge Function v3 rejects client-local `critical` and `malicious` findings; independent server verification is required.
+- Super Admin incident-read RPC `public.amwemari_get_security_events` is deployed with execute granted only to authenticated and an internal fixed Super Admin check. End-to-end authenticated read test remains outstanding.
 - No event ingestion endpoint, push sender, FCM registration, or Android APK is active.
 - Production deployment has not been performed.
