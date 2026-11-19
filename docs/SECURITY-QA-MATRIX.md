@@ -54,5 +54,7 @@ This is a pre-production verification checklist. Passing a source review is not 
 - Verified all four inline JavaScript blocks in the branch's `index.html` pass syntax compilation.
 - [ ] Complete live end-to-end incident read using the actual Super Admin session; static/database checks do not replace this test.
 - Branch `security-foundation` includes a Super Admin incident viewer, but the UI is not yet merged to `main` or deployed.
-- No trusted event-ingestion endpoint, push sender, FCM registration, or Android APK is active.
+- Trusted service-role-only event ingestion is deployed and its SQL write path was verified in a rolled-back transaction. The Edge Function v6 records authenticated non-admin access attempts, malformed/unknown actions, and alert-status changes.
+- Gateway-level missing/invalid JWT rejections are not application-ledger entries while `verify_jwt=true`.
+- No platform-wide Auth/Storage/database audit feed, push sender, FCM registration, or Android APK is active.
 - Supabase ledger, read RPC, and Edge Function v4 are active in production; the branch's UI and service-worker changes are not deployed.
