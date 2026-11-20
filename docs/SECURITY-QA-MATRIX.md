@@ -77,3 +77,5 @@ This is a pre-production verification checklist. Passing a source review is not 
 - [ ] Verify token refresh, session restoration, logout and re-login.
 - [ ] Verify selected-file metadata reaches Cyber Lab only after authenticated device proof; confirm file bytes are never uploaded.
 - [ ] Build and test all flows on a physical Android device.
+
+- [ ] Test the visible-app permission review using apps with and without sensitive permissions; confirm results are presented as review indicators, never as malware verdicts.
