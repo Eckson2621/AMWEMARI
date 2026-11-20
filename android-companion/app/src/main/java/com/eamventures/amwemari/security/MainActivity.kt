@@ -303,11 +303,27 @@ class MainActivity : Activity() {
 
  private fun listVisibleApps() {
   try {
-   val items = packageManager.getInstalledApplications(0).map {
-    packageManager.getApplicationLabel(it).toString() + " — " + it.packageName
+   val reviewPermissions = setOf(
+    "android.permission.READ_SMS", "android.permission.RECEIVE_SMS",
+    "android.permission.SEND_SMS", "android.permission.READ_CALL_LOG",
+    "android.permission.READ_CONTACTS", "android.permission.REQUEST_INSTALL_PACKAGES",
+    "android.permission.SYSTEM_ALERT_WINDOW", "android.permission.WRITE_SETTINGS",
+    "android.permission.MANAGE_EXTERNAL_STORAGE"
+   )
+   val reports = packageManager.getInstalledApplications(0).take(150).map { app ->
+    val label = packageManager.getApplicationLabel(app).toString()
+    val requested = try {
+     packageManager.getPackageInfo(app.packageName, PackageManager.GET_PERMISSIONS)
+      .requestedPermissions?.filter { it in reviewPermissions } ?: emptyList()
+    } catch (_: Exception) { emptyList() }
+    val flagged = requested.map { it.substringAfterLast('.') }
+    label + " — " + app.packageName +
+     if (flagged.isEmpty()) "" else "\n  REVIEW PERMISSIONS: " + flagged.joinToString(", ")
    }.distinct().sorted()
-   output.text = "APPS ZINAZOONEKANA KWA ANDROID (si malware scan):\n\n" + items.joinToString("\n")
-   status.text = "Apps zinazoonekana: " + items.size
+   output.text = "VISIBLE APPS / PERMISSION REVIEW (si malware verdict):\n\n" +
+    reports.joinToString("\n\n") +
+    "\n\nPermissions hizi zinaweza kuwa halali kwa matumizi ya app. Kagua muktadha; hazithibitishi malware."
+   status.text = "Apps zilizokaguliwa: " + reports.size + " (zinazoonekana kwa Android pekee)."
   } catch (e: Exception) { output.text = e.message ?: "Hitilafu." }
  }
 
