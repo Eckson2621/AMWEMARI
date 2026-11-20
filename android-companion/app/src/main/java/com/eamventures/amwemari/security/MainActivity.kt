@@ -236,7 +236,10 @@ class MainActivity : Activity() {
     val sig = signature(head, headSize)
     val ext = name.substringAfterLast('.', "").lowercase(Locale.ROOT)
     val executable = sig in setOf("APK/ZIP", "Windows PE", "Linux ELF", "Java/Dex")
-    val mismatch = (sig == "Windows PE" && ext !in setOf("exe","dll","sys")) ||
+    val mismatch = (sig == "APK/ZIP" && ext !in setOf("apk","zip","jar","docx","xlsx","pptx")) ||
+     (sig == "Windows PE" && ext !in setOf("exe","dll","sys")) ||
+     (sig == "Linux ELF" && ext !in setOf("so","elf","bin")) ||
+     (sig == "Java/Dex" && ext !in setOf("dex","apk")) ||
      (sig == "PDF" && ext != "pdf") || (sig == "PNG" && ext != "png") ||
      (sig == "JPEG" && ext !in setOf("jpg","jpeg"))
     val review = executable || mismatch
