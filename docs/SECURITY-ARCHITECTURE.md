@@ -6,7 +6,7 @@
 - `src/index.js` currently delegates requests to Cloudflare static assets; it is not yet an API/security gateway.
 - Supabase is used by the browser application. The public publishable key is expected to be present in the client; no service-role key may be added to browser code.
 - The existing Cyber Lab is a user-selected local file triage tool. It computes SHA-256, checks a few file signatures/extensions, and scans a small set of test markers. It is not an antivirus engine, does not inspect every file on Android, and does not establish that a file is clean.
-- The Android companion is a separate native Android deliverable; this repository currently has no Android project.
+- A separate native Kotlin Android companion now exists under `android-companion/`; it is still a source prototype and is not packaged or connected to live backend events.
 
 ## Security architecture
 
@@ -26,7 +26,7 @@
    - Web Push requires a user-granted notification permission, a Push API subscription, VAPID keys held server-side, and a trusted backend sender. The service worker now has a receiver for incoming push messages; delivery is not active until the subscription and sender are implemented and tested.
    - Critical notifications may request persistent display and vibration, subject to browser, Android, device, and user notification settings. No web app can guarantee bypassing Do Not Disturb or OS restrictions.
 5. **Android companion**
-   - Build a native Android app with transparent permission prompts, app inventory limited to permitted PackageManager visibility, Storage Access Framework/MediaStore scanning of user-selected or otherwise permitted files, URL reputation checks, and FCM alerts.
+   - Continue the native Android app with transparent permission prompts, limited launcher-app inventory, Storage Access Framework scanning of user-selected files, server-backed URL reputation checks, and authenticated FCM alerts. The current source prototype implements only local file-signature/hash triage, limited app inventory, local URL heuristics, and a local test notification.
    - Do not collect other apps' private data, credentials, messages, or files. No covert monitoring, device takeover, or retaliatory access.
    - A real antivirus verdict requires reputable threat intelligence/signature updates and/or a specialist scanning service; hashes and file magic bytes alone are insufficient.
 
