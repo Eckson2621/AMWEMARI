@@ -58,4 +58,10 @@ This is a pre-production verification checklist. Passing a source review is not 
 - The Edge Function v6 records authenticated non-admin access attempts, malformed/unknown actions, and alert-status changes.
 - Gateway-level missing/invalid JWT rejections are not application-ledger entries while `verify_jwt=true`.
 - No platform-wide Auth/Storage/database audit feed, push sender, FCM registration, or Android APK is active.
+- Android companion now has source-level selected-file SHA-256/signature triage (50 MB cap), limited launcher-app inventory, URL-structure heuristics, and a local test notification. It has not been built or run on a physical device.
+- [ ] Build the Android app with Gradle/Android SDK and resolve any compile or dependency issues.
+- [ ] Test file-picker permissions, 50 MB limit, SHA-256 output against known test files, misleading file extensions, and error handling on a physical Android device.
+- [ ] Verify app inventory returns only packages exposed by Android package visibility and does not request `QUERY_ALL_PACKAGES`.
+- [ ] Verify URL heuristic output is clearly labeled as non-reputation, non-verdict information.
+- [ ] Connect authenticated FCM token enrollment and revocation only after device registry integration is reviewed.
 - Supabase ledger, read RPC, and Edge Function v4 are active in production; the branch's UI and service-worker changes are not deployed.
