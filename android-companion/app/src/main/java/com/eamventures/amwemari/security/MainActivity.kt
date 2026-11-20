@@ -83,7 +83,7 @@ class MainActivity : Activity() {
    }, 45403)
   }
   addButton("Orodhesha apps zinazoonekana") { listVisibleApps() }
-  link = EditText(this).apply { hint = "Bandika link hapa (https://...)"; singleLine = true }
+  link = EditText(this).apply { hint = "Bandika link hapa (https://...)"; setSingleLine(true) }
   body.addView(link, LinearLayout.LayoutParams(-1, -2))
   addButton("Kagua viashiria vya link") { inspectLink(link.text.toString()) }
   addButton("Ruhusu taarifa za usalama") { requestNotifications() }
@@ -339,8 +339,8 @@ class MainActivity : Activity() {
   if (host?.contains("xn--") == true) flags.add("Punycode domain; kagua kwa makini")
   if (u.port != -1 && u.port !in setOf(80,443)) flags.add("Port isiyo ya kawaida")
   output.text = "HOST: " + (host ?: "unknown") + "\n" +
-   (if (flags.isEmpty()) "Hakuna kiashiria rahisi. SI UTHIBITISHO WA USALAMA." else flags.joinToString("\n"))
-   + "\n\nHakuna online reputation check iliyofanyika."
+   (if (flags.isEmpty()) "Hakuna kiashiria rahisi. SI UTHIBITISHO WA USALAMA." else flags.joinToString("\n")) +
+   "\n\nHakuna online reputation check iliyofanyika."
   status.text = "Ukaguzi wa awali wa link umekamilika."
  }
 
