@@ -34,3 +34,15 @@ Cyber Lab access follows the fixed AMWEMARI Super Admin identity across devices.
 ## Database migration
 
 The production migration is `20261119200745_amwemari_cyber_admin_device_registry`. Keep this file in repository migration history so future environments can reproduce the schema.
+
+
+## Native Android companion
+
+The Android source prototype uses the same Super Admin identity as the PWA:
+- It signs in through Supabase Auth; the Edge Function performs the actual Super Admin allow-list and registry checks.
+- It stores session tokens and the device proof encrypted with Android Keystore AES-GCM. The password is not saved.
+- Each Android installation has its own server-enrolled device record. The same Super Admin can enroll another phone independently.
+- A revoked device is rejected by heartbeat. The user must explicitly re-enroll it with a new device key.
+- Local selected-file metadata can be synchronized to Cyber Lab without uploading the file contents.
+
+The Android client integration has not yet passed a Gradle build or physical-device end-to-end test. Treat it as unverified source until those checks pass.
