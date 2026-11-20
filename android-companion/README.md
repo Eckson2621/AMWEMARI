@@ -33,7 +33,7 @@ Create the Android Gradle project, app identity, notification permission onboard
 The native Kotlin app now includes:
 - Android 13+ notification permission request and a high-importance local test alert.
 - User-selected file triage through the Storage Access Framework, streaming SHA-256 calculation, a 50 MB prototype limit, and basic file-signature identification.
-- A limited inventory of launcher apps visible through Android package-visibility rules; this is not a malware scan of those apps.
+- A limited inventory of launcher apps visible through Android package-visibility rules, with a local review of selected sensitive permissions declared by those apps; this is not a malware scan of those apps.
 - Local URL-structure indicators (HTTPS, embedded credentials, punycode and unusual ports); no online reputation lookup is performed.
 - An explicit warning that `UNVERIFIED` is not a clean verdict and that Android does not allow unrestricted access to other apps' private data.
 - The missing AndroidX Core dependency is now declared in the app Gradle file.
