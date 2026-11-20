@@ -137,6 +137,23 @@
      </div>
      <div id="cyberLabMessage" class="cyber-lab-muted" role="status">Tayari. Chagua faili kisha bonyeza Scan Now.</div>
      <div id="cyberLabResults" class="cyber-lab-results"></div>
+
+     <div class="section">
+      <div class="row"><h3>Vifaa vilivyoidhinishwa</h3><div class="actions">
+       <button type="button" onclick="registerCyberDevice()">Sajili kifaa hiki</button>
+       <button type="button" class="secondary" onclick="registerCyberDevice(true)">Sajili upya kama kifaa kipya</button>
+       <button type="button" class="secondary" onclick="loadCyberDevices()">Sasisha vifaa</button>
+      </div></div>
+      <p class="cyber-lab-muted">Cyber Lab inaruhusiwa tu kwenye kifaa kilichosajiliwa kwa akaunti rasmi ya Super Admin. Kifaa kipya kinahitaji kuingia kwa Super Admin na kusajiliwa. Ukikiondoa, haki ya kifaa hicho itafungwa.</p>
+      <div id="cyberDeviceMessage" class="cyber-lab-muted" role="status">Kagua au sajili kifaa hiki.</div>
+      <div id="cyberDeviceList" class="cyber-lab-results"></div>
+     </div>
+     <div class="section">
+      <div class="row"><h3>Server Security Incidents</h3><button type="button" class="secondary" onclick="loadCyberIncidents()">Sasisha matukio</button></div>
+      <p class="cyber-lab-muted">Hapa huonekana matukio yaliyoandikwa na vyanzo vya server vilivyoidhinishwa. Matokeo ya uchunguzi wa faili kwenye browser hayawezi kuitwa Critical bila uthibitisho wa server.</p>
+      <div id="cyberIncidentMessage" class="cyber-lab-muted" role="status">Bonyeza Sasisha matukio ili kuangalia kumbukumbu za server.</div>
+      <div id="cyberIncidentList" class="cyber-lab-results"></div>
+     </div>
      <div class="section"><h3>Security Notes</h3><p class="cyber-lab-muted">Toleo hili hukagua SHA-256, alama za mwanzo za aina za faili (file signatures), viendelezi visivyolingana na maudhui, na viashiria vya majaribio. Hakuna ufuatiliaji wa siri wa simu au mfumo mzima. Historia ya ripoti huhifadhiwa kwenye kifaa/kivinjari hiki tu.</p></div>
     </section>
    </div>
@@ -493,7 +510,7 @@ function toggleCyberLab(){
  const panel=$('cyberLabPanel'),btn=$('cyberLabToggle');if(!panel||!btn)return;
  const opening=panel.classList.contains('hidden');panel.classList.toggle('hidden',!opening);
  btn.textContent=opening?'Funga Cyber Lab':'Fungua Cyber Lab';
- if(opening)panel.scrollIntoView({behavior:'smooth',block:'start'});
+ if(opening){panel.scrollIntoView({behavior:'smooth',block:'start'});loadCyberIncidents();}
 }
 let cyberScanResults=[];
 const CYBER_MAX_FILE_BYTES=20*1024*1024;
@@ -558,6 +575,81 @@ async function runCyberScan(){
   try{localStorage.setItem('amwemari_cyber_last_report',JSON.stringify({created_at:new Date().toISOString(),results:cyberScanResults}));}catch(e){console.warn('Cyber report local save unavailable',e)}
  }catch(e){msg.textContent='Uchunguzi haujakamilika: '+(e.message||String(e));}
  finally{btn.disabled=false;}
+}
+
+function cyberSavedDevice(){
+ try{return JSON.parse(localStorage.getItem('amwemari_cyber_device_v1')||'null')}catch(_){return null}
+}
+async function cyberInvoke(action,extra={}){
+ const saved=cyberSavedDevice();
+ if(action!=='register_device'&&action!=='device_heartbeat'&&(!saved?.device_key||!saved?.device_secret)){
+  throw new Error('Kifaa hiki hakijasajiliwa. Bonyeza "Sajili kifaa hiki" kwanza.');
+ }
+ const body={action,...(saved?{device_key:saved.device_key,device_secret:saved.device_secret}:{}),...extra};
+ return db.functions.invoke('amwemari-cyber-admin',{body});
+}
+async function registerCyberDevice(forceNew=false){
+ if(!isSuperAdmin)return;
+ const msg=$('cyberDeviceMessage');if(msg)msg.textContent='Inasajili kifaa hiki kwa akaunti ya Super Admin...';
+ try{
+  const old=cyberSavedDevice();
+  const deviceKey=forceNew?('web-'+crypto.randomUUID()):(old?.device_key||('web-'+crypto.randomUUID()));
+  const platform=/Android/i.test(navigator.userAgent)?'android':/Win/i.test(navigator.platform)?'windows':/Mac/i.test(navigator.platform)?'macos':'web';
+  const label=(navigator.userAgent.match(/(Android|Windows NT|Mac OS X|Linux)[^;)]*/i)||[])[0]||navigator.platform||'Kifaa cha kivinjari';
+  const {data,error}=await cyberInvoke('register_device',{device_key:deviceKey,device_label:label.slice(0,100),platform,metadata:{user_agent:navigator.userAgent.slice(0,300),app:'AMWEMARI PWA'}});
+  if(error)throw error;
+  if(!data?.ok||!data.device_secret)throw new Error(data?.error||'Usajili wa kifaa haujakamilika.');
+  localStorage.setItem('amwemari_cyber_device_v1',JSON.stringify({device_key:deviceKey,device_secret:data.device_secret,device_id:data.device.id}));
+  if(msg)msg.textContent='Kifaa kimesajiliwa na kuidhinishwa. Siri ya kifaa imehifadhiwa kwenye browser hii.';
+  await loadCyberDevices();await loadCyberIncidents();
+ }catch(e){if(msg)msg.textContent=e?.context?.json?.error||e.message||'Usajili wa kifaa umeshindikana.';}
+}
+async function loadCyberDevices(){
+ if(!isSuperAdmin)return;
+ const msg=$('cyberDeviceMessage'),box=$('cyberDeviceList');if(!msg||!box)return;
+ msg.textContent='Inasoma orodha ya vifaa...';box.innerHTML='';
+ try{
+  const {data,error}=await cyberInvoke('list_devices');if(error)throw error;
+  const rows=Array.isArray(data?.devices)?data.devices:[];
+  msg.textContent='Vifaa vilivyosajiliwa: '+rows.length+'. Kifaa kilichofungiwa hakiwezi kutumia Cyber Lab.';
+  box.innerHTML=rows.map(x=>{
+   const status=String(x.status||'unknown');
+   const when=x.last_seen_at?new Date(x.last_seen_at).toLocaleString('sw-TZ'):'Hakijawahi kuonekana';
+   return '<article class="cyber-result"><span class="cyber-status '+(status==='active'?'clean':'review')+'">'+escapeHtml(status.toUpperCase())+'</span><strong>'+escapeHtml(x.device_label||'Kifaa')+'</strong><small>'+escapeHtml(x.platform||'unknown')+' · Mara ya mwisho: '+escapeHtml(when)+'</small><small>ID: '+escapeHtml(x.id)+'</small>'+(status==='active'?'<button type="button" class="danger" style="margin-top:9px" onclick="revokeCyberDevice(\''+escapeHtml(x.id)+'\')">Ondoa ruhusa ya kifaa</button>':'')+'</article>';
+  }).join('')||'<div class="cyber-result">Hakuna kifaa kilichosajiliwa bado.</div>';
+ }catch(e){msg.textContent=e?.context?.json?.error||e.message||'Imeshindikana kusoma vifaa.';}
+}
+async function revokeCyberDevice(id){
+ if(!isSuperAdmin||!confirm('Una uhakika unataka kuondoa ruhusa ya kifaa hiki?'))return;
+ const msg=$('cyberDeviceMessage');
+ try{
+  const {data,error}=await cyberInvoke('revoke_device',{device_id:id});if(error)throw error;
+  if(data?.ok){msg.textContent='Ruhusa ya kifaa imeondolewa.';const saved=cyberSavedDevice();if(saved?.device_id===id)localStorage.removeItem('amwemari_cyber_device_v1');await loadCyberDevices();}
+ }catch(e){msg.textContent=e?.context?.json?.error||e.message||'Imeshindikana kuondoa ruhusa.';}
+}
+async function loadCyberIncidents(){
+ if(!isSuperAdmin)return;
+ const msg=$('cyberIncidentMessage'),box=$('cyberIncidentList');
+ if(!msg||!box)return;
+ msg.textContent='Inasoma kumbukumbu za server...';box.innerHTML='';
+ try{
+  const {data,error}=await cyberInvoke('dashboard');
+  if(error)throw error;
+  if(!data?.ok)throw new Error(data?.error||'Kumbukumbu hazijapatikana.');
+  const rows=Array.isArray(data.incidents)?data.incidents:[];
+  if(!rows.length){
+   msg.textContent='Hakuna tukio la server lililorekodiwa kwa sasa. Hii haimaanishi kuwa kifaa au mfumo wote umethibitishwa kuwa salama.';
+   return;
+  }
+  msg.textContent='Matukio '+rows.length+' ya karibuni. Matukio Critical yanahitaji uthibitisho wa chanzo cha server.';
+  box.innerHTML=rows.map(x=>{
+   const sev=String(x.severity||'info').toUpperCase();
+   const when=x.occurred_at?new Date(x.occurred_at).toLocaleString('sw-TZ'):'Muda haujulikani';
+   return '<article class="cyber-result"><span class="cyber-status '+(sev==='CRITICAL'?'review':'')+'">'+escapeHtml(sev)+'</span><strong>'+escapeHtml(x.event_type||'Security event')+'</strong><small>'+escapeHtml(when)+' · Chanzo: '+escapeHtml(x.source||'unknown')+'</small><small>'+escapeHtml(x.summary||'Hakuna maelezo.')+'</small></article>';
+  }).join('');
+ }catch(e){
+  msg.textContent=e?.context?.json?.error||e.message||'Imeshindikana kusoma matukio ya server.';
+ }
 }
 function downloadCyberReport(){
  if(!isSuperAdmin)return;
