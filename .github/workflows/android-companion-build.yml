@@ -1,4 +1,5 @@
 name: Android companion build
+# Re-run CI after Kotlin compile fixes (JVM 17).
 
 on:
   push:
