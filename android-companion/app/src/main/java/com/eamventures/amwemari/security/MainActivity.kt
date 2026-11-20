@@ -124,6 +124,7 @@ class MainActivity : Activity() {
      status.text = "Akaunti imethibitishwa na kifaa kimeidhinishwa."
     }
    } catch (e: Exception) {
+    if (vault.get("device_secret").isNullOrBlank()) vault.clearSession()
     runOnUiThread { status.text = "Kuingia/idhini haikukamilika: " + (e.message ?: "hitilafu") }
    }
   }.start()
@@ -247,7 +248,7 @@ class MainActivity : Activity() {
     try { syncMessage = recordFileFinding(name, ext, total, hash, sig, review, mismatch) }
     catch (e: Exception) { syncMessage = "Haijasawazishwa na dashboard: " + (e.message ?: "hitilafu") }
     runOnUiThread {
-     output.text = "FILE: $name\\nSIZE: $total bytes\\nSHA-256: $hash\\nSIGNATURE: $sig\\nRESULT: $verdict\\n\\n$syncMessage\\n\\nHash haijalinganishwa na threat database. Unverified haimaanishi salama."
+     output.text = "FILE: $name\nSIZE: $total bytes\nSHA-256: $hash\nSIGNATURE: $sig\nRESULT: $verdict\n\n$syncMessage\n\nHash haijalinganishwa na threat database. Unverified haimaanishi salama."
      status.text = "Uchunguzi wa faili umekamilika."
     }
    } catch (e: Exception) {
@@ -302,7 +303,7 @@ class MainActivity : Activity() {
    val items = packageManager.getInstalledApplications(0).map {
     packageManager.getApplicationLabel(it).toString() + " — " + it.packageName
    }.distinct().sorted()
-   output.text = "APPS ZINAZOONEKANA KWA ANDROID (si malware scan):\\n\\n" + items.joinToString("\\n")
+   output.text = "APPS ZINAZOONEKANA KWA ANDROID (si malware scan):\n\n" + items.joinToString("\n")
    status.text = "Apps zinazoonekana: " + items.size
   } catch (e: Exception) { output.text = e.message ?: "Hitilafu." }
  }
@@ -318,9 +319,9 @@ class MainActivity : Activity() {
   if (u.userInfo != null) flags.add("URL ina username/password")
   if (host?.contains("xn--") == true) flags.add("Punycode domain; kagua kwa makini")
   if (u.port != -1 && u.port !in setOf(80,443)) flags.add("Port isiyo ya kawaida")
-  output.text = "HOST: " + (host ?: "unknown") + "\\n" +
-   (if (flags.isEmpty()) "Hakuna kiashiria rahisi. SI UTHIBITISHO WA USALAMA." else flags.joinToString("\\n"))
-   + "\\n\\nHakuna online reputation check iliyofanyika."
+  output.text = "HOST: " + (host ?: "unknown") + "\n" +
+   (if (flags.isEmpty()) "Hakuna kiashiria rahisi. SI UTHIBITISHO WA USALAMA." else flags.joinToString("\n"))
+   + "\n\nHakuna online reputation check iliyofanyika."
   status.text = "Ukaguzi wa awali wa link umekamilika."
  }
 
