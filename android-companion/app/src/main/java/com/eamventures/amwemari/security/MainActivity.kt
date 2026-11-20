@@ -124,7 +124,7 @@ class MainActivity : Activity() {
      status.text = "Akaunti imethibitishwa na kifaa kimeidhinishwa."
     }
    } catch (e: Exception) {
-    if (vault.get("device_secret").isNullOrBlank()) vault.clearSession()
+    vault.clearSession()
     runOnUiThread { status.text = "Kuingia/idhini haikukamilika: " + (e.message ?: "hitilafu") }
    }
   }.start()
