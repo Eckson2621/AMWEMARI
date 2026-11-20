@@ -177,6 +177,22 @@ test('supplier editing does not add a delete action', () => {
   assert.ok(!html.includes("db.from('suppliers').delete("));
 });
 
+test('supplier list can be searched locally by name, contact, phone, email, or tax number', () => {
+  assert.ok(html.includes('id="supplierSearch" type="search"'));
+  assert.ok(html.includes('function renderSupplierList()'));
+  assert.ok(html.includes('[x.name,x.contact_person,x.phone,x.email,x.tax_number].some'));
+  assert.ok(html.includes("supplierSearch').addEventListener('input',renderSupplierList)"));
+});
+
+test('supplier list pagination loads additional rows only for the active store and owner', () => {
+  assert.ok(html.includes('id="supplierLoadMore"'));
+  assert.ok(html.includes('id="supplierListMeta"'));
+  assert.ok(html.includes('const SUPPLIER_PAGE_SIZE=100'));
+  assert.ok(html.includes("supplierLoadMore').addEventListener('click',async()=>{try{requireOperationsOwner()"));
+  assert.ok(html.includes("db.from('suppliers').select('id,name,contact_person,phone,email,address,tax_number,notes,is_active').eq('store_id',store.id).order('created_at',{ascending:false}).range(from,to)"));
+  assert.ok(html.includes('supplierRowsForOperations.push(...next.filter'));
+});
+
 test('inline application scripts parse without syntax errors', () => {
   const scripts = html.split(/<script[^>]*>/i).slice(1)
     .map(part => part.split('</script>')[0].trim())

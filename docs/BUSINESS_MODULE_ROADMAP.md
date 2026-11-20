@@ -104,3 +104,15 @@ This section records verified implementation scope, not a production release cla
 - Added source-level regression assertions for the owner guard, store-scoped edit lookup/update, and absence of a supplier delete operation. Browser/E2E and two-tenant isolation tests remain outstanding; this module is not declared production-ready.
 - Current preview head before this increment was `d3c028327434b6d0ae6ebccc330eb0805c9a247e`. GitHub comparison against current `main` showed 42 commits ahead and 111 behind. PR #1 remains open, draft and unmerged. The Cloudflare Workers build check on that head was `failure`; no successful Preview was verified.
 - All changes in this snapshot are confined to `multi-business-preview`. No merge, production deployment, live-app change or database write was performed.
+
+
+## Preview progress snapshot — 2026-11-20
+
+- Added local supplier search by name, contact person, phone, email, and tax number. Search filters only rows already loaded for the active store.
+- Added 100-row supplier pagination. Initial and subsequent queries explicitly filter by the active `store_id`, sort by newest first, and require the existing owner guard before loading another page.
+- Kept supplier create/edit behavior and database policies unchanged. No delete action, schema change, migration, or database write was introduced.
+- Added source-level regression tests for supplier search and store-scoped, owner-guarded pagination. GitHub Actions and browser verification for this increment are pending until the new commit runs.
+- Current preview head before this increment was `507d34fbf6f65f5926e233353f77b93660974c69`; PR #1 is open and draft. Current compare against main reports 45 commits ahead and 113 behind.
+- The current Cloudflare Workers check on that preview head is `failure`; no successful Preview deployment is verified. The GitHub Actions source-test workflow passed on that head.
+- Main has newer English-default UI commits (`ba38fcde`, `1f2349d0`) that are not yet present on this preview branch. They require deliberate reconciliation with the divergent preview history; no cherry-pick, merge, or production change was made in this increment.
+- Browser/E2E and two-tenant isolation tests remain outstanding. No production merge, deployment, live-app change, or Supabase data/schema change was performed.
