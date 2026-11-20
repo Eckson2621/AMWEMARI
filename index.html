@@ -141,6 +141,7 @@
      <div class="section">
       <div class="row"><h3>Vifaa vilivyoidhinishwa</h3><div class="actions">
        <button type="button" onclick="registerCyberDevice()">Sajili kifaa hiki</button>
+       <button type="button" class="secondary" onclick="registerCyberDevice(true)">Sajili upya kama kifaa kipya</button>
        <button type="button" class="secondary" onclick="loadCyberDevices()">Sasisha vifaa</button>
       </div></div>
       <p class="cyber-lab-muted">Cyber Lab inaruhusiwa tu kwenye kifaa kilichosajiliwa kwa akaunti rasmi ya Super Admin. Kifaa kipya kinahitaji kuingia kwa Super Admin na kusajiliwa. Ukikiondoa, haki ya kifaa hicho itafungwa.</p>
@@ -587,12 +588,12 @@ async function cyberInvoke(action,extra={}){
  const body={action,...(saved?{device_key:saved.device_key,device_secret:saved.device_secret}:{}),...extra};
  return db.functions.invoke('amwemari-cyber-admin',{body});
 }
-async function registerCyberDevice(){
+async function registerCyberDevice(forceNew=false){
  if(!isSuperAdmin)return;
  const msg=$('cyberDeviceMessage');if(msg)msg.textContent='Inasajili kifaa hiki kwa akaunti ya Super Admin...';
  try{
   const old=cyberSavedDevice();
-  const deviceKey=old?.device_key||('web-'+crypto.randomUUID());
+  const deviceKey=forceNew?('web-'+crypto.randomUUID()):(old?.device_key||('web-'+crypto.randomUUID()));
   const platform=/Android/i.test(navigator.userAgent)?'android':/Win/i.test(navigator.platform)?'windows':/Mac/i.test(navigator.platform)?'macos':'web';
   const label=(navigator.userAgent.match(/(Android|Windows NT|Mac OS X|Linux)[^;)]*/i)||[])[0]||navigator.platform||'Kifaa cha kivinjari';
   const {data,error}=await cyberInvoke('register_device',{device_key:deviceKey,device_label:label.slice(0,100),platform,metadata:{user_agent:navigator.userAgent.slice(0,300),app:'AMWEMARI PWA'}});
