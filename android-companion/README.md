@@ -39,3 +39,16 @@ The native Kotlin app now includes:
 - The missing AndroidX Core dependency is now declared in the app Gradle file.
 
 The app still does not connect to Supabase, the Super Admin device registry, Firebase Cloud Messaging, or live security events. No APK build or physical-device test has been completed. The scanner is a safe triage prototype, not an antivirus engine.
+
+
+## Super Admin identity and device binding
+
+The Android prototype now signs in through Supabase Auth using the official Super Admin account. The Edge Function remains the authority: it checks the authenticated user against the fixed Super Admin email and the Super Admin registry before issuing a device secret.
+
+- Access/refresh tokens and the device proof are encrypted with an AES-GCM key held by Android Keystore.
+- The password is used for the sign-in request only and is not persisted by the app.
+- Each installation has a separate device key and secret. A second phone signs in with the same Super Admin identity and enrolls as another device.
+- A revoked installation fails its heartbeat. Re-enrollment requires the explicit re-enroll action, which creates a new installation key.
+- Selected-file scan metadata (name, size, SHA-256, signature and local triage label) can be sent to the Cyber Admin function; the file contents are never uploaded by this prototype.
+
+This is source-level integration. It still requires a successful Gradle build, a physical Android test, and live end-to-end validation against the Super Admin account before it can be considered operational.
