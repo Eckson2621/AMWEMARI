@@ -65,3 +65,15 @@ This is a pre-production verification checklist. Passing a source review is not 
 - [ ] Verify URL heuristic output is clearly labeled as non-reputation, non-verdict information.
 - [ ] Connect authenticated FCM token enrollment and revocation only after device registry integration is reviewed.
 - Supabase ledger, read RPC, and Edge Function v4 are active in production; the branch's UI and service-worker changes are not deployed.
+
+
+## Android Super Admin identity checks
+
+- [ ] Confirm only `mwalimueckson2104@gmail.com` can complete device enrollment; a normal account is rejected.
+- [ ] Confirm password is not stored and tokens/device secret are encrypted at rest with Android Keystore.
+- [ ] Confirm a second Android installation can enroll under the same Super Admin identity with a distinct device key.
+- [ ] Revoke one Android device in the PWA; verify heartbeat fails on that device while the other enrolled device remains active.
+- [ ] Verify explicit re-enrollment creates a new key and does not silently bypass a revocation.
+- [ ] Verify token refresh, session restoration, logout and re-login.
+- [ ] Verify selected-file metadata reaches Cyber Lab only after authenticated device proof; confirm file bytes are never uploaded.
+- [ ] Build and test all flows on a physical Android device.
