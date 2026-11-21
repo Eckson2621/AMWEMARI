@@ -193,6 +193,17 @@ test('supplier list pagination loads additional rows only for the active store a
   assert.ok(html.includes('supplierRowsForOperations.push(...next.filter'));
 });
 
+test('appointment status updates use only existing statuses and owner/store-scoped writes', () => {
+  for (const status of ['booked', 'confirmed', 'in_progress', 'completed', 'cancelled', 'no_show']) {
+    assert.ok(html.includes("['" + status + "'"), status + ' must be available');
+  }
+  assert.ok(html.includes('data-save-appointment-status='));
+  assert.ok(html.includes("appointmentsList').addEventListener('click'"));
+  assert.ok(html.includes('requireOperationsOwner();const appointmentId=btn.dataset.saveAppointmentStatus'));
+  assert.ok(html.includes("db.from('service_appointments').update({status}).eq('id',appointmentId).eq('store_id',store.id).select('id,status').maybeSingle()"));
+  assert.doesNotMatch(html, /db\\.from\\('service_appointments'\\)\\.delete\\(/);
+});
+
 test('inline application scripts parse without syntax errors', () => {
   const scripts = html.split(/<script[^>]*>/i).slice(1)
     .map(part => part.split('</script>')[0].trim())
