@@ -125,3 +125,12 @@ This section records verified implementation scope, not a production release cla
 - PR #1 remains open, draft and unmerged. The current compare reports preview 46 commits ahead and 113 behind main.
 - Browser/E2E and real two-tenant isolation tests have not been run; no module is declared production-ready.
 - No Supabase migration, data write, production merge, or production deployment was performed.
+
+## Preview progress snapshot — 2026-11-21
+
+- Added an owner-only appointment status control to the shared service appointments list. The UI offers only the existing database-approved values: `booked`, `confirmed`, `in_progress`, `completed`, `cancelled`, and `no_show`.
+- Status updates require the existing owner guard and update by both appointment `id` and active `store_id`; the UI verifies that one row was returned before reporting success. No appointment is changed by loading or rendering the page.
+- Before this UI change, read-only inspection of the connected AMWEMARI Supabase project confirmed `service_appointments.store_id` is NOT NULL, the table has RLS enabled, and the owner UPDATE policy uses `private.is_store_owner(store_id)` for both USING and WITH CHECK. That helper verifies authenticated owner identity, active store/subscription, subscription expiry and the delete-pending gate. The status CHECK constraint permits exactly the six values used by the UI.
+- No schema change, migration, SQL write, or existing-record modification was performed.
+- Added source-level regression coverage for the allowed statuses, owner guard and same-store update filter. This does not replace browser/E2E testing or two-tenant isolation tests; the appointment workflow is not declared production-ready.
+- Changes are limited to `multi-business-preview`. PR #1 remains open and unmerged; no production deployment or live-app change was made.
