@@ -134,3 +134,11 @@ This section records verified implementation scope, not a production release cla
 - No schema change, migration, SQL write, or existing-record modification was performed.
 - Added source-level regression coverage for the allowed statuses, owner guard and same-store update filter. This does not replace browser/E2E testing or two-tenant isolation tests; the appointment workflow is not declared production-ready.
 - Changes are limited to `multi-business-preview`. PR #1 remains open and unmerged; no production deployment or live-app change was made.
+
+### Post-commit verification — 2026-11-21
+
+- GitHub Actions run [44901738948](https://github.com/Eckson2621/AMWEMARI/actions/runs/44901738948) on appointment status workflow commit `b3ed1b1d53a6a7354911ba6d4169f3f46e742981` completed successfully: 21 tests passed, 0 failed. An earlier attempt exposed an invalid regular-expression assertion in the new test; that assertion was replaced with a literal no-delete check before the successful run.
+- The current Cloudflare bot preview table has not yet reported a build for the new appointment-status commits. Its latest reported build is for the older `ce7e74e` commit and failed; that older result is not treated as the current head's result.
+- PR #1 remains open, draft and unmerged. Current head at this verification point is `b3ed1b1`; the branch remains divergent from `main`.
+- No browser/E2E or two-tenant isolation run was performed. The appointment workflow is not declared production-ready.
+- No migration, database write, production merge, or production deployment was performed.
