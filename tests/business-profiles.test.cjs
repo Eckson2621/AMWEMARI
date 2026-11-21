@@ -201,7 +201,7 @@ test('appointment status updates use only existing statuses and owner/store-scop
   assert.ok(html.includes("appointmentsList').addEventListener('click'"));
   assert.ok(html.includes('requireOperationsOwner();const appointmentId=btn.dataset.saveAppointmentStatus'));
   assert.ok(html.includes("db.from('service_appointments').update({status}).eq('id',appointmentId).eq('store_id',store.id).select('id,status').maybeSingle()"));
-  assert.doesNotMatch(html, /db\\.from\\('service_appointments'\\)\\.delete\\(/);
+  assert.ok(!html.includes("db.from('service_appointments').delete("));
 });
 
 test('inline application scripts parse without syntax errors', () => {
