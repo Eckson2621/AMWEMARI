@@ -1,0 +1,46 @@
+name: Deploy to Cloudflare Workers
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN || secrets.WIFI_BUILD_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: "03295d1fe8b8e4fef8ce9c2cb32a2534"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Verify Cloudflare credentials
+        shell: bash
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Add CLOUDFLARE_API_TOKEN (or WIFI_BUILD_TOKEN) to this repository's GitHub Actions secrets."
+            exit 1
+          fi
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Cloudflare account ID is missing."
+            exit 1
+          fi
+
+      - name: Validate Worker configuration
+        run: npx --yes wrangler@4 deploy --dry-run
+
+      - name: Deploy Worker and static assets
+        run: npx --yes wrangler@4 deploy
