@@ -239,7 +239,7 @@ test('appointment insert RLS migration is additive and enforces the active store
   assert.match(appointmentInsertPolicyMigration, /CREATE POLICY service_appointments_insert_owner_guard/i);
   assert.match(appointmentInsertPolicyMigration, /ON public\.service_appointments/i);
   assert.match(appointmentInsertPolicyMigration, /AS RESTRICTIVE/i);
-  assert.match(appointmentInsertPolicyMigration, /FOR INSERT\\s+TO authenticated/i);
+  assert.match(appointmentInsertPolicyMigration, /FOR INSERT\s+TO authenticated/i);
   assert.match(appointmentInsertPolicyMigration, /private\.is_store_owner\(store_id\)/i);
   assert.match(appointmentInsertPolicyMigration, /created_by = auth\.uid\(\)/i);
   assert.doesNotMatch(appointmentInsertPolicyMigration, /\b(DROP|DELETE|TRUNCATE|UPDATE)\b/i);
