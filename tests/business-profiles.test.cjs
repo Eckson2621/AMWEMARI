@@ -7,6 +7,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const appointmentInsertPolicyMigration = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', '20261123123000_restrict_service_appointment_insert_to_owner.sql'), 'utf8');
 const registryMatch = html.match(/const BUSINESS_PROFILES=(\{[\s\S]*?\});\s*const BUSINESS_WORKSPACES=/);
 assert.ok(registryMatch, 'BUSINESS_PROFILES registry must exist before businessKind().');
 
@@ -232,6 +233,16 @@ test('appointments can link a loaded customer from the same store without a sche
   assert.match(html, /customer_id:selectedCustomerId/);
   assert.match(html, /customerRowsForOperations\.some\(c=>c\.id===selectedCustomerId\)/);
   assert.match(html, /\['appointmentCustomer','appointmentPhone'\]\.forEach/);
+});
+
+test('appointment insert RLS migration is additive and enforces the active store owner role', () => {
+  assert.match(appointmentInsertPolicyMigration, /CREATE POLICY service_appointments_insert_owner_guard/i);
+  assert.match(appointmentInsertPolicyMigration, /ON public\.service_appointments/i);
+  assert.match(appointmentInsertPolicyMigration, /AS RESTRICTIVE/i);
+  assert.match(appointmentInsertPolicyMigration, /FOR INSERT TO authenticated/i);
+  assert.match(appointmentInsertPolicyMigration, /private\.is_store_owner\(store_id\)/i);
+  assert.match(appointmentInsertPolicyMigration, /created_by = auth\.uid\(\)/i);
+  assert.doesNotMatch(appointmentInsertPolicyMigration, /\b(DROP|DELETE|TRUNCATE|UPDATE)\b/i);
 });
 
 test('inline application scripts parse without syntax errors', () => {
