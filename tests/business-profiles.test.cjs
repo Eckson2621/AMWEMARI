@@ -84,7 +84,7 @@ test('expiry-sensitive profiles expose batch and expiry fields', () => {
   }
 });
 
-const workspaceMatch = html.match(/const BUSINESS_WORKSPACES=(\{[\s\S]*?\});\s*function businessKind/);
+const workspaceMatch = html.match(/const BUSINESS_WORKSPACES=(\{[\s\S]*?\});\s*const BUSINESS_SALES_NAV_LABELS=\{[^\n]*\};\s*function businessKind/);
 assert.ok(workspaceMatch, 'BUSINESS_WORKSPACES must exist before businessKind().');
 const workspaces = vm.runInNewContext('(' + workspaceMatch[1] + ')');
 
