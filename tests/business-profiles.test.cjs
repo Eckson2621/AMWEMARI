@@ -204,6 +204,36 @@ test('appointment status updates use only existing statuses and owner/store-scop
   assert.ok(!html.includes("db.from('service_appointments').delete("));
 });
 
+const salesNavMatch = html.match(/const BUSINESS_SALES_NAV_LABELS=(\{[^\n]*\});\s*function businessKind/);
+assert.ok(salesNavMatch, 'Business-specific sales navigation labels must exist before businessKind().');
+const salesNavLabels = vm.runInNewContext('(' + salesNavMatch[1] + ')');
+
+test('all 19 business types have a business-specific sales navigation label', () => {
+  assert.deepEqual(Object.keys(salesNavLabels).sort(), [...expectedTypes].sort());
+  for (const type of expectedTypes) {
+    assert.equal(typeof salesNavLabels[type], 'string', type + ': sales navigation label');
+    assert.ok(salesNavLabels[type].length >= 3, type + ': label must not be empty');
+  }
+});
+
+test('workspace navigation exposes the active business type and applies its sales label', () => {
+  assert.match(html, /<nav class="tabs" id="workspaceNav"/);
+  assert.match(html, /<button id="salesNav" data-page="sales"/);
+  assert.match(html, /nav\.dataset\.businessType=kind/);
+  assert.match(html, /salesNav'\)\.textContent=BUSINESS_SALES_NAV_LABELS\[kind\]/);
+});
+
+test('appointments can link a loaded customer from the same store without a schema migration', () => {
+  assert.match(html, /id="appointmentCustomerId"/);
+  assert.match(html, /function renderAppointmentCustomerOptions\(\)/);
+  assert.match(html, /customerRowsForOperations\.map\(c=>'<option value="/);
+  assert.match(html, /renderAppointmentCustomerOptions\(\)/);
+  assert.match(html, /const selectedCustomerId=\$\('appointmentCustomerId'\)\.value\|\|null/);
+  assert.match(html, /customer_id:selectedCustomerId/);
+  assert.match(html, /customerRowsForOperations\.some\(c=>c\.id===selectedCustomerId\)/);
+  assert.match(html, /\['appointmentCustomer','appointmentPhone'\]\.forEach/);
+});
+
 test('inline application scripts parse without syntax errors', () => {
   const scripts = html.split(/<script[^>]*>/i).slice(1)
     .map(part => part.split('</script>')[0].trim())
