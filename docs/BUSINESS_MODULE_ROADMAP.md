@@ -142,3 +142,15 @@ This section records verified implementation scope, not a production release cla
 - PR #1 remains open, draft and unmerged. Current head at this verification point is `b3ed1b1`; the branch remains divergent from `main`.
 - No browser/E2E or two-tenant isolation run was performed. The appointment workflow is not declared production-ready.
 - No migration, database write, production merge, or production deployment was performed.
+
+## Preview progress snapshot — 2026-11-23
+
+- Added business-specific sales navigation labels for all 19 normalized business types. The workspace navigation now exposes its active business_type in a data attribute and accessible label; existing shared sales/checkout behavior and dynamic product/operations labels are unchanged.
+- Added an optional existing-customer selector to the appointment form. It is populated only from the first 100 customer rows already fetched with the active store_id; selecting a customer fills the existing name/phone fields and saves the existing nullable service_appointments.customer_id. Manual entry for a new customer remains available. Editing the name or phone clears the selected customer link to avoid attaching a different person's ID.
+- Read-only Supabase inspection confirmed service_appointments.customer_id is nullable, created_by defaults to auth.uid(), and a composite same-store customer foreign key exists. No migration or database write was required.
+- RLS inspection found service_appointments_insert_member permits any store member to insert when created_by = auth.uid(), while the current frontend appointment form is owner-guarded. This database/UI role mismatch is a security follow-up. It was not changed because the connected Supabase project is the live database; no live policy change was made during this preview-only task.
+- Added source-level tests for all 19 sales navigation labels, active business-type navigation metadata, and appointment/customer linking. These checks do not replace browser/E2E testing or two-tenant isolation testing.
+- Before this increment, preview head was 01487e9ff460c5c9aad7f6fa0fe16774630368fc; main was 275fe667402f08cdfe5ea90af5a2093c8027b295. The branch comparison reported 52 commits ahead and 116 behind. PR #1 appeared in the open-PR search; it remains unmerged in this work.
+- The preview-validation workflow exists for pushes to multi-business-preview and PRs targeting main, but the available combined-status and PR-workflow-run endpoints returned no status contexts/runs for the prior preview head. Cloudflare Preview for the prior head was not independently verified.
+- Current main contains .github/workflows/deploy.yml, which deploys to Cloudflare on pushes to main. No change was made to that workflow or to main; do not merge PR #1 or push to main as part of this task.
+- All code and documentation changes in this snapshot are confined to multi-business-preview. No database migration, database write, existing-record modification, merge, or production deployment was performed.
