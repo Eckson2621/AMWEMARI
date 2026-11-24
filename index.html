@@ -982,12 +982,12 @@ async function refreshAll(){
  try{await localReplace('products',products)}catch(cacheError){console.warn('AMWEMARI product cache update failed:',cacheError)}
  renderAll();
  const [s,x,m]=await Promise.all([
-  db.from('sales').select('*,sale_items!sale_items_sale_id_fkey(product_name_snapshot,quantity,unit_price,line_total)').eq('store_id',store.id).order('sold_at',{ascending:false}).limit(100),
+  fetchAllReportRows('sales','*,sale_items!sale_items_sale_id_fkey(product_name_snapshot,quantity,unit_price,line_total)',q=>q.eq('status','completed').order('sold_at',{ascending:false})),
   isOwner?db.from('expenses').select('*').eq('store_id',store.id).order('expense_date',{ascending:false}).limit(100):Promise.resolve({data:[],error:null}),
   isOwner?db.from('stock_movements').select('*').eq('store_id',store.id).eq('movement_type','purchase').order('purchase_date',{ascending:false}).limit(100):Promise.resolve({data:[],error:null})
  ]);
- for(const r of [s,x,m])if(r.error)throw r.error;
- sales=s.data||[];expenses=x.data||[];movements=m.data||[];
+ for(const r of [x,m])if(r.error)throw r.error;
+ sales=s||[];expenses=x.data||[];movements=m.data||[];
  renderAll();
  if(!$('sales').classList.contains('hidden')){await Promise.all([loadDailySales(),loadRecentSalesHistory()]);}
  if(isOwner){try{await loadBusinessReport();await loadStaff();await loadCashFlow();await loadFinancialPosition();await loadBusinessLoans()}catch(error){console.warn('Owner reports/staff/cash flow unavailable',error)}}
@@ -1214,8 +1214,8 @@ function reportCsvRows(d){
  rows.push(['Kipindi',d.from+' hadi '+d.to]);
  rows.push([]);
  rows.push(['MUHTASARI','THAMANI']);
- rows.push(['Idadi ya mauzo',r.sales_count||0],['Jumla ya mauzo (pamoja na kodi)',r.sales_total||0],['Fedha zilizopokelewa',r.amount_received||0],['Madeni ya mauzo',r.unpaid_balance||0],['Gharama ya bidhaa zilizouzwa',r.cost_of_goods||0],['Faida ghafi baada ya punguzo',r.gross_profit||0],['Matumizi ya biashara',r.expenses_total||0],['Faida baada ya matumizi',r.net_profit||0],['Manunuzi ya stock (tofauti na matumizi)',r.purchases_total||0]);
- rows.push([],['MAUZO'],['Risiti','Tarehe/muda','Aliyeuza','Bidhaa','Idadi','Bei','Gharama kwa kipande','Jumla ya bidhaa','Jumla ya risiti','Imepokelewa','Salio']);
+ rows.push(['Idadi ya mauzo',r.sales_count||0],['Jumla ya mauzo (pamoja na kodi)',r.sales_total||0],['Fedha zilizopokelewa ndani ya kipindi',r.amount_received||0],['Madeni ya mauzo',r.unpaid_balance||0],['Gharama ya bidhaa zilizouzwa',r.cost_of_goods||0],['Faida ghafi baada ya punguzo',r.gross_profit||0],['Matumizi ya biashara',r.expenses_total||0],['Faida baada ya matumizi',r.net_profit||0],['Manunuzi ya stock (tofauti na matumizi)',r.purchases_total||0]);
+ rows.push([],['MAUZO'],['Risiti','Tarehe/muda','Aliyeuza','Bidhaa','Idadi','Bei','Gharama kwa kipande','Jumla ya bidhaa','Jumla ya risiti','Imelipwa hadi sasa','Salio']);
  for(const s of d.sales)for(const it of (s.sale_items||[]))rows.push([s.receipt_no,new Date(s.sold_at).toLocaleString('sw-TZ',{timeZone:'Africa/Dar_es_Salaam'}),staffName(s.sold_by),it.product_name_snapshot,it.quantity,it.unit_price,it.unit_cost,it.line_total,s.total,s.amount_paid,Math.max(0,Number(s.total)-Number(s.amount_paid))]);
  rows.push([],['MATUMIZI'],['Tarehe','Aina','Maelezo','Njia ya malipo','Kiasi']);
  for(const e of d.expenses)rows.push([e.expense_date,e.category,e.description,e.payment_method,e.amount]);
@@ -1272,7 +1272,7 @@ async function loadStaffSalesReport(){
   if(!staffDirectory.length)await loadStaff();
   const start=new Date(from+'T00:00:00+03:00').toISOString();
   const end=new Date(new Date(to+'T00:00:00+03:00').getTime()+86400000).toISOString();
-  let data=[];for(let offset=0;;offset+=1000){const page=await db.from('sales').select('sold_by,total,amount_paid,sold_at').eq('store_id',store.id).gte('sold_at',start).lt('sold_at',end).order('sold_at',{ascending:false}).range(offset,offset+999);if(page.error)throw page.error;data.push(...(page.data||[]));if((page.data||[]).length<1000)break;}
+  let data=[];for(let offset=0;;offset+=1000){const page=await db.from('sales').select('sold_by,total,amount_paid,sold_at').eq('store_id',store.id).eq('status','completed').gte('sold_at',start).lt('sold_at',end).order('sold_at',{ascending:false}).range(offset,offset+999);if(page.error)throw page.error;data.push(...(page.data||[]));if((page.data||[]).length<1000)break;}
   const chosen=$('staffReportFilter').value;
   const rows=data.filter(s=>chosen==='all'||s.sold_by===chosen);
   const groups=new Map();
@@ -1343,10 +1343,27 @@ async function loadDailySales(){
    rows.push(...(page.data||[]));
    if((page.data||[]).length<1000)break;
   }
-  const total=rows.reduce((sum,s)=>sum+Number(s.total||0),0);
-  const paid=rows.reduce((sum,s)=>sum+Number(s.amount_paid||0),0);
-  const balance=rows.reduce((sum,s)=>sum+Math.max(0,Number(s.total||0)-Number(s.amount_paid||0)),0);
-  summary.innerHTML='<strong>Tarehe: '+esc(day)+'</strong><br>Miamala yote: <strong>'+rows.length+'</strong> · Jumla ya mauzo: <strong>'+money(total)+'</strong> · Imepokelewa: <strong>'+money(paid)+'</strong> · Salio: <strong>'+money(balance)+'</strong>';
+  const total=Number(rows.reduce((sum,s)=>sum+Number(s.total||0),0).toFixed(2));
+  const balance=Number(rows.reduce((sum,s)=>sum+Math.max(0,Number(s.total||0)-Number(s.amount_paid||0)),0).toFixed(2));
+  const customerSaleIds=rows.filter(s=>s.customer_id).map(s=>s.id);
+  const periodPaymentsResult=await db.from('customer_payments').select('sale_id,amount').eq('store_id',store.id).gte('paid_at',start).lt('paid_at',end);
+  if(periodPaymentsResult.error)throw periodPaymentsResult.error;
+  let linkedPaymentRows=[];
+  for(let i=0;i<customerSaleIds.length;i+=200){
+   const history=await db.from('customer_payments').select('sale_id,amount').eq('store_id',store.id).in('sale_id',customerSaleIds.slice(i,i+200));
+   if(history.error)throw history.error;
+   linkedPaymentRows.push(...(history.data||[]));
+  }
+  const ledgerBySale=new Map();
+  linkedPaymentRows.forEach(p=>ledgerBySale.set(p.sale_id,(ledgerBySale.get(p.sale_id)||0)+Number(p.amount||0)));
+  const ledgerReceived=periodPaymentsResult.data.reduce((sum,p)=>sum+Number(p.amount||0),0);
+  const unledgeredSaleReceipts=rows.reduce((sum,s)=>{
+   const paidNow=Number(s.amount_paid||0);
+   if(!s.customer_id)return sum+paidNow;
+   return sum+Math.max(0,paidNow-(ledgerBySale.get(s.id)||0));
+  },0);
+  const paid=Number((ledgerReceived+unledgeredSaleReceipts).toFixed(2));
+  summary.innerHTML='<strong>Tarehe: '+esc(day)+'</strong><br>Miamala yote: <strong>'+rows.length+'</strong> · Jumla ya mauzo: <strong>'+money(total)+'</strong> · Fedha zilizopokelewa siku hiyo: <strong>'+money(paid)+'</strong> · Salio la mauzo hayo: <strong>'+money(balance)+'</strong>';
   box.innerHTML=salesTable(rows);
  }catch(error){
   box.textContent='Imeshindikana kupakia mauzo ya siku: '+(error.message||String(error));
@@ -1358,7 +1375,7 @@ $('salesDayDate')?.addEventListener('change',loadDailySales);
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
  function lowStockTable(){const rows=products.filter(p=>Number(p.quantity)<=Number(p.reorder_level)).sort((a,b)=>Number(a.quantity)-Number(b.quantity));if(!rows.length)return '<p class="muted">Hakuna bidhaa iliyo chini ya kiwango cha tahadhari. Stock iko salama.</p>';return '<table><thead><tr><th>Bidhaa</th><th>Stock iliyobaki</th><th>Bei ya kununulia / '+ 'kipande</th><th>Bei ya kununulia katoni moja</th><th>Kiwango cha tahadhari</th><th>Hali</th></tr></thead><tbody>'+rows.map(p=>{const units=Math.max(1,Number(p.units_per_pack||1)),packCost=Number(p.purchase_pack_price??(Number(p.cost_price||0)*units)),unitCost=packCost/units;return '<tr><td>'+esc(p.name)+'</td><td>'+esc(stockDisplay(p))+'</td><td>'+money(unitCost)+'</td><td>'+money(packCost)+' / '+esc(p.pack_name||'pack')+'</td><td>'+Number(p.reorder_level)+' '+esc(p.base_unit||p.unit)+'</td><td><strong style="color:#b45309">'+(Number(p.quantity)<=0?'IMEISHA':'AGIZA STOCK')+'</strong></td></tr>'}).join('')+'</tbody></table>'}
 function staffName(id){const member=staffDirectory.find(x=>x.user_id===id);if(member)return member.full_name;if(id===user?.id)return user.user_metadata?.full_name||'Mimi (mmiliki)';return 'Akaunti nyingine'}
-function salesTable(rows){if(!rows.length)return'<p class="muted">Bado hakuna mauzo.</p>';const owner=store?.owner_id===user?.id;return'<table><thead><tr><th>Risiti</th>'+(owner?'<th>Aliyeuza</th>':'')+'<th>Bidhaa zilizouzwa</th><th>Muda wa mauzo</th><th>Muda wa kurekodi</th><th>Aina</th><th>Jumla</th><th>Imelipwa</th><th>Salio</th></tr></thead><tbody>'+rows.map(s=>'<tr><td>'+esc(s.receipt_no)+'</td>'+(owner?'<td>'+esc(staffName(s.sold_by))+'</td>':'')+'<td>'+((s.sale_items||[]).map(i=>esc(i.product_name_snapshot)+' × '+Number(i.quantity)+' @ '+money(i.unit_price)).join('<br>')||'—')+'</td><td>'+new Date(s.sold_at).toLocaleString('sw-TZ',{timeZone:'Africa/Dar_es_Salaam'})+'</td><td>'+new Date(s.created_at).toLocaleString('sw-TZ',{timeZone:'Africa/Dar_es_Salaam'})+'</td><td>'+(s.entry_mode==='day_end'?'Mwisho wa siku':'Papo hapo')+'</td><td>'+money(s.total)+'</td><td>'+money(s.amount_paid)+'</td><td>'+money(Number(s.total)-Number(s.amount_paid))+'</td></tr>').join('')+'</tbody></table>'}
+function salesTable(rows){if(!rows.length)return'<p class="muted">Bado hakuna mauzo.</p>';const owner=store?.owner_id===user?.id;return'<table><thead><tr><th>Risiti</th>'+(owner?'<th>Aliyeuza</th>':'')+'<th>Bidhaa zilizouzwa</th><th>Muda wa mauzo</th><th>Muda wa kurekodi</th><th>Aina</th><th>Jumla</th><th>Imelipwa</th><th>Salio</th></tr></thead><tbody>'+rows.map(s=>'<tr><td>'+esc(s.receipt_no)+'</td>'+(owner?'<td>'+esc(staffName(s.sold_by))+'</td>':'')+'<td>'+((s.sale_items||[]).map(i=>esc(i.product_name_snapshot)+' × '+Number(i.quantity)+' @ '+Number(i.unit_price).toLocaleString('sw-TZ',{minimumFractionDigits:2,maximumFractionDigits:4})+' = '+money(i.line_total)).join('<br>')||'—')+'</td><td>'+new Date(s.sold_at).toLocaleString('sw-TZ',{timeZone:'Africa/Dar_es_Salaam'})+'</td><td>'+new Date(s.created_at).toLocaleString('sw-TZ',{timeZone:'Africa/Dar_es_Salaam'})+'</td><td>'+(s.entry_mode==='day_end'?'Mwisho wa siku':'Papo hapo')+'</td><td>'+money(s.total)+'</td><td>'+money(s.amount_paid)+'</td><td>'+money(Number(s.total)-Number(s.amount_paid))+'</td></tr>').join('')+'</tbody></table>'}
 function productsTable(){if(!products.length)return'<p class="muted">Bado hujasajili bidhaa.</p>';return'<table><thead><tr><th>Bidhaa</th><th>Gharama ya kipande</th><th>Bei ya rejareja</th><th>Faida/kipande</th><th>Bei ya jumla/pack</th><th>Faida/pack</th><th>Stock</th><th>Pack size</th><th>Kitendo</th></tr></thead><tbody>'+products.map(p=>{const units=Math.max(1,Number(p.units_per_pack||1)),packCost=Number(p.purchase_pack_price??(Number(p.cost_price||0)*units)),unitCost=packCost/units,unitProfit=Number(p.selling_price||0)-unitCost,packProfit=Number(p.wholesale_pack_price||0)-packCost;return '<tr><td>'+esc(p.name)+'</td><td>'+money(unitCost)+' / '+esc(p.base_unit||p.unit)+'</td><td>'+money(p.selling_price)+' / '+esc(p.base_unit||p.unit)+'</td><td><strong>'+money(unitProfit)+'</strong></td><td>'+money(p.wholesale_pack_price)+' / '+esc(p.pack_name||'pack')+'</td><td><strong>'+money(packProfit)+'</strong></td><td>'+esc(stockDisplay(p))+'</td><td>'+units+' kwa '+esc(p.pack_name||'pack')+'</td><td><div class="actions"><button type="button" class="secondary" onclick="editProduct(\''+p.id+'\')">Hariri</button><button type="button" class="danger" onclick="archiveProduct(\''+p.id+'\')">Futa</button></div></td></tr>'}).join('')+'</tbody></table>'}
 async function archiveProduct(id){if(!store||store.owner_id!==user.id){message('appMsg','Mmiliki pekee ndiye anayeruhusiwa kuondoa bidhaa.',true);return}if(!navigator.onLine){message('appMsg','Kuondoa bidhaa kunahitaji intaneti.',true);return}const p=products.find(x=>x.id===id);if(!p)return;if(Number(p.quantity)>0){message('appMsg','Bidhaa hii bado ina stock ya '+stockDisplay(p)+'. Uza au rekebisha stock kwanza; mfumo hautaificha stock iliyobaki.',true);return}if(!confirm('Uondoe '+p.name+' kwenye orodha ya bidhaa zinazotumika? Historia ya mauzo na miamala yake itabaki salama.'))return;try{const {data:archived,error}=await db.from('products').update({is_active:false,updated_at:new Date().toISOString()}).eq('id',id).eq('store_id',store.id).select('id,is_active').maybeSingle();if(error)throw error;if(!archived||archived.id!==id||archived.is_active!==false)throw new Error('Database haikuthibitisha kuondolewa kwa bidhaa. Hakikisha umeingia kama mmiliki na ruhusa za bidhaa zinaruhusu update.');products=products.filter(x=>x.id!==id);const cached=(await window.localAll('products')).filter(x=>x.id!==id);await localReplace('products',cached);renderAll();message('appMsg','Bidhaa imeondolewa kwenye orodha hai. Historia ya mauzo na stock movements imehifadhiwa.')}catch(error){message('appMsg','Imeshindikana kuondoa bidhaa: '+(error.message||error),true)}}
 function editProduct(id){if(!store||store.owner_id!==user.id){message('appMsg','Mmiliki pekee ndiye anayeruhusiwa kuhariri bidhaa.',true);return}if(!navigator.onLine){message('appMsg','Kuhariri bidhaa kunahitaji intaneti. Unganisha intaneti kisha jaribu tena.',true);return}if(!products.some(x=>x.id===id))return;pendingEditProductId=id;$('editGatePin').value='';$('editGateError').classList.add('hidden');$('editPinGateModal').classList.remove('hidden');$('editGatePin').focus()}
@@ -1598,13 +1615,13 @@ async function addCart(){
   console.log('[AMWEMARI][Rekodi Mauzo] Bidhaa imeongezwa:',{
    product:line.name,quantity:line.display_quantity,unit:line.display_unit,
    stockUnits:line.quantity,unitPrice:line.unit_price,
-   lineTotal:line.quantity*line.unit_price,amountPaidInput:input.paid,
+   lineTotal:saleLineTotal(line),amountPaidInput:input.paid,
    cartItems:cart.length
   });
   renderCart();
   updateSalePrice();
   clearMessage('appMsg');
-  if(status)status.textContent='✓ '+p.name+' imeongezwa kwenye kikapu. Jumla sasa ni '+money(cart.reduce((sum,item)=>sum+item.quantity*item.unit_price,0))+'.';
+  if(status)status.textContent='✓ '+p.name+' imeongezwa kwenye kikapu. Jumla sasa ni '+money(saleCartTotal())+'.';
   return true;
  }catch(error){
   console.error('[AMWEMARI][Rekodi Mauzo] Ongeza bidhaa imeshindwa:',error);
@@ -1621,11 +1638,39 @@ async function ongezaBidhaa(event){
  return addCart();
 }
 
-async function loadDebts(){if(!store)return;const box=$('debtsTable');box.textContent='Inapakia madeni...';try{const [sr,cr,pr]=await Promise.all([db.from('sales').select('id,receipt_no,total,amount_paid,payment_method,sold_at,customer_id').eq('store_id',store.id).eq('status','completed').order('sold_at',{ascending:false}).limit(500),db.from('customers').select('id,full_name,phone').eq('store_id',store.id),db.from('customer_payments').select('id,sale_id,amount,payment_method,paid_at,notes').eq('store_id',store.id).order('paid_at',{ascending:false}).limit(100)]);for(const x of [sr,cr,pr])if(x.error)throw x.error;const customers=new Map((cr.data||[]).map(c=>[c.id,c]));const rows=(sr.data||[]).filter(x=>Number(x.total)-Number(x.amount_paid)>.009&&x.customer_id).map(x=>({...x,customer:customers.get(x.customer_id)}));const outstanding=rows.reduce((a,x)=>a+Number(x.total)-Number(x.amount_paid),0);$('debtOutstandingTotal').textContent=money(outstanding);$('debtSaleCount').textContent=String(rows.length);$('debtSaleSelect').innerHTML='<option value="">Chagua deni</option>'+rows.map(x=>'<option value="'+x.id+'">'+esc(x.customer?.full_name||'Mteja')+' · '+esc(x.receipt_no)+' · Deni '+money(Number(x.total)-Number(x.amount_paid))+'</option>').join('');box.innerHTML=rows.length?'<table><thead><tr><th>Mteja</th><th>Simu</th><th>Risiti</th><th>Tarehe</th><th>Jumla</th><th>Amelipa</th><th>Deni</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(x.customer?.full_name||'—')+'</td><td>'+esc(x.customer?.phone||'—')+'</td><td>'+esc(x.receipt_no)+'</td><td>'+new Date(x.sold_at).toLocaleDateString('sw-TZ')+'</td><td>'+money(x.total)+'</td><td>'+money(x.amount_paid)+'</td><td><strong>'+money(Number(x.total)-Number(x.amount_paid))+'</strong></td></tr>').join('')+'</tbody></table>':'<p class="muted">Hakuna deni linalosubiri malipo. Mauzo yenye salio yataonekana hapa kama mteja aliandikwa wakati wa mauzo.</p>';const payments=pr.data||[];const receiptBySale=new Map((sr.data||[]).map(x=>[x.id,x.receipt_no]));$('debtPaymentsHistory').innerHTML=payments.length?'<table><thead><tr><th>Tarehe</th><th>Kiasi</th><th>Njia</th><th>Risiti</th><th>Maelezo</th></tr></thead><tbody>'+payments.map(p=>'<tr><td>'+new Date(p.paid_at).toLocaleString('sw-TZ')+'</td><td>'+money(p.amount)+'</td><td>'+paymentMethodLabel(p.payment_method)+'</td><td>'+esc(receiptBySale.get(p.sale_id)||'—')+'</td><td>'+esc(p.notes||'—')+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Bado hakuna malipo ya deni yaliyorekodiwa.</p>';}catch(e){box.textContent='Imeshindikana kupakia madeni: '+(e.message||e);}}
+async function loadDebts(){
+ if(!store)return;
+ const box=$('debtsTable');box.textContent='Inapakia madeni yote...';
+ try{
+  const [saleRows,customerRows,paymentRows]=await Promise.all([
+   fetchAllReportRows('sales','id,receipt_no,total,amount_paid,payment_method,sold_at,customer_id',q=>q.eq('status','completed').order('sold_at',{ascending:false})),
+   fetchAllReportRows('customers','id,full_name,phone',q=>q.order('full_name',{ascending:true})),
+   fetchAllReportRows('customer_payments','id,sale_id,amount,payment_method,paid_at,notes',q=>q.order('paid_at',{ascending:false}))
+  ]);
+  const customers=new Map(customerRows.map(c=>[c.id,c]));
+  const rows=saleRows.filter(x=>Number(x.total)-Number(x.amount_paid)>.009&&x.customer_id).map(x=>({...x,customer:customers.get(x.customer_id)}));
+  const outstanding=Number(rows.reduce((a,x)=>a+Number(x.total)-Number(x.amount_paid),0).toFixed(2));
+  $('debtOutstandingTotal').textContent=money(outstanding);
+  $('debtSaleCount').textContent=String(rows.length);
+  $('debtSaleSelect').innerHTML='<option value="">Chagua deni</option>'+rows.map(x=>'<option value="'+x.id+'">'+esc(x.customer?.full_name||'Mteja')+' · '+esc(x.receipt_no)+' · Deni '+money(Number(x.total)-Number(x.amount_paid))+'</option>').join('');
+  box.innerHTML=rows.length?'<table><thead><tr><th>Mteja</th><th>Simu</th><th>Risiti</th><th>Tarehe</th><th>Jumla</th><th>Amelipa</th><th>Deni</th></tr></thead><tbody>'+rows.map(x=>'<tr><td>'+esc(x.customer?.full_name||'—')+'</td><td>'+esc(x.customer?.phone||'—')+'</td><td>'+esc(x.receipt_no)+'</td><td>'+new Date(x.sold_at).toLocaleDateString('sw-TZ',{timeZone:'Africa/Dar_es_Salaam'})+'</td><td>'+money(x.total)+'</td><td>'+money(x.amount_paid)+'</td><td><strong>'+money(Number(x.total)-Number(x.amount_paid))+'</strong></td></tr>').join('')+'</tbody></table>':'<p class="muted">Hakuna deni linalosubiri malipo. Mauzo yenye salio yataonekana hapa kama mteja aliandikwa wakati wa mauzo.</p>';
+  const receiptBySale=new Map(saleRows.map(x=>[x.id,x.receipt_no]));
+  $('debtPaymentsHistory').innerHTML=paymentRows.length?'<table><thead><tr><th>Tarehe</th><th>Kiasi</th><th>Njia</th><th>Risiti</th><th>Maelezo</th></tr></thead><tbody>'+paymentRows.map(p=>'<tr><td>'+new Date(p.paid_at).toLocaleString('sw-TZ',{timeZone:'Africa/Dar_es_Salaam'})+'</td><td>'+money(p.amount)+'</td><td>'+paymentMethodLabel(p.payment_method)+'</td><td>'+esc(receiptBySale.get(p.sale_id)||'—')+'</td><td>'+esc(p.notes||'—')+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Bado hakuna malipo ya deni yaliyorekodiwa.</p>';
+ }catch(e){box.textContent='Imeshindikana kupakia madeni: '+(e.message||e);}
+}
 $('debtPaymentForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('receiveDebtPaymentBtn'),saleId=$('debtSaleSelect').value,amount=Number($('debtPaymentAmount').value),method=$('debtPaymentMethod').value;if(!saleId||!Number.isFinite(amount)||amount<=0){message('debtPaymentMessage','Chagua deni na weka kiasi sahihi.',true);return}btn.disabled=true;btn.textContent='Inahifadhi malipo...';try{const {data,error}=await db.rpc('record_customer_debt_payment',{p_store_id:store.id,p_sale_id:saleId,p_amount:amount,p_payment_method:method,p_notes:$('debtPaymentNote').value.trim()});if(error)throw error;const r=Array.isArray(data)?data[0]:data;$('debtPaymentAmount').value='';$('debtPaymentNote').value='';message('debtPaymentMessage','Malipo yamepokelewa. Salio la deni lililobaki: '+money(r.balance_due)+'.');await Promise.all([loadDebts(),store.owner_id===user.id?Promise.all([loadCashFlow(),loadFinancialPosition()]):Promise.resolve()]);}catch(error){message('debtPaymentMessage','Malipo hayajahifadhiwa: '+(error.message||error),true)}finally{btn.disabled=false;btn.textContent='Pokea malipo na punguza deni';}});
 $('debtSaleSelect').addEventListener('change',()=>{const selected=$('debtSaleSelect').selectedOptions[0];const match=selected?.textContent.match(/Deni\s+([\d,\.]+)/);if(match)$('debtPaymentAmount').placeholder='Deni lililobaki: '+match[1];});
+function saleLineTotal(item){
+ const quantityMilli=Math.round(Number(item.quantity)*1000);
+ const unitPriceTenThousand=Math.round(Number(item.unit_price)*10000);
+ if(!Number.isFinite(quantityMilli)||!Number.isFinite(unitPriceTenThousand)||quantityMilli<0||unitPriceTenThousand<0)return 0;
+ return Math.floor((quantityMilli*unitPriceTenThousand+50000)/100000)/100;
+}
+function saleCartTotal(){
+ return Number(cart.reduce((sum,item)=>sum+saleLineTotal(item),0).toFixed(2));
+}
 function salePaymentState(){
- const total=Number(cart.reduce((sum,item)=>sum+Number(item.quantity)*Number(item.unit_price),0).toFixed(2));
+ const total=saleCartTotal();
  const method=$('saleMethod')?.value||'cash';
  const raw=$('salePaid')?.value;
  const entered=raw===''?0:Number(raw||0);
@@ -1648,15 +1693,15 @@ function syncSalePaidDefault(){
  const input=$('salePaid');if(!input)return;
  if($('saleMethod')?.value==='credit'){input.value='0';return}
  if(!salePaidManuallyEdited){
-  const total=Number(cart.reduce((sum,item)=>sum+Number(item.quantity)*Number(item.unit_price),0).toFixed(2));
+  const total=saleCartTotal();
   input.value=String(total);
  }
 }
 function renderCart(){
  syncSalePaidDefault();
- const total=cart.reduce((a,x)=>a+x.quantity*x.unit_price,0);
+ const total=saleCartTotal();
  $('cartTotal').textContent='Jumla: '+money(total);
- $('cartTable').innerHTML=cart.length?'<table><thead><tr><th>Bidhaa</th><th>Kiasi kilichouzwa</th><th>Jumla</th><th></th></tr></thead><tbody>'+cart.map((x,i)=>'<tr><td>'+esc(x.name)+'</td><td>'+x.display_quantity+' '+esc(x.display_unit)+' <span class="muted small">('+x.quantity+' stock units)</span></td><td>'+money(x.quantity*x.unit_price)+'</td><td><button type="button" class="danger" onclick="removeCart('+i+')">Ondoa</button></td></tr>').join('')+'</tbody></table>':'<p class="muted">Bado hujaongeza bidhaa kwenye mauzo.</p>';
+ $('cartTable').innerHTML=cart.length?'<table><thead><tr><th>Bidhaa</th><th>Kiasi kilichouzwa</th><th>Jumla</th><th></th></tr></thead><tbody>'+cart.map((x,i)=>'<tr><td>'+esc(x.name)+'</td><td>'+x.display_quantity+' '+esc(x.display_unit)+' <span class="muted small">('+x.quantity+' stock units)</span></td><td>'+money(saleLineTotal(x))+'</td><td><button type="button" class="danger" onclick="removeCart('+i+')">Ondoa</button></td></tr>').join('')+'</tbody></table>':'<p class="muted">Bado hujaongeza bidhaa kwenye mauzo.</p>';
  updateSaleWorkflowSummary();
 }
 function removeCart(i){if(!Number.isInteger(i)||i<0||i>=cart.length)return;cart.splice(i,1);renderCart()}
