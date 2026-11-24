@@ -416,7 +416,35 @@ async function showAuthFailure(error){
 $('authForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('authSubmit'),email=$('email').value.trim().toLowerCase(),password=$('password').value;btn.disabled=true;btn.textContent=mode==='login'?'Inaingia...':'Inafungua akaunti...';clearMessage('authMsg');try{if(!navigator.onLine)throw new Error('Huna intaneti. Unganisha intaneti kisha jaribu tena.');if(!window.supabase)throw new Error('Huduma ya kuingia haijapakia. Refresh ukurasa kisha jaribu tena.');let res;if(mode==='signup'){const fullName=$('fullName').value.trim();if(fullName.length<2)throw new Error('Andika jina lako kamili kabla ya kujisajili.');res=await db.auth.signUp({email,password,options:{data:{full_name:fullName}}});if(res.error)throw res.error;if(!res.data.session){message('authMsg','Usajili umepokelewa. Fungua email yako, thibitisha anuani, kisha rudi hapa uingie. Akaunti itasubiri idhini ya msimamizi.');return}}else{res=await db.auth.signInWithPassword({email,password});if(res.error)throw res.error;if(!res.data.session)throw new Error('Ingia haijakamilika. Hakikisha email imethibitishwa kisha jaribu tena.')}await boot()}catch(error){showAuthFailure(error)}finally{btn.disabled=false;btn.textContent=mode==='login'?'Ingia':'Fungua akaunti'}});
 async function resendConfirmation(){const btn=$('resendConfirmationBtn'),email=$('email').value.trim().toLowerCase();clearMessage('authMsg');if(!email||!/^\S+@\S+\.\S+$/.test(email)){message('authMsg','Kwanza andika email sahihi kwenye sehemu ya Email, kisha bonyeza Resend.',true);$('email').focus();return}if(!navigator.onLine){message('authMsg','Huna intaneti. Unganisha intaneti kisha jaribu tena.',true);return}btn.disabled=true;btn.textContent='Inatuma...';try{const {error}=await db.auth.resend({type:'signup',email});if(error)throw error;message('authMsg','Ombi la kutuma email ya uthibitisho limepokelewa. Angalia Inbox na Spam/Junk. Kama email haijafika, SMTP ya Supabase bado inaweza kuwa na kizuizi.');}catch(error){message('authMsg',error.message||'Imeshindikana kutuma email ya uthibitisho. Jaribu tena baadaye.',true)}finally{btn.disabled=false;btn.textContent='Tuma tena Email ya Uthibitisho (Resend)'}}
 $('staffLoginForm').addEventListener('submit',async e=>{e.preventDefault();const btn=$('staffLoginSubmit');btn.disabled=true;btn.textContent='Inaingia...';clearMessage('authMsg');try{if(!navigator.onLine)throw new Error('Huna intaneti. Unganisha intaneti kisha jaribu tena.');const r=await fetch(STAFF_AUTH_URL,{method:'POST',headers:{'Content-Type':'application/json','apikey':SUPABASE_ANON_KEY},body:JSON.stringify({action:'login',username:$('staffLoginUsername').value.trim().toLowerCase(),password:$('staffLoginPassword').value})});const d=await r.json().catch(()=>({error:'Jibu la seva halijasomeka. Refresh ukurasa kisha jaribu tena.'}));if(!r.ok)throw new Error(d.error||'Imeshindikana kuthibitisha akaunti ya mfanyakazi.');if(!d.access_token||!d.refresh_token)throw new Error('Seva haikurudisha session ya mfanyakazi. Wasiliana na mmiliki.');const {data,error}=await db.auth.setSession({access_token:d.access_token,refresh_token:d.refresh_token});if(error)throw error;if(!data.session)throw new Error('Session ya mfanyakazi haikuhifadhiwa. Jaribu tena.');await boot()}catch(error){showAuthFailure(error)}finally{btn.disabled=false;btn.textContent='Ingia kama mfanyakazi'}});
-async function signOut(){await db.auth.signOut();location.reload()}
+async function signOut(){
+ const buttons=[...document.querySelectorAll('button[onclick="signOut()"]')];
+ buttons.forEach(button=>{button.disabled=true;button.dataset.logoutText=button.textContent;button.textContent='Inatoka...'});
+ const storageKey='amwemari-auth-v1';
+ let signOutError=null;
+ try{
+  // Stop refreshes first so a late refresh cannot recreate the session after logout.
+  db.auth.stopAutoRefresh();
+  const result=await db.auth.signOut({scope:'local'});
+  if(result?.error)signOutError=result.error;
+ }catch(error){signOutError=error}
+ try{
+  // Write the signed-out marker AFTER Supabase finishes its local cleanup.
+  // This prevents the IndexedDB recovery copy from restoring Mariam's old session.
+  try{localStorage.setItem(AMW_AUTH_SIGNED_OUT_FLAG,'1');localStorage.removeItem(storageKey)}catch(storageError){console.warn('AMWEMARI local logout cleanup:',storageError)}
+  try{await amwAuthBackupRemove(storageKey)}catch(backupError){console.warn('AMWEMARI backup logout cleanup:',backupError)}
+  try{localStorage.setItem(AMW_AUTH_SIGNED_OUT_FLAG,'1')}catch(storageError){}
+  user=null;store=null;accountAccess=null;isSuperAdmin=false;
+  $('appView').classList.add('hidden');$('authView').classList.remove('hidden');
+  // Reload only after both local and backup storage have been cleared/blocked.
+  location.replace(location.pathname+location.search);
+ }catch(cleanupError){
+  console.error('AMWEMARI logout cleanup failed:',cleanupError);
+  const target=$('appMsg')&&!$('appView').classList.contains('hidden')?'appMsg':'authMsg';
+  message(target,'Imeshindikana kumaliza kutoka kwenye akaunti. Funga tab hii, fungua AMWEMARI upya, kisha jaribu tena.',true);
+  buttons.forEach(button=>{button.disabled=false;button.textContent=button.dataset.logoutText||'Toka'});
+  if(signOutError)console.warn('Supabase local sign-out:',signOutError);
+ }
+}
 async function boot(){
  const {data:{session}}=await db.auth.getSession();const u=session?.user;if(!u)return;
  user=u;accountAccess=null;await checkSuperAdmin();
