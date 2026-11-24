@@ -833,7 +833,8 @@ function renderSaleProductQuickPick(){
 }
 async function refreshSaleProductOptions(){
  const select=$('saleProduct'),status=$('saleActionStatus');
- if(!store||!select)return;
+ if(!select)return;
+ if(!store){select.innerHTML='<option value="">Biashara haijachaguliwa</option>';if(status)status.textContent='Chagua kwanza biashara ili kuona bidhaa.';return;}
  const storeId=String(store.id);
  const inMemory=(products||[]).filter(p=>String(p.store_id)===storeId&&p.is_active!==false);
  if(status)status.textContent='Inapakia orodha ya bidhaa...';
@@ -869,7 +870,29 @@ $('saleProductQuickPick')?.addEventListener('click',e=>{
  select.dispatchEvent(new Event('change',{bubbles:true}));
 });
 document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.page));if(b.dataset.page==='debts')loadDebts();if(b.dataset.page==='sales'){loadDailySales();loadRecentSalesHistory();refreshSaleProductOptions().catch(error=>console.error('AMWEMARI sales products:',error));}if(b.dataset.page==='purchases'&&store&&store.owner_id===user.id)loadBusinessLoans()}));
-async function refreshAll(){if(!store)return;const isOwner=store.owner_id===user.id;$('cashFlowPanel').classList.toggle('hidden',!isOwner);const [p,s,x,m]=await Promise.all([db.from('products').select('*').eq('store_id',store.id).eq('is_active',true).order('name'),db.from('sales').select('*,sale_items!sale_items_sale_id_fkey(product_name_snapshot,quantity,unit_price,line_total)').eq('store_id',store.id).order('sold_at',{ascending:false}).limit(100),isOwner?db.from('expenses').select('*').eq('store_id',store.id).order('expense_date',{ascending:false}).limit(100):Promise.resolve({data:[],error:null}),isOwner?db.from('stock_movements').select('*').eq('store_id',store.id).eq('movement_type','purchase').order('purchase_date',{ascending:false}).limit(100):Promise.resolve({data:[],error:null})]);for(const r of [p,s,x,m])if(r.error)throw r.error;products=p.data||[];sales=s.data||[];expenses=x.data||[];movements=m.data||[];await localReplace('products',products);renderAll();if(!$('sales').classList.contains('hidden')){await Promise.all([loadDailySales(),loadRecentSalesHistory()]);}if(isOwner){try{await loadBusinessReport();await loadStaff();await loadCashFlow();await loadFinancialPosition();await loadBusinessLoans()}catch(error){console.warn('Owner reports/staff/cash flow unavailable',error)}}await renderPendingSales();clearMessage('appMsg')}
+async function refreshAll(){
+ if(!store)return;
+ const isOwner=store.owner_id===user.id;
+ $('cashFlowPanel').classList.toggle('hidden',!isOwner);
+ // Load products independently first. A failure in sales/expenses/stock queries
+ // must never leave the product picker stuck on its initial loading placeholder.
+ const p=await db.from('products').select('*').eq('store_id',store.id).eq('is_active',true).order('name');
+ if(p.error)throw p.error;
+ products=p.data||[];
+ try{await localReplace('products',products)}catch(cacheError){console.warn('AMWEMARI product cache update failed:',cacheError)}
+ renderAll();
+ const [s,x,m]=await Promise.all([
+  db.from('sales').select('*,sale_items!sale_items_sale_id_fkey(product_name_snapshot,quantity,unit_price,line_total)').eq('store_id',store.id).order('sold_at',{ascending:false}).limit(100),
+  isOwner?db.from('expenses').select('*').eq('store_id',store.id).order('expense_date',{ascending:false}).limit(100):Promise.resolve({data:[],error:null}),
+  isOwner?db.from('stock_movements').select('*').eq('store_id',store.id).eq('movement_type','purchase').order('purchase_date',{ascending:false}).limit(100):Promise.resolve({data:[],error:null})
+ ]);
+ for(const r of [s,x,m])if(r.error)throw r.error;
+ sales=s.data||[];expenses=x.data||[];movements=m.data||[];
+ renderAll();
+ if(!$('sales').classList.contains('hidden')){await Promise.all([loadDailySales(),loadRecentSalesHistory()]);}
+ if(isOwner){try{await loadBusinessReport();await loadStaff();await loadCashFlow();await loadFinancialPosition();await loadBusinessLoans()}catch(error){console.warn('Owner reports/staff/cash flow unavailable',error)}}
+ await renderPendingSales();clearMessage('appMsg');
+}
 
 async function loadCashFlow(){
  if(!store||store.owner_id!==user.id)return;
