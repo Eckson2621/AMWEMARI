@@ -838,21 +838,41 @@ function renderSaleCreditCustomerPicker(){
  const rows=saleCreditCustomers.filter(c=>(String(c.full_name||'')+' '+String(c.phone||'')).toLocaleLowerCase().includes(term));
  list.innerHTML=rows.length?rows.map(c=>'<button type="button" data-sale-customer-pick="'+esc(c.id)+'"><strong>'+esc(c.full_name)+'</strong><br><small class="muted">'+esc(c.phone&&String(c.phone).toLowerCase()!=='null'?c.phone:'Hakuna namba ya simu')+'</small></button>').join(''):'<p class="muted">Hakuna mteja anayelingana na utafutaji.</p>';
 }
+async function ensureSaleStoreLoaded(){
+ if(store)return store;
+ if(!user)throw new Error('Akaunti haijapakiwa. Ingia tena.');
+ if(isSuperAdmin){
+  const {data,error}=await db.from('stores').select('*').eq('owner_id',user.id).order('created_at',{ascending:true}).limit(1).maybeSingle();
+  if(error)throw error;
+  if(!data)throw new Error('Hakuna biashara iliyounganishwa na akaunti hii ya Super Admin.');
+  store=data;
+  $('storeLabel').textContent=store.name;
+  if($('storeName'))$('storeName').value=store.name;
+  return store;
+ }
+ await loadStore();
+ if(!store)throw new Error('Taarifa za biashara hazijapakiwa. Hakikisha akaunti imefungua biashara sahihi kisha jaribu tena.');
+ return store;
+}
 async function loadSaleCreditCustomers(){
- const select=$('saleCreditCustomer');if(!select||!store)return;
+ const select=$('saleCreditCustomer');if(!select)return;
+ const activeStore=await ensureSaleStoreLoaded();
  const selected=select.value;
- const {data,error}=await db.from('customers').select('id,full_name,phone').eq('store_id',store.id).order('full_name');
+ const {data,error}=await db.from('customers').select('id,full_name,phone').eq('store_id',activeStore.id).order('full_name');
  if(error)throw error;
  saleCreditCustomers=data||[];
  select.innerHTML='<option value="">Chagua mteja aliyesajiliwa</option>'+saleCreditCustomers.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.full_name)+'</option>').join('');
  if(saleCreditCustomers.some(c=>String(c.id)===String(selected)))select.value=selected;
  renderSaleCreditCustomerPicker();
 }
-function openSaleCreditCustomerPicker(){
+async function openSaleCreditCustomerPicker(){
  const modal=$('saleCreditCustomerPicker');if(!modal)return;
  if($('saleCreditCustomerSearch'))$('saleCreditCustomerSearch').value='';
- renderSaleCreditCustomerPicker();
+ const list=$('saleCreditCustomerPickerList');
+ if(list)list.innerHTML='<p class="muted">Inapakia wateja...</p>';
  modal.classList.remove('hidden');modal.setAttribute('aria-hidden','false');
+ try{await loadSaleCreditCustomers();}
+ catch(error){console.error('Customer picker load failed:',error);if(list)list.innerHTML='<p class="error">Wateja hawajapakiwa: '+esc(error.message||String(error))+'</p>';}
 }
 function closeSaleCreditCustomerPicker(){
  const modal=$('saleCreditCustomerPicker');if(modal){modal.classList.add('hidden');modal.setAttribute('aria-hidden','true');}
@@ -920,8 +940,8 @@ async function openSaleProductPicker(){
  list.innerHTML='<p class="muted">Inapakia bidhaa kutoka kwenye biashara...</p>';
  if($('saleProductSearch'))$('saleProductSearch').value='';
  try{
-  if(!store)throw new Error('Biashara haijapakiwa. Toka kisha ingia tena ukiwa na intaneti.');
-  const {data,error}=await db.from('products').select('*').eq('store_id',store.id).eq('is_active',true).order('name');
+  const activeStore=await ensureSaleStoreLoaded();
+  const {data,error}=await db.from('products').select('*').eq('store_id',activeStore.id).eq('is_active',true).order('name');
   if(error)throw error;
   products=data||[];
   syncProductSelect('saleProduct',products,true);
