@@ -849,18 +849,10 @@ async function refreshSaleProductOptions(){
    return;
   }
   if(!select.options.length)select.innerHTML='<option value="">Chagua bidhaa</option>';
-  renderSaleProductQuickPick();
   if(status)status.textContent='Bidhaa hazijapakiwa: '+(error.message||error);
   throw error;
  }
 }
-$('saleProductSearch')?.addEventListener('input',renderSaleProductQuickPick);
-$('saleProductQuickPick')?.addEventListener('click',e=>{
- const button=e.target.closest('[data-sale-pick]');if(!button)return;
- const select=$('saleProduct');if(!select)return;
- select.value=button.dataset.salePick;updateSalePrice();
- select.dispatchEvent(new Event('change',{bubbles:true}));
-});
 document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.page));if(b.dataset.page==='debts')loadDebts();if(b.dataset.page==='sales'){loadDailySales();loadRecentSalesHistory();refreshSaleProductOptions().catch(error=>console.error('AMWEMARI sales products:',error));}if(b.dataset.page==='purchases'&&store&&store.owner_id===user.id)loadBusinessLoans()}));
 async function refreshAll(){
  if(!store)return;
@@ -1198,7 +1190,7 @@ function syncProductSelect(id,rows,includeStock){
  else if(id==='saleProduct')el.value='';
  else if(rows.length)el.selectedIndex=0;
 }
-function renderAll(){const ts=todayRows(sales,'sold_at'),te=todayRows(expenses,'expense_date'),sum=ts.reduce((a,b)=>a+Number(b.total),0),ex=te.reduce((a,b)=>a+Number(b.amount),0);$('todaySales').textContent=money(sum);$('todayCount').textContent=ts.length;$('productCount').textContent=products.length;$('lowStock').textContent=products.filter(p=>Number(p.quantity)<=Number(p.reorder_level)).length;$('lowStockList').innerHTML=lowStockTable();$('reportSales').textContent=money(sum);$('reportExpenses').textContent=money(ex);$('reportNet').textContent=money(sum-ex);$('recentSales').innerHTML=salesTable(ts.slice(0,6));$('salesTable').innerHTML=salesTable(sales);const ownRows=sales.filter(s=>s.sold_by===user?.id);$('mySalesSummary').textContent='Mauzo yangu yaliyopakiwa: '+ownRows.length+' · Jumla '+money(ownRows.reduce((a,s)=>a+Number(s.total),0))+' · Imepokelewa '+money(ownRows.reduce((a,s)=>a+Number(s.amount_paid),0))+' · Salio '+money(ownRows.reduce((a,s)=>a+Math.max(0,Number(s.total)-Number(s.amount_paid)),0));$('productsTable').innerHTML=productsTable();$('expensesTable').innerHTML=expensesTable();syncProductSelect('saleProduct',products,true);syncProductSelect('purchaseProduct',products,false);renderSaleProductQuickPick();updateSalePrice();updatePurchasePreview();renderCart();$('purchasesTable').innerHTML=purchasesTable()}
+function renderAll(){const ts=todayRows(sales,'sold_at'),te=todayRows(expenses,'expense_date'),sum=ts.reduce((a,b)=>a+Number(b.total),0),ex=te.reduce((a,b)=>a+Number(b.amount),0);$('todaySales').textContent=money(sum);$('todayCount').textContent=ts.length;$('productCount').textContent=products.length;$('lowStock').textContent=products.filter(p=>Number(p.quantity)<=Number(p.reorder_level)).length;$('lowStockList').innerHTML=lowStockTable();$('reportSales').textContent=money(sum);$('reportExpenses').textContent=money(ex);$('reportNet').textContent=money(sum-ex);$('recentSales').innerHTML=salesTable(ts.slice(0,6));$('salesTable').innerHTML=salesTable(sales);const ownRows=sales.filter(s=>s.sold_by===user?.id);$('mySalesSummary').textContent='Mauzo yangu yaliyopakiwa: '+ownRows.length+' · Jumla '+money(ownRows.reduce((a,s)=>a+Number(s.total),0))+' · Imepokelewa '+money(ownRows.reduce((a,s)=>a+Number(s.amount_paid),0))+' · Salio '+money(ownRows.reduce((a,s)=>a+Math.max(0,Number(s.total)-Number(s.amount_paid)),0));$('productsTable').innerHTML=productsTable();$('expensesTable').innerHTML=expensesTable();syncProductSelect('saleProduct',products,true);syncProductSelect('purchaseProduct',products,false);updateSalePrice();updatePurchasePreview();renderCart();$('purchasesTable').innerHTML=purchasesTable()}
 async function loadRecentSalesHistory(){
  const host=$('recentSalesHistory');
  if(!store||!host)return;
