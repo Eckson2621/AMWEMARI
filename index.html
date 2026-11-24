@@ -1117,7 +1117,7 @@ function stockDisplay(p){const q=Number(p.quantity||0),u=Math.max(1,Number(p.uni
 function syncProductSelect(id,rows,includeStock){
  const el=$(id);if(!el)return;
  const selected=el.value;
- const signature=rows.map(p=>[p.id,p.name,p.quantity,p.base_unit,p.units_per_pack,p.pack_name,p.is_active].join('|')).join('~')+'|stock:'+!!includeStock;
+ const signature=rows.map(p=>[p.id,p.name,p.quantity,p.base_unit,p.units_per_pack,p.pack_name,p.wholesale_pack_price,p.is_active].join('|')).join('~')+'|stock:'+!!includeStock;
  if(el.dataset.optionsSignature===signature)return;
   const nameCounts=new Map();rows.forEach(p=>{const key=String(p.name||'').trim().toLowerCase();nameCounts.set(key,(nameCounts.get(key)||0)+1)});
   const options=rows.map(p=>{
