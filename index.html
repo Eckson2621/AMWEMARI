@@ -70,6 +70,7 @@
 .cyber-lab-stat div{padding:12px;border-radius:11px;background:#102d46}.cyber-lab-stat b{display:block;font-size:22px}.cyber-lab-stat span{font-size:11px;color:#a9c5d8}
 @media(max-width:520px){.cyber-lab-panel{padding:12px}.cyber-lab-stat{grid-template-columns:1fr 1fr 1fr}.cyber-lab-actions button{width:100%}}
 
+ .amw-page-heading{justify-content:flex-start;gap:12px;margin-bottom:14px}.amw-page-heading h2{margin:0;flex:1}.amw-page-back{flex:0 0 auto;white-space:nowrap}
 </style></head>
 <body>
 <div id="authView" class="wrap auth">
@@ -471,7 +472,7 @@ async function signOut(){
 async function boot(){
  const {data:{session}}=await db.auth.getSession();const u=session?.user;if(!u)return;
  user=u;accountAccess=null;await checkSuperAdmin();
- $('authView').classList.add('hidden');$('appView').classList.remove('hidden');translateStatic();$('userLabel').textContent=u.user_metadata?.full_name||u.email;
+ $('authView').classList.add('hidden');$('appView').classList.remove('hidden');window.translateStatic?.();$('userLabel').textContent=u.user_metadata?.full_name||u.email;
  if(!isSuperAdmin){
   if(!navigator.onLine){message('appMsg','Unganisha intaneti ili kuthibitisha idhini na hali ya akaunti kabla ya kuendelea.',true);return;}
   try{
@@ -833,24 +834,28 @@ function renderSaleProductQuickPick(){
 async function refreshSaleProductOptions(){
  const select=$('saleProduct'),status=$('saleActionStatus');
  if(!store||!select)return;
- select.innerHTML='<option value="">Inapakia bidhaa...</option>';
+ const storeId=String(store.id);
+ const inMemory=(products||[]).filter(p=>String(p.store_id)===storeId&&p.is_active!==false);
  if(status)status.textContent='Inapakia orodha ya bidhaa...';
  try{
   const {data,error}=await db.from('products').select('*').eq('store_id',store.id).order('name');
   if(error)throw error;
-  products=(data||[]).filter(p=>p.is_active!==false);
+  const fresh=(data||[]).filter(p=>p.is_active!==false);
+  products=fresh.length||!inMemory.length?fresh:inMemory;
   syncProductSelect('saleProduct',products,true);
   renderSaleProductQuickPick();
   updateSalePrice();
   if(status)status.textContent=products.length?'Bidhaa '+products.length+' zimepakiwa. Chagua kwenye orodha au tumia utafutaji.':'Hakuna bidhaa hai kwenye biashara hii. Kagua sehemu ya Bidhaa/Stock.';
  }catch(error){
-  const cached=(await window.localAll('products').catch(()=>[])).filter(p=>p.store_id===store.id&&p.is_active!==false);
-  if(cached.length){
-   products=cached;syncProductSelect('saleProduct',products,true);renderSaleProductQuickPick();updateSalePrice();
-   if(status)status.textContent='Orodha ya mtandaoni haikupatikana; bidhaa '+products.length+' zimeonyeshwa kutoka kwenye cache ya kifaa. '+(error.message||error);
+  let cached=[];
+  try{if(typeof window.localAll==='function')cached=(await window.localAll('products')||[]).filter(p=>String(p.store_id)===storeId&&p.is_active!==false);}catch(cacheError){console.warn('AMWEMARI product cache unavailable:',cacheError)}
+  const usable=cached.length?cached:inMemory;
+  if(usable.length){
+   products=usable;syncProductSelect('saleProduct',products,true);renderSaleProductQuickPick();updateSalePrice();
+   if(status)status.textContent='Orodha ya mtandaoni haikupatikana; bidhaa '+products.length+' zimeonyeshwa kutoka kwenye orodha iliyohifadhiwa. '+(error.message||error);
    return;
   }
-  select.innerHTML='<option value="">Bidhaa hazijapakiwa</option>';
+  if(!select.options.length)select.innerHTML='<option value="">Bidhaa hazijapakiwa</option>';
   renderSaleProductQuickPick();
   if(status)status.textContent='Bidhaa hazijapakiwa: '+(error.message||error);
   throw error;
@@ -1891,7 +1896,7 @@ const cash=v=>typeof money==='function'?money(v):Number(v||0).toLocaleString();
 const isOwner=()=>!!(store&&user&&store.owner_id===user.id);
 const currentType=()=>{const s=String(store?.business_type||'other').toLowerCase();if(profiles[s])return s;const map=[['vinywaji','beverages'],['bites','beverages'],['vyakula','grocery'],['grocery','grocery'],['nguo','clothing'],['electronics','electronics'],['elektron','electronics'],['hardware','hardware'],['pikipiki','motorcycles'],['magari','cars'],['restaurant','restaurant'],['mgahawa','restaurant'],['dawa','pharmacy'],['pharmacy','pharmacy'],['vipuri','auto_parts'],['salon','salon'],['saluni','salon'],['samani','furniture'],['stationery','stationery'],['kilimo','agriculture'],['mifugo','livestock'],['ujenzi','construction'],['huduma','services']];return map.find(([k])=>s.includes(k))?.[1]||'other';};
 const say=(id,msg,bad=false)=>{const el=$id(id);if(el){el.textContent=msg;el.classList.toggle('error',bad);el.classList.toggle('success',!bad)}};
-function addPage(id,title,html){if($id(id))return;const sec=document.createElement('section');sec.id=id;sec.className='page hidden';sec.innerHTML='<div class="row"><h2>'+title+'</h2><span class="amw-pill" id="'+id+'Status">Ready</span></div>'+html;$id('workspace').appendChild(sec);}
+function addPage(id,title,html){if($id(id))return;const sec=document.createElement('section');sec.id=id;sec.className='page hidden';const back=id==='business_tools'?'':'<button type="button" class="secondary amw-page-back" data-amw-back="business_tools">← Rudi kwenye moduli</button>';sec.innerHTML='<div class="row amw-page-heading">'+back+'<h2>'+title+'</h2><span class="amw-pill" id="'+id+'Status">Ready</span></div>'+html;$id('workspace').appendChild(sec);}
 function addNav(id,label){if(document.querySelector('[data-page="'+id+'"]'))return;const b=document.createElement('button');b.type='button';b.dataset.page=id;b.textContent=label;$id('amwExtraNav').appendChild(b);}
 function setupPages(){
  const nav=document.querySelector('nav.tabs');if(!nav)return;
@@ -2512,7 +2517,7 @@ function init(){
  document.addEventListener('click',e=>{const b=e.target.closest('[data-page="business_tools"]');if(b)loadBusinessProfile().catch(()=>{});});
  const origRefresh=window.refreshAll;
  if(typeof origRefresh==='function'&&!origRefresh.__amwExtra){const wrapped=async function(...args){const r=await origRefresh.apply(this,args);if(store&&navigator.onLine)await loadExtraData();return r};wrapped.__amwExtra=true;window.refreshAll=wrapped;}
- if(store){loadExtraData().catch(()=>{});addLanguage();translateStatic();}
+ if(store){loadExtraData().catch(()=>{});addLanguage();window.translateStatic?.();}
  $id('amwLoanPaidAt').value=new Date().toISOString().slice(0,10);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
