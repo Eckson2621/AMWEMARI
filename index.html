@@ -1338,7 +1338,7 @@ async function loadDailySales(){
  try{
   let rows=[];
   for(let offset=0;;offset+=1000){
-   const page=await db.from('sales').select('*,sale_items!sale_items_sale_id_fkey(product_name_snapshot,quantity,unit_price,line_total)').eq('store_id',store.id).gte('sold_at',start).lt('sold_at',end).order('sold_at',{ascending:false}).range(offset,offset+999);
+   const page=await db.from('sales').select('*,sale_items!sale_items_sale_id_fkey(product_name_snapshot,quantity,unit_price,line_total)').eq('store_id',store.id).eq('status','completed').gte('sold_at',start).lt('sold_at',end).order('sold_at',{ascending:false}).range(offset,offset+999);
    if(page.error)throw page.error;
    rows.push(...(page.data||[]));
    if((page.data||[]).length<1000)break;
