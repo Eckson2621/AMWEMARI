@@ -826,6 +826,23 @@ async function loadSubscription(){
 }
 async function handleSubscriptionReturn(){}
 $('storeForm').addEventListener('submit',async e=>{e.preventDefault();const payload={name:$('storeName').value.trim(),business_type:$('storeType').value.trim()||null,phone:$('storePhone').value.trim()||null,address:$('storeAddress').value.trim()||null,owner_id:user.id,currency_code:'TZS',timezone:'Africa/Dar_es_Salaam'};const {data,error}=await db.from('stores').insert(payload).select().single();if(error){message('appMsg',error.message,true);return}store=data;await loadStore()});
+async function loadSaleCreditCustomers(){
+ const select=$('saleCreditCustomer');
+ if(!select||!store)return;
+ const selected=select.value;
+ const {data,error}=await db.from('customers').select('id,full_name,phone').eq('store_id',store.id).order('full_name');
+ if(error)throw error;
+ const rows=data||[];
+ const signature=rows.map(c=>[c.id,c.full_name,c.phone||''].join('|')).join('~');
+ if(select.dataset.customerOptionsSignature===signature)return;
+ const html='<option value="">Chagua mteja aliyesajiliwa</option>'+rows.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.full_name)+(c.phone&&String(c.phone).toLowerCase()!=='null'?' · '+esc(c.phone):'')+'</option>').join('');
+ // Update only when the native Android select is not active; never rebuild it mid-selection.
+ if(document.activeElement!==select){
+  select.innerHTML=html;
+  select.dataset.customerOptionsSignature=signature;
+  if(rows.some(c=>String(c.id)===String(selected)))select.value=selected;
+ }
+}
 async function refreshSaleProductOptions(){
  const select=$('saleProduct'),status=$('saleActionStatus');
  if(!select)return;
@@ -872,10 +889,25 @@ function renderSaleProductPicker(){
  list.innerHTML=rows.length?rows.map(p=>'<button type="button" data-sale-pick="'+esc(p.id)+'"><strong>'+esc(p.name)+'</strong><br><small class="muted">Stock: '+esc(stockDisplay(p))+' · Rejareja: '+money(p.selling_price)+' · Jumla: '+money(p.wholesale_pack_price)+'</small></button>').join(''):'<p class="muted small">Hakuna bidhaa inayolingana na utafutaji.</p>';
 }
 async function openSaleProductPicker(){
- const modal=$('saleProductPicker');if(!modal)return;
- if(store){try{await refreshSaleProductOptions()}catch(error){console.warn('Product picker refresh:',error)}}
+ const modal=$('saleProductPicker'),list=$('saleProductPickerList');if(!modal||!list)return;
+ modal.classList.remove('hidden');modal.setAttribute('aria-hidden','false');
+ list.innerHTML='<p class="muted">Inapakia bidhaa kutoka kwenye biashara...</p>';
  if($('saleProductSearch'))$('saleProductSearch').value='';
- renderSaleProductPicker();modal.classList.remove('hidden');modal.setAttribute('aria-hidden','false');
+ try{
+  if(!store)throw new Error('Biashara haijapakiwa. Toka kisha ingia tena ukiwa na intaneti.');
+  const {data,error}=await db.from('products').select('*').eq('store_id',store.id).eq('is_active',true).order('name');
+  if(error)throw error;
+  products=data||[];
+  syncProductSelect('saleProduct',products,true);
+  updateSalePrice();
+  renderSaleProductPicker();
+  if(!products.length)list.innerHTML='<p class="muted">Hakuna bidhaa hai zilizopatikana kwa biashara hii (ID: '+esc(store.id)+'). Kagua biashara iliyofunguliwa.</p>';
+ }catch(error){
+  console.error('Product picker load failed:',error);
+  const cached=(products||[]).filter(p=>p.is_active!==false);
+  if(cached.length){renderSaleProductPicker();}
+  else list.innerHTML='<p class="error">Bidhaa hazijapakiwa: '+esc(error.message||String(error))+'</p>';
+ }
  $('saleProductSearch')?.focus();
 }
 function closeSaleProductPicker(){ const modal=$('saleProductPicker');if(modal){modal.classList.add('hidden');modal.setAttribute('aria-hidden','true');} }
@@ -891,7 +923,7 @@ $('saleProductPickerList')?.addEventListener('click',e=>{
  renderSaleProductPicker();closeSaleProductPicker();
 });
 
-document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.page));if(b.dataset.page==='debts')loadDebts();if(b.dataset.page==='sales'){loadDailySales();loadRecentSalesHistory();refreshSaleProductOptions().catch(error=>console.error('AMWEMARI sales products:',error));}if(b.dataset.page==='purchases'&&store&&store.owner_id===user.id)loadBusinessLoans()}));
+document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.page));if(b.dataset.page==='debts')loadDebts();if(b.dataset.page==='sales'){loadDailySales();loadRecentSalesHistory();refreshSaleProductOptions().catch(error=>console.error('AMWEMARI sales products:',error));loadSaleCreditCustomers().catch(error=>{console.error('AMWEMARI customer picker:',error);const el=$('saleCreditCustomer');if(el)el.innerHTML='<option value="">Imeshindikana kupakia wateja: '+esc(error.message||String(error))+'</option>'})}if(b.dataset.page==='purchases'&&store&&store.owner_id===user.id)loadBusinessLoans()}));
 async function refreshAll(){
  if(!store)return;
  const isOwner=store.owner_id===user.id;
