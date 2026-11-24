@@ -1903,14 +1903,48 @@ async function loadLoanRepayments(){
 }
 async function loadBusinessProfile(){
  const p=profiles[currentType()]||profiles.other;
+ const allMods=[...new Set(p.mods)];
+ const names={products:'Bidhaa/Stock',purchases:'Manunuzi',sales:'Mauzo',customers:'Wateja',suppliers:'Suppliers',expenses:'Matumizi',staff:'Wafanyakazi',reports:'Ripoti',service_appointments:'Appointments',service_jobs:'Service jobs',business_projects:'Miradi'};
+ const key='amwemari_modules_'+String(store?.id||'');
+ let selected=allMods.slice();
+ if(currentType()==='other'){
+  try{const saved=JSON.parse(localStorage.getItem(key)||'null');if(Array.isArray(saved))selected=allMods.filter(m=>saved.includes(m));}catch(e){console.warn('Module preferences unavailable:',e)}
+  if(!selected.length)selected=allMods.slice(0,8);
+ }
+ const renderCards=()=>{
+  $id('amwProfileModules').innerHTML=selected.map(m=>'<div class="card amw-module-card"><strong>'+safe(names[m]||m)+'</strong><p class="muted small">Fungua sehemu hii moja kwa moja.</p><button type="button" class="secondary" data-module-open="'+safe(m)+'">Fungua moduli →</button></div>').join('')||'<p class="notice">Hujachagua moduli. Chagua angalau moja hapo juu.</p>';
+ };
  $id('amwProfileTitle').textContent=p.label+' — modules';
  $id('amwProfileFeatures').textContent=p.features;
- const names={products:'Bidhaa/Stock',purchases:'Manunuzi',sales:'Mauzo',customers:'Wateja',suppliers:'Suppliers',expenses:'Matumizi',staff:'Wafanyakazi',reports:'Ripoti',service_appointments:'Appointments',service_jobs:'Service jobs',business_projects:'Miradi'};
- $id('amwProfileModules').innerHTML=p.mods.map(m=>'<div class="card amw-module-card"><strong>'+safe(names[m]||m)+'</strong><p class="muted small">Fungua sehemu hii moja kwa moja.</p><button type="button" class="secondary" data-module-open="'+safe(m)+'">Fungua moduli →</button></div>').join('');
  const moduleBox=$id('amwProfileModules');
- if(moduleBox&&!moduleBox.dataset.launchBound){moduleBox.dataset.launchBound='1';moduleBox.addEventListener('click',e=>{const launch=e.target.closest('[data-module-open]');if(!launch)return;const page=launch.dataset.moduleOpen;const navButton=document.querySelector('[data-page="'+page+'"]');if(navButton)navButton.click();});}
- // Hide only optional specialist tabs that do not apply; core modules remain shared.
- ['customers','suppliers','service_appointments','service_jobs','business_projects'].forEach(m=>{const b=document.querySelector('[data-page="'+m+'"]');if(b)b.classList.toggle('hidden',!p.mods.includes(m));});const loanTab=document.querySelector('[data-page="loan_repayments"]');if(loanTab)loanTab.classList.toggle('hidden',!isOwner());
+ if(currentType()==='other'){
+  let picker=$id('amwModulePicker');
+  if(!picker){
+   picker=document.createElement('div');picker.id='amwModulePicker';picker.className='panel';
+   picker.innerHTML='<h3>Chagua moduli za biashara yako</h3><p class="muted small">Weka tiki kwenye sehemu unazotumia. Unaweza kubadilisha uchaguzi wakati wowote.</p><div id="amwModuleChoices" class="grid"></div><button type="button" id="amwSaveModules">Hifadhi uchaguzi</button><p id="amwModuleSaveMsg" class="notice" aria-live="polite"></p>';
+   moduleBox.parentElement.insertBefore(picker,moduleBox);
+  }
+  $id('amwModuleChoices').innerHTML=allMods.map(m=>'<label class="amw-module-choice"><input type="checkbox" value="'+safe(m)+'" '+(selected.includes(m)?'checked':'')+'> '+safe(names[m]||m)+'</label>').join('');
+  const save=$id('amwSaveModules');
+  if(!save.dataset.bound){save.dataset.bound='1';save.addEventListener('click',()=>{
+   const chosen=Array.from($id('amwModuleChoices').querySelectorAll('input:checked')).map(x=>x.value);
+   if(!chosen.length){say('amwModuleSaveMsg','Chagua angalau moduli moja.',true);return;}
+   selected=allMods.filter(m=>chosen.includes(m));
+   try{localStorage.setItem(key,JSON.stringify(selected));say('amwModuleSaveMsg','Uchaguzi wa moduli umehifadhiwa kwenye kifaa hiki.');}catch(e){say('amwModuleSaveMsg','Imeshindikana kuhifadhi uchaguzi kwenye kifaa hiki.',true)}
+   applyVisibility();renderCards();
+  });}
+ }else{
+  const picker=$id('amwModulePicker');if(picker)picker.classList.add('hidden');
+ }
+ function applyVisibility(){
+  ['products','purchases','sales','customers','suppliers','expenses','staff','reports','service_appointments','service_jobs','business_projects'].forEach(m=>{
+   const b=document.querySelector('[data-page="'+m+'"]');
+   if(b)b.classList.toggle('hidden',!selected.includes(m)||(['purchases','expenses','reports','staff'].includes(m)&&!isOwner()));
+  });
+  const loanTab=document.querySelector('[data-page="loan_repayments"]');if(loanTab)loanTab.classList.toggle('hidden',!isOwner());
+ }
+ if(moduleBox&&!moduleBox.dataset.launchBound){moduleBox.dataset.launchBound='1';moduleBox.addEventListener('click',e=>{const launch=e.target.closest('[data-module-open]');if(!launch)return;const navButton=document.querySelector('[data-page="'+launch.dataset.moduleOpen+'"]');if(navButton)navButton.click();});}
+ applyVisibility();renderCards();
 }
 async function loadExtraData(){
  if(!store||!navigator.onLine)return;
