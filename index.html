@@ -2085,8 +2085,12 @@ function addLanguage(){
  $id('amwLangEn').onclick=()=>apply('en');
  translateStatic();
  if(!window.__amwLanguageObserver){
+  let translationTimer=null;
   window.__amwLanguageObserver=new MutationObserver(records=>{
-   if(records.some(record=>record.addedNodes.length))translateStatic();
+   if(!records.some(record=>record.addedNodes.length))return;
+   // Coalesce bursts of dashboard DOM updates into one translation pass.
+   clearTimeout(translationTimer);
+   translationTimer=setTimeout(()=>{translationTimer=null;translateStatic()},180);
   });
   window.__amwLanguageObserver.observe(document.body,{childList:true,subtree:true});
  }
@@ -2195,10 +2199,9 @@ function init(){
  if(!$id('workspace'))return;
  setupPages();bindForms();addLanguage();
  amwGuideInit();
- const oldLoadStore=window.loadStore;
- // Patch only after original store loader has finished, without replacing its core logic.
- const observer=new MutationObserver(()=>{if(store&&$id('amwProfileTitle')){loadBusinessProfile().catch(()=>{});loadExtraData().catch(()=>{});translateStatic();addLanguage();}});
- observer.observe($id('storeLabel'),{childList:true,subtree:true});
+ // refreshAll is wrapped below to load optional modules once after core data finishes.
+ // Do not observe storeLabel: loadStore changes it during startup and the observer
+ // caused a second concurrent load of every optional module.
  document.addEventListener('click',e=>{const b=e.target.closest('[data-page="business_tools"]');if(b)loadBusinessProfile().catch(()=>{});});
  const origRefresh=window.refreshAll;
  if(typeof origRefresh==='function'&&!origRefresh.__amwExtra){const wrapped=async function(...args){const r=await origRefresh.apply(this,args);if(store&&navigator.onLine)await loadExtraData();return r};wrapped.__amwExtra=true;window.refreshAll=wrapped;}
