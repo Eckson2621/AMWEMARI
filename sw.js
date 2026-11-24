@@ -31,7 +31,7 @@ self.addEventListener('fetch',event=>{
  const request=event.request;
  if(request.method!=='GET')return;
  const url=new URL(request.url);
- if(url.origin!==self.location.origin&&url.hostname!=='cdn.jsdelivr.net')return;
+ if(url.origin!==self.location.origin&&url.hostname!=='unpkg.com')return;
 
  // Always check the network first for the app page so users receive the latest fix.
  const isAppPage=request.mode==='navigate'||url.pathname==='/'||url.pathname.endsWith('.html');
