@@ -448,7 +448,7 @@ async function signOut(){
 async function boot(){
  const {data:{session}}=await db.auth.getSession();const u=session?.user;if(!u)return;
  user=u;accountAccess=null;await checkSuperAdmin();
- $('authView').classList.add('hidden');$('appView').classList.remove('hidden');$('userLabel').textContent=u.user_metadata?.full_name||u.email;
+ $('authView').classList.add('hidden');$('appView').classList.remove('hidden');translateStatic();$('userLabel').textContent=u.user_metadata?.full_name||u.email;
  if(!isSuperAdmin){
   if(!navigator.onLine){message('appMsg','Unganisha intaneti ili kuthibitisha idhini na hali ya akaunti kabla ya kuendelea.',true);return;}
   try{
@@ -2032,7 +2032,7 @@ function translateAmwText(value){
  return translated===trimmed?value:value.replace(trimmed,translated);
 }
 function translateStatic(){
- const roots=[$id('authView'),$id('appView')].filter(Boolean);
+ const roots=[$id('authView'),$id('appView')].filter(root=>root&&!root.classList.contains('hidden'));
  roots.forEach(root=>{
   const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
   let node;
