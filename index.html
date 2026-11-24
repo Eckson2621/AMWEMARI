@@ -2153,6 +2153,8 @@ function translateStatic(){
  if(sw)sw.classList.toggle('active',lang==='sw');
  if(en)en.classList.toggle('active',lang==='en');
 }
+// Expose the translator to the authentication/bootstrap script, which runs in a separate IIFE.
+window.translateStatic=translateStatic;
 function addLanguage(){
  if(!$id('amwLangBar')){
   const bar=document.createElement('div');bar.id='amwLangBar';
