@@ -1839,7 +1839,7 @@ async function loadBusinessProfile(){
  const names={products:'Bidhaa/Stock',purchases:'Manunuzi',sales:'Mauzo',customers:'Wateja',suppliers:'Suppliers',expenses:'Matumizi',staff:'Wafanyakazi',reports:'Ripoti',service_appointments:'Appointments',service_jobs:'Service jobs',business_projects:'Miradi'};
  $id('amwProfileModules').innerHTML=p.mods.map(m=>'<div class="card amw-module-card"><strong>'+safe(names[m]||m)+'</strong><p class="muted small">Fungua sehemu hii moja kwa moja.</p><button type="button" class="secondary" data-module-open="'+safe(m)+'">Fungua moduli →</button></div>').join('');
  const moduleBox=$id('amwProfileModules');
- if(moduleBox&&!moduleBox.dataset.launchBound){moduleBox.dataset.launchBound='1';moduleBox.addEventListener('click',e=>{const launch=e.target.closest('[data-module-open]');if(!launch)return;const page=launch.dataset.moduleOpen;const navButton=document.querySelector('[data-page="'+page+'"]');if(navButton&&!navButton.classList.contains('hidden'))navButton.click();else{const target=$id(page);if(target){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x!==target));document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===page));}}});}
+ if(moduleBox&&!moduleBox.dataset.launchBound){moduleBox.dataset.launchBound='1';moduleBox.addEventListener('click',e=>{const launch=e.target.closest('[data-module-open]');if(!launch)return;const page=launch.dataset.moduleOpen;const navButton=document.querySelector('[data-page="'+page+'"]');if(navButton)navButton.click();});}
  // Hide only optional specialist tabs that do not apply; core modules remain shared.
  ['customers','suppliers','service_appointments','service_jobs','business_projects'].forEach(m=>{const b=document.querySelector('[data-page="'+m+'"]');if(b)b.classList.toggle('hidden',!p.mods.includes(m));});const loanTab=document.querySelector('[data-page="loan_repayments"]');if(loanTab)loanTab.classList.toggle('hidden',!isOwner());
 }
@@ -2333,6 +2333,26 @@ function init(){
  // refreshAll is wrapped below to load optional modules once after core data finishes.
  // Do not observe storeLabel: loadStore changes it during startup and the observer
  // caused a second concurrent load of every optional module.
+ // Give every opened workspace page a clear way back to the screen it came from.
+ if(!document.body.dataset.amwBackBound){
+  document.body.dataset.amwBackBound='1';
+  document.addEventListener('click',e=>{
+   const back=e.target.closest('[data-amw-back]');
+   if(back){const destination=back.dataset.amwBack;const nav=document.querySelector('[data-page="'+destination+'"]');if(nav){window.__amwBackNav=true;nav.click();}return;}
+   if(window.__amwBackNav){window.__amwBackNav=false;return;}
+   const nav=e.target.closest('[data-page]');
+   if(!nav)return;
+   const current=document.querySelector('.page:not(.hidden)');
+   const from=current?.id;
+   const target=$id(nav.dataset.page);
+   if(!from||from===nav.dataset.page||!target)return;
+   const row=target.querySelector('.row');
+   if(!row)return;
+   let backButton=row.querySelector('[data-amw-back]');
+   if(!backButton){backButton=document.createElement('button');backButton.type='button';backButton.className='secondary';backButton.textContent='← Rudi nyuma';row.insertBefore(backButton,row.firstChild);}
+   backButton.dataset.amwBack=from;
+  },true);
+ }
  document.addEventListener('click',e=>{const b=e.target.closest('[data-page="business_tools"]');if(b)loadBusinessProfile().catch(()=>{});});
  const origRefresh=window.refreshAll;
  if(typeof origRefresh==='function'&&!origRefresh.__amwExtra){const wrapped=async function(...args){const r=await origRefresh.apply(this,args);if(store&&navigator.onLine)await loadExtraData();return r};wrapped.__amwExtra=true;window.refreshAll=wrapped;}
