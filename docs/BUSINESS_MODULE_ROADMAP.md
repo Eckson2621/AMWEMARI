@@ -164,3 +164,16 @@ This section records verified implementation scope, not a production release cla
 - PR #1 is confirmed open, draft, unmerged, and not mergeable. The branch comparison reports preview 60 commits ahead and 116 behind `main`. The preview branch is not protected and has no required status checks configured.
 - Current `main` contains `.github/workflows/deploy.yml`, which runs `wrangler deploy` on pushes to `main`. This preview work did not modify `main`, trigger that workflow, merge PR #1, or deploy production.
 - No browser/E2E test, real two-tenant isolation test, database migration, database write, or existing-record modification was performed. The appointment module is not declared complete or production-ready.
+
+
+## Preview progress snapshot — 2026-11-24
+
+- Added an owner-only Service Jobs status selector for the existing database values: open, in_progress, waiting_parts, completed, and cancelled. The table now renders the status control; saving requires requireOperationsOwner() and updates by both job id and the active store_id. A success message is shown only when the update returns the row. No job delete action was added.
+- Read-only inspection of the connected AMWEMARI Supabase project confirmed service_jobs.store_id is NOT NULL, RLS is enabled, SELECT and INSERT policies require store membership, and UPDATE/DELETE policies require private.is_store_owner(store_id). The owner helper checks authenticated owner identity, active store/subscription, expiry and the delete-pending gate. The existing status CHECK constraint permits exactly the five values used by the UI.
+- No migration was needed. No Supabase write, record update, deletion, or production change was performed.
+- Added source-level regression assertions for the status values, owner guard, same-store update filter, and absence of a delete operation. Browser/E2E and real two-tenant isolation tests remain outstanding; the Service Jobs module is not declared complete.
+- Before this increment, preview head was 84e0263895f4055bed4437845526454e246ef9c8. PR #1 was open, draft, unmerged and not mergeable. Current comparison showed preview 61 commits ahead and 121 behind main; the branch history remains divergent.
+- GitHub Actions run 45165079046 on the previous head passed 25 source-level tests. The Cloudflare Workers check on that same head completed with failure (check run 137660359134); no successful Preview URL was reported. The new commit will trigger fresh checks; its results must be verified separately.
+- The repository default branch is main; the branch-protection endpoint returned 403 for this connection, so required-check enforcement could not be independently verified. No branch reconciliation, PR merge, or production deployment was attempted.
+- All changes in this increment are confined to multi-business-preview. Live AMWEMARI and existing business records were left unchanged.
+

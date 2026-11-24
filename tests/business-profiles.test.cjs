@@ -245,6 +245,27 @@ test('appointment insert RLS migration is additive and enforces the active store
   assert.doesNotMatch(appointmentInsertPolicyMigration, /\b(DROP|DELETE|TRUNCATE|UPDATE)\b/i);
 });
 
+
+test('service job status options match the existing database status constraint', () => {
+  for (const status of ['open', 'in_progress', 'waiting_parts', 'completed', 'cancelled']) {
+    assert.ok(html.includes("['" + status + "'"), status + ' must be available');
+  }
+  assert.ok(html.includes('function renderServiceJobStatusControl(job)'));
+  assert.ok(html.includes('data-job-status='));
+  assert.ok(html.includes('data-save-job-status='));
+});
+
+test('service job status updates require owner authorization and active store scope', () => {
+  assert.ok(html.includes("$('jobsList').addEventListener('click'"));
+  assert.ok(html.includes('requireOperationsOwner();const jobId=btn.dataset.saveJobStatus'));
+  assert.ok(html.includes("db.from('service_jobs').update({status}).eq('id',jobId).eq('store_id',store.id).select('id,status').maybeSingle()"));
+  assert.ok(html.includes("if(!data)throw new Error('Kazi haijapatikana kwenye biashara hii au ruhusa imekataliwa.')"));
+});
+
+test('service job status workflow does not introduce a delete operation', () => {
+  assert.ok(!html.includes("db.from('service_jobs').delete("));
+});
+
 test('inline application scripts parse without syntax errors', () => {
   const scripts = html.split(/<script[^>]*>/i).slice(1)
     .map(part => part.split('</script>')[0].trim())
