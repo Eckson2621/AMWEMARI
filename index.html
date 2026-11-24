@@ -1925,7 +1925,17 @@ async function loadCustomersSuppliers(){
  $id('amwCustomersList').innerHTML=customers.length?'<table><thead><tr><th>Jina</th><th>Simu</th><th>Email</th><th>Anuani</th><th>Actions</th></tr></thead><tbody>'+customers.map(x=>'<tr><td>'+safe(x.full_name)+'</td><td>'+safe(x.phone||'—')+'</td><td>'+safe(x.email||'—')+'</td><td>'+safe(x.address||'—')+'</td><td>'+(isOwner()?'<button type="button" class="secondary" data-edit-customer="'+x.id+'">Edit</button> <button type="button" class="danger" data-delete-customer="'+x.id+'">Delete</button>':'<span class="muted">Mmiliki pekee</span>')+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Hakuna wateja waliohifadhiwa.</p>';
  $id('amwSuppliersList').innerHTML=suppliers.length?'<table><thead><tr><th>Supplier</th><th>Mawasiliano</th><th>Simu</th><th>TIN</th><th>Actions</th></tr></thead><tbody>'+suppliers.map(x=>'<tr><td>'+safe(x.name)+'</td><td>'+safe(x.contact_person||'—')+'</td><td>'+safe(x.phone||'—')+'</td><td>'+safe(x.tax_number||'—')+'</td><td>'+(isOwner()?'<button type="button" class="secondary" data-edit-supplier="'+x.id+'">Edit</button> <button type="button" class="danger" data-delete-supplier="'+x.id+'">Delete</button>':'<span class="muted">Mmiliki pekee</span>')+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Hakuna suppliers waliohifadhiwa.</p>';
  ['amwAppointmentCustomer','amwJobCustomer','amwProjectCustomer'].forEach(id=>{const el=$id(id);if(el)el.innerHTML='<option value="">Mteja wa hiari</option>'+customers.map(x=>'<option value="'+x.id+'">'+safe(x.full_name)+'</option>').join('')});
- const saleCreditCustomer=$id('saleCreditCustomer');if(saleCreditCustomer){const selected=saleCreditCustomer.value;saleCreditCustomer.innerHTML='<option value="">Chagua mteja aliyesajiliwa</option>'+customers.map(x=>'<option value="'+x.id+'">'+safe(x.full_name)+(x.phone?' · '+safe(x.phone):'')+'</option>').join('');if(customers.some(x=>x.id===selected))saleCreditCustomer.value=selected;}
+ const saleCreditCustomer=$id('saleCreditCustomer');
+ if(saleCreditCustomer){
+  const selected=saleCreditCustomer.value;
+  const optionsHtml='<option value="">Chagua mteja aliyesajiliwa</option>'+customers.map(x=>'<option value="'+x.id+'">'+safe(x.full_name)+(x.phone?' · '+safe(x.phone):'')+'</option>').join('');
+  // Do not replace native select options while the user is opening/using it.
+  // Replacing option nodes repeatedly can make Android Chrome's picker flicker or close.
+  if(document.activeElement!==saleCreditCustomer&&saleCreditCustomer.innerHTML!==optionsHtml){
+   saleCreditCustomer.innerHTML=optionsHtml;
+   if(customers.some(x=>x.id===selected))saleCreditCustomer.value=selected;
+  }
+ }
 }
 async function loadAppointments(){
  const {data,error}=await db.from('service_appointments').select('*').eq('store_id',store.id).order('starts_at',{ascending:false}).limit(300);if(error)throw error;
