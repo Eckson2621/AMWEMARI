@@ -1,6 +1,6 @@
-const CACHE_NAME='amwemari-shell-v43';
+const CACHE_NAME='amwemari-shell-v44';
 const CORE_FILES=['/','/index.html','/manifest.json'];
-const SUPABASE_SCRIPT='https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0';
+const SUPABASE_SCRIPT='https://unpkg.com/@supabase/supabase-js@2.119.0/dist/umd/supabase.js';
 
 self.addEventListener('install',event=>{
  event.waitUntil((async()=>{
