@@ -2016,6 +2016,8 @@ const dict={
  'Taarifa hazijapatikana':'No information found',
  'Hakuna data':'No data'
 };
+// Pre-sort once; sorting the full dictionary for every text node is needlessly expensive.
+const amwTranslationKeys=Object.keys(dict).sort((a,b)=>b.length-a.length);
 let lang=localStorage.getItem('amwemari_lang')||'en';
 const amwTextTranslationState=new WeakMap();
 function translateAmwText(value){
@@ -2024,8 +2026,7 @@ function translateAmwText(value){
  if(dict[trimmed])return value.replace(trimmed,dict[trimmed]);
  if(lang!=='en')return value;
  let translated=trimmed;
- const keys=Object.keys(dict).sort((a,b)=>b.length-a.length);
- for(const key of keys){
+ for(const key of amwTranslationKeys){
   if(translated.includes(key))translated=translated.split(key).join(dict[key]);
  }
  return translated===trimmed?value:value.replace(trimmed,translated);
@@ -2050,12 +2051,16 @@ function translateStatic(){
  document.querySelectorAll('#authView input[placeholder],#appView input[placeholder],#appView textarea[placeholder]').forEach(el=>{
   if(el.dataset.amwOriginalPlaceholder===undefined)el.dataset.amwOriginalPlaceholder=el.placeholder;
   const original=el.dataset.amwOriginalPlaceholder;
-  el.placeholder=lang==='en'?(dict[original]||original):original;
+  const target=lang==='en'?(dict[original]||original):original;
+  if(el.placeholder!==target)el.placeholder=target;
  });
  document.querySelectorAll('#authView select option,#appView select option').forEach(el=>{
   if(el.dataset.amwOriginalText===undefined)el.dataset.amwOriginalText=el.textContent;
   const original=el.dataset.amwOriginalText.trim();
-  el.textContent=lang==='en'?(dict[original]||original):original;
+  const target=lang==='en'?(dict[original]||original):original;
+  // Avoid replacing option text nodes when the translated text is already correct.
+  // Replacing them on every observer pass can create an endless MutationObserver loop.
+  if(el.textContent!==target)el.textContent=target;
  });
  document.documentElement.lang=lang==='en'?'en':'sw';
  const sw=$id('amwLangSw'),en=$id('amwLangEn');
