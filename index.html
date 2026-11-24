@@ -1991,7 +1991,26 @@ async function loadBusinessProfile(){
   });
   const loanTab=document.querySelector('[data-page="loan_repayments"]');if(loanTab)loanTab.classList.toggle('hidden',!isOwner());
  }
- if(moduleBox&&!moduleBox.dataset.launchBound){moduleBox.dataset.launchBound='1';moduleBox.addEventListener('click',e=>{const launch=e.target.closest('[data-module-open]');if(!launch)return;const navButton=document.querySelector('[data-page="'+launch.dataset.moduleOpen+'"]');if(navButton)navButton.click();});}
+ if(moduleBox&&!moduleBox.dataset.launchBound){
+  moduleBox.dataset.launchBound='1';
+  moduleBox.addEventListener('click',async e=>{
+   const launch=e.target.closest('[data-module-open]');if(!launch)return;
+   const pageId=String(launch.dataset.moduleOpen||'');
+   let target=$id(pageId),navButton=document.querySelector('#workspace [data-page="'+pageId+'"]');
+   if(!target||!navButton){setupPages();target=$id(pageId);navButton=document.querySelector('#workspace [data-page="'+pageId+'"]');}
+   if(!target||!navButton){say('amwModuleSaveMsg','Moduli hii haijapatikana. Sasisha ukurasa kisha jaribu tena.',true);return;}
+   document.querySelectorAll('#workspace .page').forEach(page=>page.classList.toggle('hidden',page!==target));
+   document.querySelectorAll('#workspace [data-page]').forEach(button=>button.classList.toggle('active',button.dataset.page===pageId));
+   target.scrollIntoView({behavior:'smooth',block:'start'});
+   try{
+    if(pageId==='sales')await Promise.all([loadDailySales(),loadRecentSalesHistory(),refreshSaleProductOptions()]);
+    else if(pageId==='debts')await loadDebts();
+    else if(['customers','suppliers','service_appointments','service_jobs','business_projects','loan_repayments'].includes(pageId))await loadExtraData();
+    else if(pageId==='purchases'&&store&&store.owner_id===user.id)await loadBusinessLoans();
+    else if(pageId==='staff'&&store&&store.owner_id===user.id)await loadStaff();
+   }catch(error){console.error('AMWEMARI module open failed:',pageId,error);say('amwModuleSaveMsg','Imeshindikana kufungua moduli: '+(error.message||error),true);}
+  });
+}
  applyVisibility();renderCards();
 }
 async function loadExtraData(){
