@@ -1837,7 +1837,9 @@ async function loadBusinessProfile(){
  $id('amwProfileTitle').textContent=p.label+' — modules';
  $id('amwProfileFeatures').textContent=p.features;
  const names={products:'Bidhaa/Stock',purchases:'Manunuzi',sales:'Mauzo',customers:'Wateja',suppliers:'Suppliers',expenses:'Matumizi',staff:'Wafanyakazi',reports:'Ripoti',service_appointments:'Appointments',service_jobs:'Service jobs',business_projects:'Miradi'};
- $id('amwProfileModules').innerHTML=p.mods.map(m=>'<div class="card"><strong>'+safe(names[m]||m)+'</strong><p class="muted small">Moduli inapatikana kwenye menyu ya AMWEMARI.</p></div>').join('');
+ $id('amwProfileModules').innerHTML=p.mods.map(m=>'<div class="card amw-module-card"><strong>'+safe(names[m]||m)+'</strong><p class="muted small">Fungua sehemu hii moja kwa moja.</p><button type="button" class="secondary" data-module-open="'+safe(m)+'">Fungua moduli →</button></div>').join('');
+ const moduleBox=$id('amwProfileModules');
+ if(moduleBox&&!moduleBox.dataset.launchBound){moduleBox.dataset.launchBound='1';moduleBox.addEventListener('click',e=>{const launch=e.target.closest('[data-module-open]');if(!launch)return;const page=launch.dataset.moduleOpen;const navButton=document.querySelector('[data-page="'+page+'"]');if(navButton&&!navButton.classList.contains('hidden'))navButton.click();else{const target=$id(page);if(target){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x!==target));document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x.dataset.page===page));}}});}
  // Hide only optional specialist tabs that do not apply; core modules remain shared.
  ['customers','suppliers','service_appointments','service_jobs','business_projects'].forEach(m=>{const b=document.querySelector('[data-page="'+m+'"]');if(b)b.classList.toggle('hidden',!p.mods.includes(m));});const loanTab=document.querySelector('[data-page="loan_repayments"]');if(loanTab)loanTab.classList.toggle('hidden',!isOwner());
 }
