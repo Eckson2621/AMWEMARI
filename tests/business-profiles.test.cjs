@@ -258,7 +258,8 @@ test('service job status options match the existing database status constraint',
 test('service job status updates require owner authorization and active store scope', () => {
   assert.ok(html.includes("$('jobsList').addEventListener('click'"));
   assert.ok(html.includes('requireOperationsOwner();const jobId=btn.dataset.saveJobStatus'));
-  assert.ok(html.includes("db.from('service_jobs').update({status}).eq('id',jobId).eq('store_id',store.id).select('id,status').maybeSingle()"));
+  assert.ok(html.includes("const now=new Date().toISOString();const updatePayload={status,updated_at:now,completed_at:status==='completed'?now:null}")); 
+  assert.ok(html.includes("db.from('service_jobs').update(updatePayload).eq('id',jobId).eq('store_id',store.id).select('id,status,updated_at,completed_at').maybeSingle()"));
   assert.ok(html.includes("if(!data)throw new Error('Kazi haijapatikana kwenye biashara hii au ruhusa imekataliwa.')"));
 });
 
