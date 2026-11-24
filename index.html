@@ -859,7 +859,10 @@ async function refreshSaleProductOptions(){
 function renderSaleProductPicker(){
  const select=$('saleProduct'),button=$('saleProductOpen'),list=$('saleProductPickerList');
  if(!select||!button||!list)return;
- const active=(products||[]).filter(p=>p.is_active!==false&&(!store||String(p.store_id)===String(store.id)));
+ const source=(products||[]).length?products:Array.from(select.options||[]).filter(o=>o.value).map(o=>({id:o.value,name:o.textContent||'Bidhaa',quantity:0,selling_price:0,wholesale_pack_price:0,is_active:true}));
+ // `products` is already loaded for the signed-in store by loadStore/refreshAll.
+ // Do not hide valid rows again using a possibly stale cached store object.
+ const active=source.filter(p=>p.is_active!==false);
  const selected=active.find(p=>String(p.id)===String(select.value));
  button.textContent=selected?selected.name+' ▾':'Select Product ▾';
  const count=$('saleProductCount');if(count)count.textContent='Bidhaa '+active.length+' zinapatikana';
