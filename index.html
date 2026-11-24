@@ -110,7 +110,26 @@
     <div id="dashboardSubscriptionStatus" class="notice">Inakagua subscription…</div>
     <div id="dashboardSubscriptionHistory" class="tablewrap small"></div>
    </div>
-   <div id="superAdminPanel" class="panel section hidden">
+   <div id="superAdminPanel" class="panel section hidden"> 
+    <section id="adminHomeDashboard" class="amw-admin-home">
+     <div class="amw-admin-topline"><span>AMWEMARI / PLATFORM CONTROL</span><span class="amw-admin-role">SUPER ADMIN</span></div>
+     <div class="amw-admin-hero">
+      <div><span class="amw-admin-eyebrow">ADMINISTRATION WORKSPACE</span><h2>Karibu kwenye Super Admin Dashboard</h2><p>Simamia mfumo, idhini za akaunti na usalama kutoka sehemu moja. Taarifa za biashara hazionekani hapa mpaka ufungue sehemu yake.</p><button type="button" onclick="toggleAmwAdminWorkspace(true)">Fungua usimamizi wa biashara <span>→</span></button></div>
+      <div class="amw-admin-emblem" aria-hidden="true">AM</div>
+     </div>
+     <div class="amw-admin-home-grid">
+      <article><span class="amw-admin-icon">◈</span><b>Udhibiti wa mfumo</b><small>Usimamizi wa akaunti na ruhusa za kuingia</small></article>
+      <article><span class="amw-admin-icon">◷</span><b>Majaribio na idhini</b><small>Thibitisha na dhibiti muda wa matumizi</small></article>
+      <article><span class="amw-admin-icon">⌁</span><b>Usalama wa mfumo</b><small>Ukaguzi wa usalama kupitia Cyber Lab</small></article>
+     </div>
+     <div class="amw-admin-actions">
+      <button type="button" onclick="toggleAmwAdminWorkspace(true)">Biashara na akaunti <span>→</span></button>
+      <button type="button" class="secondary" onclick="toggleAmwAdminWorkspace(true);setTimeout(()=>document.getElementById('cyberLabToggle')?.scrollIntoView({behavior:'smooth',block:'center'}),0)">Fungua Cyber Lab</button>
+     </div>
+    </section>
+    <section id="adminBusinessWorkspace" class="amw-admin-workspace hidden">
+     <div class="amw-admin-workspace-head"><div><span>PLATFORM MANAGEMENT</span><h2>Usimamizi wa biashara na akaunti</h2></div><button type="button" class="secondary" onclick="toggleAmwAdminWorkspace(false)">← Rudi Dashboard</button></div>
+
     <div class="row"><div><h2>SUPER ADMIN — Usimamizi wa akaunti</h2><div class="muted small">Biashara zote zilizosajiliwa, majaribio na malipo</div></div><button class="secondary" type="button" onclick="loadAdminPanel()">Sasisha orodha</button></div>
     <div id="adminPanelMessage" class="notice">Inapakia biashara...</div>
     <section class="notice section" aria-label="Arifa za usajili mpya">
@@ -146,7 +165,7 @@
      <div id="cyberLabResults" class="cyber-lab-results"></div>
      <div class="section"><h3>Security Notes</h3><p class="cyber-lab-muted">Toleo hili hukagua SHA-256, alama za mwanzo za aina za faili (file signatures), viendelezi visivyolingana na maudhui, na viashiria vya majaribio. Hakuna ufuatiliaji wa siri wa simu au mfumo mzima. Historia ya ripoti huhifadhiwa kwenye kifaa/kivinjari hiki tu.</p></div>
     </section>
-   </div>
+    </section>
 <div class="row"><h2>Muhtasari wa biashara</h2><button onclick="refreshAll()" class="secondary">↻ Sasisha</button></div><div class="grid"><div class="card"><div class="muted">Mauzo ya leo</div><div class="metric" id="todaySales">TZS 0</div></div><div class="card"><div class="muted">Idadi ya mauzo leo</div><div class="metric" id="todayCount">0</div></div><div class="card"><div class="muted">Bidhaa</div><div class="metric" id="productCount">0</div></div><div class="card"><div class="muted">Stock inayokaribia kuisha</div><div class="metric" id="lowStock">0</div></div></div><div id="cashFlowPanel" class="panel section"><div class="row"><div><h2>Fedha za biashara</h2><div class="muted small">Makadirio ya fedha taslimu, mobile money na benki tangu tarehe ya salio la kuanzia.</div></div><div><div class="muted small">Mabadiliko ya fedha yanayotokana na miamala iliyorekodiwa</div><strong id="cashOnHand" class="metric">TZS 0</strong></div></div><div class="grid"><div class="card"><div class="muted">Fedha zilizopokelewa kutoka mauzo</div><div class="metric" id="cashSalesTotal">TZS 0</div></div><div class="card"><div class="muted">Manunuzi yaliyolipwa (njia zinazojulikana)</div><div class="metric" id="cashPurchasesTotal">TZS 0</div></div><div class="card"><div class="muted">Matumizi yaliyolipwa (njia zinazojulikana)</div><div class="metric" id="cashExpensesTotal">TZS 0</div></div><div class="card"><div class="muted">Salio la kuanzia</div><div class="metric" id="cashOpeningDisplay">TZS 0</div></div><div class="card"><div class="muted">Madeni ya wateja ambayo bado hayajalipwa</div><div class="metric" id="cashUnallocatedTotal">TZS 0</div></div></div><form id="openingCashForm" class="section"><div class="grid"><div class="field"><label>Fedha uliyokuwa nayo mwanzoni (TZS)</label><input id="openingCashAmount" type="number" min="0" step=".01" value="0" required></div><div class="field"><label>Tarehe ya kuanzia kuhesabu</label><input id="openingCashDate" type="date" required></div></div><button type="submit">Hifadhi salio la kuanzia</button><span id="openingCashMessage" class="muted small"></span></form><div id="cashPositionAlert" class="notice hidden"></div><p class="muted small">Hii ni hesabu ya mabadiliko ya fedha kutokana na miamala iliyorekodiwa, si uthibitisho wa pesa halisi iliyopo. Hesabu: salio la kuanzia + mauzo yaliyopokelewa + mtaji wa fedha − manunuzi yaliyorekodiwa kuwa yamelipwa − matumizi yaliyolipwa − fedha binafsi zilizochukuliwa. Madeni ya mauzo yanaonyeshwa tofauti; malipo ya awali na marejesho huhesabiwa siku yalipopokelewa. Linganisha na fedha halisi kwenye droo, simu na benki.</p></div><div id="financialPositionPanel" class="panel section"><h2>Hali halisi ya mtaji, stock na faida</h2><p class="muted small">Muhtasari wa historia yote ya biashara. Stock inathaminiwa kwa gharama ya wastani ya kununua; faida ghafi ni mauzo ya bidhaa ukitoa gharama ya bidhaa zilizouzwa.</p><div class="grid"><div class="card"><div class="muted">Jumla ya mauzo</div><div class="metric" id="financeSalesTotal">TZS 0</div></div><div class="card"><div class="muted">Jumla ya manunuzi ya stock</div><div class="metric" id="financePurchasesTotal">TZS 0</div></div><div class="card"><div class="muted">Gharama ya stock iliyouzwa</div><div class="metric" id="financeCogsTotal">TZS 0</div></div><div class="card"><div class="muted">Faida ghafi iliyopatikana</div><div class="metric" id="financeGrossProfit">TZS 0</div></div><div class="card"><div class="muted">Faida / hasara halisi</div><div class="metric" id="financeNetProfit">TZS 0</div></div><div class="card"><div class="muted">Thamani ya stock iliyobaki</div><div class="metric" id="financeStockValue">TZS 0</div></div><div class="card"><div class="muted">Idadi ya stock iliyobaki</div><div class="metric" id="financeStockUnits">0</div></div><div class="card"><div class="muted">Mabadiliko ya fedha kwa rekodi zilizopo (si salio halisi)</div><div class="metric" id="financeCashOnHand">TZS 0</div></div></div><p id="financePositionNote" class="muted small section">Inasoma taarifa za biashara...</p></div>
 <div id="capitalManagementPanel" class="panel section">
  <div class="row"><div><h2>Mtaji wa mmiliki na ukuaji wa biashara</h2><p class="muted small">Rekodi fedha unazoongeza, stock unayoingiza kama mtaji, na fedha unazochukua binafsi. Hivi si matumizi ya kawaida ya biashara.</p></div></div>
@@ -519,6 +538,15 @@ async function loadSubscription(gateOnly=false){
  }
  const dashPanel=$('dashboardSubscription');if(dashPanel)dashPanel.classList.toggle('hidden',store.owner_id!==user.id);
 }
+
+function toggleAmwAdminWorkspace(show){
+ const home=$('adminHomeDashboard'),workspace=$('adminBusinessWorkspace');
+ if(!home||!workspace)return;
+ home.classList.toggle('hidden',!!show);
+ workspace.classList.toggle('hidden',!show);
+ if(show)loadAdminPanel().catch(error=>console.warn('Admin workspace refresh:',error));
+}
+
 async function checkSuperAdmin(){
  isSuperAdmin=false;
  if(!navigator.onLine||!user)return;
@@ -1590,6 +1618,41 @@ $('staffForm').addEventListener('submit',async e=>{
 .amw-form textarea{min-height:65px}
 .amw-pill{display:inline-block;padding:4px 9px;border-radius:20px;background:#edf5ff;font-size:12px}
 @media(max-width:600px){#amwExtraNav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* AMWEMARI Super Admin control-centre layout */
+.amw-admin-home,.amw-admin-workspace{display:grid;gap:16px;margin:4px 0 18px}
+.amw-admin-topline,.amw-admin-workspace-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.amw-admin-topline{font-size:10px;letter-spacing:.15em;font-weight:800;color:#91a9c3}
+.amw-admin-role{border:1px solid #36516d;background:#14263b;color:#b9d9fa;padding:6px 10px;border-radius:999px;letter-spacing:.08em}
+.amw-admin-hero{display:flex;align-items:center;justify-content:space-between;gap:22px;padding:30px;border:1px solid #294969;border-radius:20px;background:radial-gradient(circle at 84% 35%,#28527b 0,transparent 31%),linear-gradient(115deg,#132b45,#101a2a);color:#edf6ff;overflow:hidden}
+.amw-admin-hero>div:first-child{max-width:700px}
+.amw-admin-eyebrow{font-size:10px;letter-spacing:.16em;font-weight:800;color:#9cc6ee}
+.amw-admin-hero h2{font-size:clamp(23px,3vw,33px);line-height:1.15;letter-spacing:-.04em;margin:12px 0 9px;color:#f4f8ff}
+.amw-admin-hero p{max-width:620px;color:#b8c9dc;font-size:13px;line-height:1.7;margin:0 0 18px}
+.amw-admin-hero button,.amw-admin-actions button{border:1px solid #b9d6f3;border-radius:10px;padding:11px 15px;background:#e9f3ff;color:#193a5b;font-weight:800;font-size:12px;cursor:pointer}
+.amw-admin-hero button span,.amw-admin-actions button span{padding-left:8px}
+.amw-admin-emblem{width:108px;height:108px;flex:0 0 108px;border:1px solid #78a1c8;border-radius:50%;display:grid;place-items:center;color:#d8ebff;font-size:28px;font-weight:900;letter-spacing:-.08em;box-shadow:0 0 0 14px #ffffff08,0 0 0 28px #ffffff05}
+.amw-admin-home-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.amw-admin-home-grid article{min-width:0;min-height:125px;padding:17px;border:1px solid #2a3e55;border-radius:14px;background:#111e2e;color:#e8f1fc;display:grid;align-content:start;gap:8px}
+.amw-admin-home-grid article b{font-size:13px}
+.amw-admin-home-grid article small{font-size:11px;line-height:1.5;color:#98abc1}
+.amw-admin-icon{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#1b3551;color:#add4ff;font-size:17px}
+.amw-admin-actions{display:flex;gap:10px;flex-wrap:wrap}
+.amw-admin-actions button.secondary,.amw-admin-workspace-head button{background:#15263a;color:#d9e9fb;border:1px solid #38516d}
+.amw-admin-workspace-head{padding:4px 0 12px;border-bottom:1px solid #304256}
+.amw-admin-workspace-head span{font-size:10px;letter-spacing:.15em;color:#91abc6;font-weight:800}
+.amw-admin-workspace-head h2{margin:6px 0 0}
+html[data-theme="light"] .amw-admin-hero{background:linear-gradient(115deg,#e1efff,#f4f8fd);border-color:#cbdced;color:#183954}
+html[data-theme="light"] .amw-admin-hero h2{color:#173550}
+html[data-theme="light"] .amw-admin-hero p{color:#56708b}
+html[data-theme="light"] .amw-admin-eyebrow{color:#426c98}
+html[data-theme="light"] .amw-admin-emblem{color:#315c85;border-color:#8baaca}
+html[data-theme="light"] .amw-admin-home-grid article{background:#f8fafc;color:#25445f;border-color:#dce5ef}
+html[data-theme="light"] .amw-admin-home-grid article small{color:#607890}
+html[data-theme="light"] .amw-admin-icon{background:#e5effa;color:#3b6794}
+html[data-theme="light"] .amw-admin-actions button.secondary,html[data-theme="light"] .amw-admin-workspace-head button{background:#edf4fb;color:#25445f;border-color:#cbdced}
+@media(max-width:700px){.amw-admin-hero{padding:23px 19px}.amw-admin-emblem{width:68px;height:68px;flex-basis:68px;font-size:20px}.amw-admin-home-grid{grid-template-columns:1fr}.amw-admin-home-grid article{min-height:98px}}
+
 </style>
 <script>
 // Capture expense clicks at document level so a missing/replaced button listener cannot swallow the tap.
