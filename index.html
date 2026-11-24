@@ -823,7 +823,22 @@ async function loadSubscription(){
 }
 async function handleSubscriptionReturn(){}
 $('storeForm').addEventListener('submit',async e=>{e.preventDefault();const payload={name:$('storeName').value.trim(),business_type:$('storeType').value.trim()||null,phone:$('storePhone').value.trim()||null,address:$('storeAddress').value.trim()||null,owner_id:user.id,currency_code:'TZS',timezone:'Africa/Dar_es_Salaam'};const {data,error}=await db.from('stores').insert(payload).select().single();if(error){message('appMsg',error.message,true);return}store=data;await loadStore()});
-document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.page));if(b.dataset.page==='debts')loadDebts();if(b.dataset.page==='sales')loadDailySales();if(b.dataset.page==='purchases'&&store&&store.owner_id===user.id)loadBusinessLoans()}));
+async function refreshSaleProductOptions(){
+ if(!store)return;
+ const status=$('saleActionStatus');
+ try{
+  const {data,error}=await db.from('products').select('*').eq('store_id',store.id).eq('is_active',true).order('name');
+  if(error)throw error;
+  products=data||[];
+  syncProductSelect('saleProduct',products,true);
+  updateSalePrice();
+  if(status)status.textContent=products.length?'Bidhaa '+products.length+' zimepakiwa. Chagua bidhaa, weka kiasi, kisha bonyeza Ongeza bidhaa.':'Hakuna bidhaa hai kwenye duka hili. Ongeza bidhaa kwanza kwenye Bidhaa/Stock.';
+ }catch(error){
+  if(status)status.textContent='Bidhaa hazijapakiwa: '+(error.message||error);
+  throw error;
+ }
+}
+document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.page));if(b.dataset.page==='debts')loadDebts();if(b.dataset.page==='sales'){loadDailySales();refreshSaleProductOptions().catch(error=>console.error('AMWEMARI sales products:',error));}if(b.dataset.page==='purchases'&&store&&store.owner_id===user.id)loadBusinessLoans()}));
 async function refreshAll(){if(!store)return;const isOwner=store.owner_id===user.id;$('cashFlowPanel').classList.toggle('hidden',!isOwner);const [p,s,x,m]=await Promise.all([db.from('products').select('*').eq('store_id',store.id).eq('is_active',true).order('name'),db.from('sales').select('*,sale_items!sale_items_sale_id_fkey(product_name_snapshot,quantity,unit_price,line_total)').eq('store_id',store.id).order('sold_at',{ascending:false}).limit(100),isOwner?db.from('expenses').select('*').eq('store_id',store.id).order('expense_date',{ascending:false}).limit(100):Promise.resolve({data:[],error:null}),isOwner?db.from('stock_movements').select('*').eq('store_id',store.id).eq('movement_type','purchase').order('purchase_date',{ascending:false}).limit(100):Promise.resolve({data:[],error:null})]);for(const r of [p,s,x,m])if(r.error)throw r.error;products=p.data||[];sales=s.data||[];expenses=x.data||[];movements=m.data||[];await localReplace('products',products);renderAll();if(!$('sales').classList.contains('hidden'))await loadDailySales();if(isOwner){try{await loadBusinessReport();await loadStaff();await loadCashFlow();await loadFinancialPosition();await loadBusinessLoans()}catch(error){console.warn('Owner reports/staff/cash flow unavailable',error)}}await renderPendingSales();clearMessage('appMsg')}
 
 async function loadCashFlow(){
@@ -1116,18 +1131,22 @@ async function loadStaffSalesReport(){
 function stockDisplay(p){const q=Number(p.quantity||0),u=Math.max(1,Number(p.units_per_pack||1)),base=p.base_unit||p.unit||'vipande',pack=p.pack_name||'pakiti';if(u<=1)return q+' '+base;const whole=Math.floor(q/u),rem=Number((q-whole*u).toFixed(3));return whole+' '+pack+(rem?' + '+rem+' '+base:'')+' ('+q+' '+base+')'}
 function syncProductSelect(id,rows,includeStock){
  const el=$(id);if(!el)return;
+ rows=Array.isArray(rows)?rows:[];
  const selected=el.value;
- const signature=rows.map(p=>[p.id,p.name,p.quantity,p.base_unit,p.units_per_pack,p.pack_name,p.wholesale_pack_price,p.is_active].join('|')).join('~')+'|stock:'+!!includeStock;
- if(el.dataset.optionsSignature===signature)return;
-  const nameCounts=new Map();rows.forEach(p=>{const key=String(p.name||'').trim().toLowerCase();nameCounts.set(key,(nameCounts.get(key)||0)+1)});
-  const options=rows.map(p=>{
-   const duplicate=nameCounts.get(String(p.name||'').trim().toLowerCase())>1;
-   const packUnits=Number(p.units_per_pack||1),packLabel=packUnits>1?' · '+(p.pack_name||'pakiti')+' '+packUnits:'';
-   const wholesale=Number(p.wholesale_pack_price||0)>0?' · Jumla '+money(p.wholesale_pack_price)+'/'+(p.pack_name||'pakiti'):'';
-   const stock=includeStock?' · Stock: '+stockDisplay(p):'';
-   const unique=duplicate?' · #'+String(p.id).slice(0,4):'';
-   return '<option value="'+esc(p.id)+'">'+esc(p.name)+packLabel+wholesale+stock+unique+'</option>';
-  }).join('');
+ const signature=rows.map(p=>[p.id,p.name,p.quantity,p.base_unit,p.units_per_pack,p.pack_name,p.wholesale_pack_price,p.selling_price,p.is_active].join('|')).join('~')+'|stock:'+!!includeStock;
+ const currentValues=Array.from(el.options||[]).map(o=>o.value).filter(Boolean);
+ const optionsMatch=currentValues.length===rows.length&&rows.every(p=>currentValues.includes(String(p.id)));
+ if(el.dataset.optionsSignature===signature&&optionsMatch)return;
+ const nameCounts=new Map();
+ rows.forEach(p=>{const key=String(p.name||'').trim().toLowerCase();nameCounts.set(key,(nameCounts.get(key)||0)+1)});
+ const options=rows.map(p=>{
+  const duplicate=nameCounts.get(String(p.name||'').trim().toLowerCase())>1;
+  const packUnits=Number(p.units_per_pack||1),packLabel=packUnits>1?' · '+(p.pack_name||'pakiti')+' '+packUnits:'';
+  const wholesale=Number(p.wholesale_pack_price||0)>0?' · Jumla '+money(p.wholesale_pack_price)+'/'+(p.pack_name||'pakiti'):'';
+  const stock=includeStock?' · Stock: '+stockDisplay(p):'';
+  const unique=duplicate?' · #'+String(p.id).slice(0,4):'';
+  return '<option value="'+esc(p.id)+'">'+esc(p.name)+packLabel+wholesale+stock+unique+'</option>';
+ }).join('');
  el.innerHTML=options||'<option value="">Hakuna bidhaa hai iliyosajiliwa</option>';
  el.dataset.optionsSignature=signature;
  if(rows.some(p=>String(p.id)===selected))el.value=selected;
@@ -2388,18 +2407,28 @@ function init(){
   document.body.dataset.amwBackBound='1';
   document.addEventListener('click',e=>{
    const back=e.target.closest('[data-amw-back]');
-   if(back){const destination=back.dataset.amwBack;const nav=document.querySelector('[data-page="'+destination+'"]');if(nav){window.__amwBackNav=true;nav.click();}return;}
+   if(back){
+    e.preventDefault();e.stopPropagation();
+    const destination=back.dataset.amwBack;
+    const nav=document.querySelector('[data-page="'+destination+'"]');
+    if(nav){window.__amwBackNav=true;nav.click();}
+    return;
+   }
    if(window.__amwBackNav){window.__amwBackNav=false;return;}
-   const nav=e.target.closest('[data-page]');
+   const nav=e.target.closest('#workspace [data-page]');
    if(!nav)return;
-   const current=document.querySelector('.page:not(.hidden)');
+   const current=document.querySelector('#workspace .page:not(.hidden)');
    const from=current?.id;
    const target=$id(nav.dataset.page);
    if(!from||from===nav.dataset.page||!target)return;
-   const row=target.querySelector('.row');
-   if(!row)return;
-   let backButton=row.querySelector('[data-amw-back]');
-   if(!backButton){backButton=document.createElement('button');backButton.type='button';backButton.className='secondary';backButton.textContent='← Rudi nyuma';row.insertBefore(backButton,row.firstChild);}
+   let backButton=target.querySelector('[data-amw-back]');
+   if(!backButton){
+    backButton=document.createElement('button');
+    backButton.type='button';
+    backButton.className='secondary amw-page-back';
+    backButton.textContent='← Rudi nyuma';
+    target.insertBefore(backButton,target.firstChild);
+   }
    backButton.dataset.amwBack=from;
   },true);
  }
