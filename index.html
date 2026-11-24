@@ -1346,7 +1346,7 @@ async function loadDailySales(){
   const total=Number(rows.reduce((sum,s)=>sum+Number(s.total||0),0).toFixed(2));
   const balance=Number(rows.reduce((sum,s)=>sum+Math.max(0,Number(s.total||0)-Number(s.amount_paid||0)),0).toFixed(2));
   const customerSaleIds=rows.filter(s=>s.customer_id).map(s=>s.id);
-  const periodPaymentsResult=await fetchAllReportRows('customer_payments','sale_id,amount',q=>q.gte('paid_at',start).lt('paid_at',end));
+  const periodPaymentsResult=await fetchAllReportRows('customer_payments','sale_id,amount',q=>q.not('sale_id','is',null).gte('paid_at',start).lt('paid_at',end));
   let linkedPaymentRows=[];
   for(let i=0;i<customerSaleIds.length;i+=200){
    const ids=customerSaleIds.slice(i,i+200);
