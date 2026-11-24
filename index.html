@@ -1346,17 +1346,16 @@ async function loadDailySales(){
   const total=Number(rows.reduce((sum,s)=>sum+Number(s.total||0),0).toFixed(2));
   const balance=Number(rows.reduce((sum,s)=>sum+Math.max(0,Number(s.total||0)-Number(s.amount_paid||0)),0).toFixed(2));
   const customerSaleIds=rows.filter(s=>s.customer_id).map(s=>s.id);
-  const periodPaymentsResult=await db.from('customer_payments').select('sale_id,amount').eq('store_id',store.id).gte('paid_at',start).lt('paid_at',end);
-  if(periodPaymentsResult.error)throw periodPaymentsResult.error;
+  const periodPaymentsResult=await fetchAllReportRows('customer_payments','sale_id,amount',q=>q.gte('paid_at',start).lt('paid_at',end));
   let linkedPaymentRows=[];
   for(let i=0;i<customerSaleIds.length;i+=200){
-   const history=await db.from('customer_payments').select('sale_id,amount').eq('store_id',store.id).in('sale_id',customerSaleIds.slice(i,i+200));
-   if(history.error)throw history.error;
-   linkedPaymentRows.push(...(history.data||[]));
+   const ids=customerSaleIds.slice(i,i+200);
+   const history=await fetchAllReportRows('customer_payments','sale_id,amount',q=>q.in('sale_id',ids));
+   linkedPaymentRows.push(...history);
   }
   const ledgerBySale=new Map();
   linkedPaymentRows.forEach(p=>ledgerBySale.set(p.sale_id,(ledgerBySale.get(p.sale_id)||0)+Number(p.amount||0)));
-  const ledgerReceived=periodPaymentsResult.data.reduce((sum,p)=>sum+Number(p.amount||0),0);
+  const ledgerReceived=periodPaymentsResult.reduce((sum,p)=>sum+Number(p.amount||0),0);
   const unledgeredSaleReceipts=rows.reduce((sum,s)=>{
    const paidNow=Number(s.amount_paid||0);
    if(!s.customer_id)return sum+paidNow;
