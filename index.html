@@ -501,7 +501,27 @@ async function boot(){
  await loadStore();await handleSubscriptionReturn();
  if(navigator.onLine)syncPendingProducts().then(()=>syncPendingSales()).catch(console.error);
 }
-async function loadStore(){let found=null;try{if(navigator.onLine){const {data,error}=await db.from('stores').select('*').eq('owner_id',user.id).order('created_at',{ascending:true}).limit(1);if(error)throw error;found=data?.[0]||null;if(!found){const {data:members,error:memberError}=await db.from('store_members').select('store_id').eq('user_id',user.id).limit(1);if(memberError)throw memberError;if(members?.[0]){const {data:memberStore,error:storeError}=await db.from('stores').select('*').eq('id',members[0].store_id).single();if(storeError)throw storeError;found=memberStore}}if(found){await localPut('stores',found);if(found.owner_id!==user.id)await localPut('stores',{...found,id:found.id+':member:'+user.id,_real_store_id:found.id,_cached_user_id:user.id})}}}catch(error){console.warn('AMWEMARI: store fetch unavailable; using offline cache',error)}if(!found){const cached=await window.localAll('stores');found=cached.find(x=>x.owner_id===user.id||x._cached_user_id===user.id)||null;if(found?._real_store_id)found={...found,id:found._real_store_id}}if(!found){if(!navigator.onLine){message('appMsg','Huna intaneti na taarifa za biashara hii hazijahifadhiwa kwenye simu hii. Fungua mfumo ukiwa online angalau mara moja.',true);return}$('storeSetup').classList.remove('hidden');$('workspace').classList.add('hidden');return}store=found;const isOwner=store.owner_id===user.id;
+async function loadStore(){
+ // Super Admin has a platform-only workspace and must never be routed into business registration.
+ if(isSuperAdmin){
+  store=null;
+  $('storeSetup').classList.add('hidden');
+  $('workspace').classList.remove('hidden');
+  const nav=$('workspace').querySelector('nav.tabs');if(nav)nav.classList.add('hidden');
+  document.querySelectorAll('#workspace .page').forEach(page=>page.classList.toggle('hidden',page.id!=='dashboard'));
+  const dashboard=$('dashboard');
+  [...dashboard.children].forEach(child=>{
+   if(child.id==='superAdminPanel')child.classList.remove('hidden');
+   else child.classList.add('hidden');
+  });
+  $('superAdminPanel').classList.remove('hidden');
+  $('adminHomeDashboard').classList.remove('hidden');
+  $('adminBusinessWorkspace').classList.add('hidden');
+  $('storeLabel').textContent='Super Admin · Platform Control';
+  await loadAdminPanel();
+  return;
+ }
+ let found=null;try{if(navigator.onLine){const {data,error}=await db.from('stores').select('*').eq('owner_id',user.id).order('created_at',{ascending:true}).limit(1);if(error)throw error;found=data?.[0]||null;if(!found){const {data:members,error:memberError}=await db.from('store_members').select('store_id').eq('user_id',user.id).limit(1);if(memberError)throw memberError;if(members?.[0]){const {data:memberStore,error:storeError}=await db.from('stores').select('*').eq('id',members[0].store_id).single();if(storeError)throw storeError;found=memberStore}}if(found){await localPut('stores',found);if(found.owner_id!==user.id)await localPut('stores',{...found,id:found.id+':member:'+user.id,_real_store_id:found.id,_cached_user_id:user.id})}}}catch(error){console.warn('AMWEMARI: store fetch unavailable; using offline cache',error)}if(!found){const cached=await window.localAll('stores');found=cached.find(x=>x.owner_id===user.id||x._cached_user_id===user.id)||null;if(found?._real_store_id)found={...found,id:found._real_store_id}}if(!found){if(!navigator.onLine){message('appMsg','Huna intaneti na taarifa za biashara hii hazijahifadhiwa kwenye simu hii. Fungua mfumo ukiwa online angalau mara moja.',true);return}$('storeSetup').classList.remove('hidden');$('workspace').classList.add('hidden');return}store=found;const isOwner=store.owner_id===user.id;
 let billing=null;
 if(navigator.onLine){
  const {data:billingRow,error:billingError}=await db.from('store_subscriptions').select('status,ends_at').eq('store_id',store.id).maybeSingle();
