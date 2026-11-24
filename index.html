@@ -575,6 +575,8 @@ async function openSuperAdminOwnStore(){
   const isOwner=store.owner_id===user.id;
   $('storeSetup').classList.add('hidden');$('subscriptionGate').classList.add('hidden');
   $('superAdminPanel').classList.add('hidden');$('adminHomeDashboard').classList.add('hidden');$('adminBusinessWorkspace').classList.add('hidden');
+  const businessDashboard=$('dashboard');
+  [...businessDashboard.children].forEach(child=>child.classList.toggle('hidden',child.id==='superAdminPanel'));
   $('workspace').classList.remove('hidden');$('superAdminStoreReturn').classList.remove('hidden');
   const nav=$('workspace').querySelector('nav.tabs');if(nav)nav.classList.remove('hidden');
   $('storeLabel').textContent=store.name;$('storeName').value=store.name;
@@ -594,7 +596,10 @@ function returnToSuperAdmin(){
  $('superAdminPanel').classList.remove('hidden');
  $('adminHomeDashboard').classList.remove('hidden');
  $('adminBusinessWorkspace').classList.add('hidden');
+ const businessDashboard=$('dashboard');
+ [...businessDashboard.children].forEach(child=>child.classList.toggle('hidden',child.id!=='superAdminPanel'));
  document.querySelectorAll('#workspace .page').forEach(page=>page.classList.toggle('hidden',page.id!=='dashboard'));
+ const nav=$('workspace').querySelector('nav.tabs');if(nav)nav.classList.add('hidden');
  $('storeLabel').textContent='Super Admin · Platform Control';
  loadAdminPanel().catch(error=>console.warn('Admin refresh:',error));
 }
