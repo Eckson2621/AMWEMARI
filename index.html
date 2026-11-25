@@ -289,7 +289,29 @@ async function syncPendingProducts(){
 }
 async function getQueuedQuantity(productId){const q=await window.localAll('pending_sales');return q.filter(s=>s.store_id===store.id&&s.seller_id===user.id).reduce((sum,s)=>sum+s.items.filter(i=>i.product_id===productId).reduce((a,i)=>a+Number(i.quantity),0),0)}
 async function renderPendingSales(){const q=(await window.localAll('pending_sales')).filter(s=>s.store_id===store?.id&&s.seller_id===user?.id);const el=$('pendingSales');if(!el)return;el.textContent='Mauzo yanayosubiri kusawazishwa: '+q.length+(q.length?' · Jumla '+money(q.reduce((a,s)=>a+Number(s.total),0)):'');el.classList.toggle('success',q.length===0);el.classList.toggle('error',q.length>0)}
-async function syncPendingSales(){if(!navigator.onLine||!store||!user)return;const allQueued=(await window.localAll('pending_sales')).filter(s=>s.store_id===store.id);const legacy=allQueued.filter(s=>!s.seller_id);if(legacy.length)message('appMsg',legacy.length+' mauzo ya zamani ya offline hayana utambulisho wa muuzaji; yameachwa bila kusawazishwa ili yasihusishwe na akaunti isiyo sahihi.',true);const q=allQueued.filter(s=>s.seller_id===user.id).sort((a,b)=>new Date(a.created_at||a.sold_at||0).getTime()-new Date(b.created_at||b.sold_at||0).getTime());for(const sale of q){const soldAt=sale.sold_at||sale.created_at||new Date().toISOString();const syncNotes='AMWEMARI_META|'+(sale.entry_mode==='day_end'?'day_end':'live')+'|'+soldAt+'|'+(sale.notes||'');const {error}=await db.rpc('create_sale',{p_store_id:sale.store_id,p_items:sale.items,p_amount_paid:sale.amount_paid,p_payment_method:sale.payment_method,p_discount:0,p_tax:0,p_notes:syncNotes,p_request_id:sale.request_id});if(error){console.warn('AMWEMARI sale sync paused:',error.message);message('appMsg','Kuna mauzo '+q.length+' yanayosubiri. Usiyafute; usawazishaji umesimama: '+error.message,true);break}await localDelete('pending_sales',sale.request_id)}await renderPendingSales();if(navigator.onLine)await refreshAll()}
+let pendingSalesSyncPromise=null;
+async function syncPendingSales(){
+ if(!navigator.onLine||!store||!user)return;
+ if(pendingSalesSyncPromise)return pendingSalesSyncPromise;
+ pendingSalesSyncPromise=(async()=>{
+  const allQueued=(await window.localAll('pending_sales')).filter(s=>s.store_id===store.id);
+  const legacy=allQueued.filter(s=>!s.seller_id);
+  if(legacy.length)message('appMsg',legacy.length+' mauzo ya zamani ya offline hayana utambulisho wa muuzaji; yameachwa bila kusawazishwa ili yasihusishwe na akaunti isiyo sahihi.',true);
+  const q=allQueued.filter(s=>s.seller_id===user.id).sort((a,b)=>new Date(a.created_at||a.sold_at||0).getTime()-new Date(b.created_at||b.sold_at||0).getTime());
+  let synced=0;
+  for(const sale of q){
+   const soldAt=sale.sold_at||sale.created_at||new Date().toISOString();
+   const syncNotes='AMWEMARI_META|'+(sale.entry_mode==='day_end'?'day_end':'live')+'|'+soldAt+'|'+(sale.notes||'');
+   const {error}=await db.rpc('create_sale',{p_store_id:sale.store_id,p_items:sale.items,p_customer_id:sale.customer_id||null,p_amount_paid:sale.amount_paid,p_payment_method:sale.payment_method,p_discount:0,p_tax:0,p_notes:syncNotes,p_request_id:sale.request_id});
+   if(error){console.warn('AMWEMARI sale sync paused:',error.message);message('appMsg','Mauzo 1 ya TSh '+money(sale.total)+' bado yanasubiri. Hayajafutwa; hitilafu: '+error.message,true);break}
+   await localDelete('pending_sales',sale.request_id);
+   synced++;
+  }
+  await renderPendingSales();
+  if(synced>0&&navigator.onLine)await refreshAll();
+ })();
+ try{return await pendingSalesSyncPromise}finally{pendingSalesSyncPromise=null}
+}
 
 function updateConnectionStatus(){const el=document.getElementById('connectionStatus');if(!el)return;const online=navigator.onLine;el.textContent=online?'Uko mtandaoni — data zinasawazishwa Supabase.':'Huna intaneti — mauzo mapya yanaweza kuhifadhiwa kwenye simu na kusawazishwa baadaye.';el.classList.toggle('error',!online);el.classList.toggle('success',online)}
 window.addEventListener('online',()=>{updateConnectionStatus();syncPendingProducts().then(()=>syncPendingSales()).catch(console.error)});window.addEventListener('offline',updateConnectionStatus);updateConnectionStatus();
@@ -2224,16 +2246,16 @@ async function loadBusinessProfile(){
 }
  applyVisibility();renderCards();
 }
+let extraDataLoadPromise=null;
 async function loadExtraData(){
  if(!store||!navigator.onLine)return;
- try{
-  await loadCustomersSuppliers();
-  await loadAppointments();
-  await loadJobs();
-  await loadProjects();
-  if(isOwner())await loadLoanRepayments();
-  await loadBusinessProfile();
- }catch(e){console.error('AMWEMARI module loading',e);const active=document.querySelector('.page:not(.hidden)');if(active){const n=active.querySelector('.row');if(n){let p=active.querySelector('.notice.amw-error');if(!p){p=document.createElement('p');p.className='notice error amw-error';active.insertBefore(p,active.children[1])}p.textContent='Imeshindikana kupakia moduli: '+(e.message||e)}}}
+ if(extraDataLoadPromise)return extraDataLoadPromise;
+ extraDataLoadPromise=(async()=>{
+  try{
+   await Promise.all([loadCustomersSuppliers(),loadAppointments(),loadJobs(),loadProjects(),isOwner()?loadLoanRepayments():Promise.resolve(),loadBusinessProfile()]);
+  }catch(e){console.error('AMWEMARI module loading',e);const active=document.querySelector('.page:not(.hidden)');if(active){const n=active.querySelector('.row');if(n){let p=active.querySelector('.notice.amw-error');if(!p){p=document.createElement('p');p.className='notice error amw-error';active.insertBefore(p,active.children[1])}p.textContent='Imeshindikana kupakia moduli: '+(e.message||e)}}}
+ })().finally(()=>{extraDataLoadPromise=null});
+ return extraDataLoadPromise;
 }
 function bindForms(){
  $id('amwCustomerForm').addEventListener('submit',async e=>{e.preventDefault();try{await insertRow('customers',e.target,'amwCustomerMsg',['full_name']);await loadCustomersSuppliers()}catch(x){say('amwCustomerMsg',x.message,true)}});
@@ -2747,9 +2769,7 @@ function init(){
  document.addEventListener('click',e=>{
   const b=e.target.closest('[data-page="business_tools"]');if(b)loadBusinessProfile().catch(()=>{});
  });
- const origRefresh=window.refreshAll;
- if(typeof origRefresh==='function'&&!origRefresh.__amwExtra){const wrapped=async function(...args){const r=await origRefresh.apply(this,args);if(store&&navigator.onLine)await loadExtraData();return r};wrapped.__amwExtra=true;window.refreshAll=wrapped;}
- if(store){loadExtraData().catch(()=>{});addLanguage();window.translateStatic?.();}
+ if(store){addLanguage();window.translateStatic?.();}
  $id('amwLoanPaidAt').value=new Date().toISOString().slice(0,10);
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
