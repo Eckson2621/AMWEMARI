@@ -123,7 +123,7 @@ test('dashboard module metrics are present and refreshed by the owner dashboard 
 });
 
 test('dashboard product metric uses the active business profile label', () => {
-  assert.match(html, /productCount'\\)\\.parentElement\\.querySelector\\('\\.muted'\\)\\.textContent=vehicle\\?'Vyombo vilivyosajiliwa':cfg\\.product/);
+  assert.ok(html.includes("$('productCount').parentElement.querySelector('.muted').textContent=vehicle?'Vyombo vilivyosajiliwa':cfg.product;"));
   for (const type of expectedTypes) {
     assert.equal(typeof profiles[type].product, 'string', type + ': dashboard product label');
     assert.ok(profiles[type].product.trim().length > 0, type + ': dashboard product label must not be empty');
