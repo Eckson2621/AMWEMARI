@@ -934,29 +934,33 @@ function renderSaleProductPicker(){
  const rows=active.filter(p=>!term||String(p.name||'').toLocaleLowerCase().includes(term));
  list.innerHTML=rows.length?rows.map(p=>'<button type="button" data-sale-pick="'+esc(p.id)+'"><strong>'+esc(p.name)+'</strong><br><small class="muted">Stock: '+esc(stockDisplay(p))+' · Rejareja: '+money(p.selling_price)+' · Jumla: '+money(p.wholesale_pack_price)+'</small></button>').join(''):'<p class="muted small">Hakuna bidhaa inayolingana na utafutaji.</p>';
 }
+let saleProductPickerLoadToken=0;
 async function openSaleProductPicker(){
  const modal=$('saleProductPicker'),list=$('saleProductPickerList');if(!modal||!list)return;
+ const loadToken=++saleProductPickerLoadToken;
  modal.classList.remove('hidden');modal.setAttribute('aria-hidden','false');
  list.innerHTML='<p class="muted">Inapakia bidhaa kutoka kwenye biashara...</p>';
  if($('saleProductSearch'))$('saleProductSearch').value='';
  try{
   const activeStore=await ensureSaleStoreLoaded();
-  const {data,error}=await db.from('products').select('*').eq('store_id',activeStore.id).eq('is_active',true).order('name');
+  const {data,error}=await db.from('products').select('*').eq('store_id',activeStore.id).or('is_active.eq.true,is_active.is.null').order('name');
   if(error)throw error;
+  if(loadToken!==saleProductPickerLoadToken)return;
   products=data||[];
   syncProductSelect('saleProduct',products,true);
   updateSalePrice();
   renderSaleProductPicker();
-  if(!products.length)list.innerHTML='<p class="muted">Hakuna bidhaa hai zilizopatikana kwa biashara hii (ID: '+esc(store.id)+'). Kagua biashara iliyofunguliwa.</p>';
+  if(!products.length)list.innerHTML='<p class="muted">Hakuna bidhaa hai zilizopatikana kwa biashara hii (ID: '+esc(activeStore.id)+'). Kagua biashara iliyofunguliwa.</p>';
  }catch(error){
+  if(loadToken!==saleProductPickerLoadToken)return;
   console.error('Product picker load failed:',error);
   const cached=(products||[]).filter(p=>p.is_active!==false);
   if(cached.length){renderSaleProductPicker();}
   else list.innerHTML='<p class="error">Bidhaa hazijapakiwa: '+esc(error.message||String(error))+'</p>';
  }
- $('saleProductSearch')?.focus();
+ if(loadToken===saleProductPickerLoadToken)$('saleProductSearch')?.focus();
 }
-function closeSaleProductPicker(){ const modal=$('saleProductPicker');if(modal){modal.classList.add('hidden');modal.setAttribute('aria-hidden','true');} }
+function closeSaleProductPicker(){saleProductPickerLoadToken++;const modal=$('saleProductPicker');if(modal){modal.classList.add('hidden');modal.setAttribute('aria-hidden','true');}}
 $('saleProductOpen')?.addEventListener('click',openSaleProductPicker);
 $('saleProductPickerClose')?.addEventListener('click',closeSaleProductPicker);
 $('saleProductSearch')?.addEventListener('input',renderSaleProductPicker);
