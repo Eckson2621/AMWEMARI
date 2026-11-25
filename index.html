@@ -935,28 +935,50 @@ function renderSaleProductPicker(){
  list.innerHTML=rows.length?rows.map(p=>'<button type="button" data-sale-pick="'+esc(p.id)+'"><strong>'+esc(p.name)+'</strong><br><small class="muted">Stock: '+esc(stockDisplay(p))+' · Rejareja: '+money(p.selling_price)+' · Jumla: '+money(p.wholesale_pack_price)+'</small></button>').join(''):'<p class="muted small">Hakuna bidhaa inayolingana na utafutaji.</p>';
 }
 let saleProductPickerLoadToken=0;
+let saleProductRefreshPromise=null;
 async function openSaleProductPicker(){
  const modal=$('saleProductPicker'),list=$('saleProductPickerList');if(!modal||!list)return;
  const loadToken=++saleProductPickerLoadToken;
  modal.classList.remove('hidden');modal.setAttribute('aria-hidden','false');
- list.innerHTML='<p class="muted">Inapakia bidhaa kutoka kwenye biashara...</p>';
  if($('saleProductSearch'))$('saleProductSearch').value='';
- try{
-  const activeStore=await ensureSaleStoreLoaded();
-  const {data,error}=await db.from('products').select('*').eq('store_id',activeStore.id).or('is_active.eq.true,is_active.is.null').order('name');
-  if(error)throw error;
-  if(loadToken!==saleProductPickerLoadToken)return;
-  products=data||[];
+ // Show already-loaded products immediately. Never blank a working list while
+ // the network is responding; this prevents the picker from jumping/flickering.
+ const currentStoreId=String(store?.id||'');
+ const cached=(products||[]).filter(p=>String(p.store_id)===currentStoreId&&p.is_active!==false);
+ if(cached.length){
+  products=cached;
   syncProductSelect('saleProduct',products,true);
   updateSalePrice();
   renderSaleProductPicker();
-  if(!products.length)list.innerHTML='<p class="muted">Hakuna bidhaa hai zilizopatikana kwa biashara hii (ID: '+esc(activeStore.id)+'). Kagua biashara iliyofunguliwa.</p>';
+ }else{
+  list.innerHTML='<p class="muted">Inapakia bidhaa kutoka kwenye biashara...</p>';
+ }
+ try{
+  if(!navigator.onLine){
+   if(!cached.length)throw new Error('Intaneti haipo na hakuna bidhaa zilizohifadhiwa kwenye simu.');
+   return;
+  }
+  // Reuse an in-flight refresh instead of starting overlapping requests.
+  if(!saleProductRefreshPromise){
+   saleProductRefreshPromise=(async()=>{
+    const activeStore=await ensureSaleStoreLoaded();
+    const result=await db.from('products').select('*').eq('store_id',activeStore.id).or('is_active.eq.true,is_active.is.null').order('name');
+    if(result.error)throw result.error;
+    return {storeId:String(activeStore.id),rows:result.data||[]};
+   })().finally(()=>{saleProductRefreshPromise=null});
+  }
+  const fresh=await saleProductRefreshPromise;
+  if(loadToken!==saleProductPickerLoadToken||!modal.classList.contains('hidden')&&String(store?.id||'')!==fresh.storeId)return;
+  if(String(store?.id||'')!==fresh.storeId)return;
+  products=fresh.rows;
+  syncProductSelect('saleProduct',products,true);
+  updateSalePrice();
+  renderSaleProductPicker();
+  if(!products.length)list.innerHTML='<p class="muted">Hakuna bidhaa hai zilizopatikana kwa biashara hii.</p>';
  }catch(error){
   if(loadToken!==saleProductPickerLoadToken)return;
-  console.error('Product picker load failed:',error);
-  const cached=(products||[]).filter(p=>p.is_active!==false);
-  if(cached.length){renderSaleProductPicker();}
-  else list.innerHTML='<p class="error">Bidhaa hazijapakiwa: '+esc(error.message||String(error))+'</p>';
+  console.warn('Sale product background refresh failed:',error);
+  if(!cached.length)list.innerHTML='<p class="error">Bidhaa hazijapakiwa: '+esc(error.message||String(error))+'</p>';
  }
  if(loadToken===saleProductPickerLoadToken)$('saleProductSearch')?.focus();
 }
