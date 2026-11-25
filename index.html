@@ -2187,7 +2187,7 @@ async function loadBusinessProfile(){
    document.querySelectorAll('#workspace [data-page]').forEach(button=>button.classList.toggle('active',button.dataset.page===pageId));
    target.scrollIntoView({behavior:'smooth',block:'start'});
    try{
-    if(pageId==='products')await window.refreshAll?.();
+    if(pageId==='products')await refreshAll();
     else if(pageId==='sales')await Promise.all([loadDailySales(),loadRecentSalesHistory(),refreshSaleProductOptions()]);
     else if(pageId==='debts')await loadDebts();
     else if(['customers','suppliers','service_appointments','service_jobs','business_projects','loan_repayments'].includes(pageId))await loadExtraData();
