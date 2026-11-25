@@ -851,6 +851,8 @@ async function loadSubscription(){
 async function handleSubscriptionReturn(){}
 $('storeForm').addEventListener('submit',async e=>{e.preventDefault();const payload={name:$('storeName').value.trim(),business_type:$('storeType').value.trim()||null,phone:$('storePhone').value.trim()||null,address:$('storeAddress').value.trim()||null,owner_id:user.id,currency_code:'TZS',timezone:'Africa/Dar_es_Salaam'};const {data,error}=await db.from('stores').insert(payload).select().single();if(error){message('appMsg',error.message,true);return}store=data;await loadStore()});
 let saleCreditCustomers=[];
+let saleCustomerCacheStoreId='';
+let saleCustomerLoadPromise=null;
 function renderSaleCreditCustomerPicker(){
  const select=$('saleCreditCustomer'),button=$('saleCreditCustomerOpen'),list=$('saleCreditCustomerPickerList');
  if(!select||!button||!list)return;
@@ -880,14 +882,19 @@ async function ensureSaleStoreLoaded(){
 }
 async function loadSaleCreditCustomers(){
  const select=$('saleCreditCustomer');if(!select)return;
- const activeStore=await ensureSaleStoreLoaded();
- const selected=select.value;
- const {data,error}=await db.from('customers').select('id,full_name,phone').eq('store_id',activeStore.id).order('full_name');
- if(error)throw error;
- saleCreditCustomers=data||[];
- select.innerHTML='<option value="">Chagua mteja aliyesajiliwa</option>'+saleCreditCustomers.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.full_name)+'</option>').join('');
- if(saleCreditCustomers.some(c=>String(c.id)===String(selected)))select.value=selected;
- renderSaleCreditCustomerPicker();
+ if(saleCustomerLoadPromise)return saleCustomerLoadPromise;
+ saleCustomerLoadPromise=(async()=>{
+  const activeStore=await ensureSaleStoreLoaded();
+  const selected=select.value;
+  const {data,error}=await db.from('customers').select('id,full_name,phone').eq('store_id',activeStore.id).order('full_name');
+  if(error)throw error;
+  saleCreditCustomers=data||[];
+  saleCustomerCacheStoreId=String(activeStore.id);
+  select.innerHTML='<option value="">Chagua mteja aliyesajiliwa</option>'+saleCreditCustomers.map(c=>'<option value="'+esc(c.id)+'">'+esc(c.full_name)+'</option>').join('');
+  if(saleCreditCustomers.some(c=>String(c.id)===String(selected)))select.value=selected;
+  renderSaleCreditCustomerPicker();
+ })();
+ try{return await saleCustomerLoadPromise}finally{saleCustomerLoadPromise=null}
 }
 async function openSaleCreditCustomerPicker(){
  const modal=$('saleCreditCustomerPicker');if(!modal)return;
@@ -1019,7 +1026,7 @@ $('saleProductPickerList')?.addEventListener('click',e=>{
  renderSaleProductPicker();closeSaleProductPicker();
 });
 
-document.querySelectorAll('[data-page]').forEach(b=>b.addEventListener('click',async()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.page));if(b.dataset.page==='debts')loadDebts();if(b.dataset.page==='products'||b.dataset.page==='sales'){try{await refreshAll()}catch(error){console.error('AMWEMARI product/sales refresh failed:',error);const status=$('saleActionStatus');if(status&&b.dataset.page==='sales')status.textContent='Taarifa hazijapakiwa: '+(error.message||String(error));const table=$('productsTable');if(table&&b.dataset.page==='products')table.textContent='Bidhaa hazijapakiwa: '+(error.message||String(error));}}if(b.dataset.page==='sales'){await Promise.all([refreshSaleProductOptions(),loadSaleCreditCustomers()]).catch(error=>{console.error('AMWEMARI sales selectors:',error);const el=$('saleCreditCustomer');if(el)el.innerHTML='<option value="">Imeshindikana kupakia wateja: '+esc(error.message||String(error))+'</option>'})}if(b.dataset.page==='purchases'&&store&&store.owner_id===user.id)loadBusinessLoans()}));
+document.querySelectorAll('[data-page]').forEach(b=>{if(b.dataset.amwBound)return;b.dataset.amwBound='1';b.addEventListener('click',async()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.page));if(b.dataset.page==='debts')loadDebts();if(b.dataset.page==='products'||b.dataset.page==='sales'){try{await refreshAll()}catch(error){console.error('AMWEMARI product/sales refresh failed:',error);const status=$('saleActionStatus');if(status&&b.dataset.page==='sales')status.textContent='Taarifa hazijapakiwa: '+(error.message||String(error));const table=$('productsTable');if(table&&b.dataset.page==='products')table.textContent='Bidhaa hazijapakiwa: '+(error.message||String(error));}}if(b.dataset.page==='sales'){const customerStoreId=String(store?.id||'');if(customerStoreId&&saleCustomerCacheStoreId!==customerStoreId){try{await loadSaleCreditCustomers()}catch(error){console.error('AMWEMARI sales customer list:',error);const el=$('saleCreditCustomer');if(el)el.innerHTML='<option value="">Imeshindikana kupakia wateja: '+esc(error.message||String(error))+'</option>'}}}if(b.dataset.page==='purchases'&&store&&store.owner_id===user.id)loadBusinessLoans()})});
 async function refreshAll(){
  if(!store)return;
  const isOwner=store.owner_id===user.id;
