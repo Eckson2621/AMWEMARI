@@ -122,6 +122,14 @@ test('dashboard module metrics are present and refreshed by the owner dashboard 
   assert.match(html, /await loadBusinessDashboardModules\(\)/);
 });
 
+test('dashboard product metric uses the active business profile label', () => {
+  assert.match(html, /productCount'\\)\\.parentElement\\.querySelector\\('\\.muted'\\)\\.textContent=vehicle\\?'Vyombo vilivyosajiliwa':cfg\\.product/);
+  for (const type of expectedTypes) {
+    assert.equal(typeof profiles[type].product, 'string', type + ': dashboard product label');
+    assert.ok(profiles[type].product.trim().length > 0, type + ': dashboard product label must not be empty');
+  }
+});
+
 test('customer register is shared across all business workspaces and store-scoped', () => {
   assert.match(html, /data-business-module="customers"/);
   assert.match(html, /el\.dataset\.businessModule!=='customers'/);
