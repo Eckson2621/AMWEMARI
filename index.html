@@ -1768,7 +1768,7 @@ $('saleCreditCustomer').addEventListener('change',updateSaleWorkflowSummary);
 function localDateTimeInputValue(date=new Date()){const d=new Date(date.getTime()-date.getTimezoneOffset()*60000);return d.toISOString().slice(0,16)}
 function toggleSaleEntryMode(){const mode=$('saleEntryMode').value,dayEnd=mode==='day_end';$('dayEndFields').classList.toggle('hidden',!dayEnd);$('saleEntryHint').textContent=dayEnd?'Ingiza muda ambao mauzo yalifanyika. Mfumo utahifadhi pia muda wa sasa ambao taarifa imeingizwa.':'Rekodi kila mteja anaponunua. Mfumo utahifadhi muda wa mauzo na muda wa kurekodi.';document.querySelectorAll('#saleEntryModeSwitch [data-sale-entry-mode]').forEach(button=>{const active=button.dataset.saleEntryMode===mode;button.classList.toggle('active',active);button.setAttribute('aria-pressed',active?'true':'false')});if(dayEnd&&!$('dayEndSoldAt').value)$('dayEndSoldAt').value=localDateTimeInputValue()}
 $('saleEntryMode').addEventListener('change',toggleSaleEntryMode);
-$('saleEntryModeSwitch')?.addEventListener('click',event=>{const button=event.target.closest('[data-sale-entry-mode]');if(!button)return;const select=$('saleEntryMode');if(select.value===button.dataset.saleEntryMode)return;select.value=button.dataset.saleEntryMode;select.dispatchEvent(new Event('change',{bubbles:true))});
+$('saleEntryModeSwitch')?.addEventListener('click',event=>{const button=event.target.closest('[data-sale-entry-mode]');if(!button)return;const select=$('saleEntryMode');if(select.value===button.dataset.saleEntryMode)return;select.value=button.dataset.saleEntryMode;select.dispatchEvent(new Event('change',{bubbles:true}));});
 
 async function completeSale(){
  const btn=$('completeSaleBtn');
