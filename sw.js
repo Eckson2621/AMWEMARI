@@ -1,4 +1,4 @@
-const CACHE_NAME = 'amwemari-shell-v72';
+const CACHE_NAME = 'amwemari-shell-v73';
 const CORE_FILES=['/','/index.html','/manifest.json','/icons/icon.svg','/icons/logo.svg','/pwa-install.js'];
 const SUPABASE_SCRIPT='https://unpkg.com/@supabase/supabase-js@2.119.0/dist/umd/supabase.js';
 
