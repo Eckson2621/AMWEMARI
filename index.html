@@ -207,7 +207,7 @@
  <div class="panel">
   <h2>Rekodi ununuzi wa stock</h2>
   <div class="grid">
-   <div class="field"><label>Bidhaa</label><select id="purchaseProduct"></select></div>
+   <div class="field"><label for="purchaseProductOpen">Chagua bidhaa</label><button type="button" id="purchaseProductOpen" class="secondary" aria-haspopup="dialog" aria-controls="purchaseProductPicker" style="width:100%;text-align:left;background:#ea580c;color:#fff;border:1px solid #c2410c;min-height:48px">Chagua bidhaa ▾</button><select id="purchaseProduct" aria-hidden="true" tabindex="-1" style="display:none"><option value="">Chagua bidhaa</option></select><small id="purchaseProductCount" class="muted small">Bidhaa zote za biashara zitaonekana hapa.</small></div>
    <div class="field"><label>Katoni/vifungashio ulivyonunua</label><input id="purchasePacks" type="number" min="0" step="1" value="0"></div>
    <div class="field"><label>Vipande vya ziada vilivyonunuliwa</label><input id="purchaseLoose" type="number" min="0" step="1" value="0"></div>
    <div class="field"><label>Bei ya kifungashio kimoja (TZS)</label><input id="purchasePackCost" type="number" min="0" step=".01"></div>
@@ -221,6 +221,7 @@
   <p class="muted small">Mauzo yaliyopokelewa tayari ni sehemu ya fedha za biashara; usiyaandike tena kama mtaji. Ukichagua pesa binafsi, mfumo utarekodi mtaji huo moja kwa moja. Mkopo utaonekana kama deni la biashara.</p>
   <button type="button" onclick="recordPurchase()">Hifadhi ununuzi</button>
  </div>
+ <div id="purchaseProductPicker" class="hidden" role="dialog" aria-modal="true" aria-labelledby="purchaseProductPickerTitle" style="position:fixed;inset:0;z-index:122;background:rgba(3,12,24,.78);padding:12px;display:flex;align-items:center;justify-content:center"><div class="panel" style="width:min(100%,620px);max-height:92vh;display:flex;flex-direction:column;gap:12px;background:var(--card,#fff);color:var(--text,inherit)"><div class="row"><div><h2 id="purchaseProductPickerTitle" style="margin:0">Chagua bidhaa ya kununua</h2><small id="purchaseProductCountModal" class="muted">Bidhaa zote za biashara</small></div><button type="button" id="purchaseProductPickerClose" class="secondary">Funga</button></div><input id="purchaseProductSearch" type="search" placeholder="Tafuta bidhaa kwa jina..." autocomplete="off"><div id="purchaseProductPickerList" style="overflow:auto;display:grid;gap:8px;min-height:80px"></div></div></div>
  <div class="panel section"><h2>Ununuzi wa karibuni</h2><div id="purchasesTable" class="tablewrap"></div></div>
  <div class="panel section"><h2>Mikopo ya biashara na supplier</h2><div class="grid"><div class="card"><div class="muted">Jumla ya madeni ya mikopo yaliyorekodiwa</div><div class="metric" id="businessLoanOutstanding">TZS 0</div></div></div><div id="businessLoansTable" class="tablewrap">Inapakia...</div><p class="muted small">Salio hili linaonyesha mikopo iliyorekodiwa wakati wa kununua stock. Rekodi marejesho ya mkopo kwenye hatua ya usimamizi wa madeni itakapowashwa; usipunguze salio kwa kubadilisha rekodi ya ununuzi.</p></div>
 </section>
@@ -1027,7 +1028,7 @@ $('saleProductPickerList')?.addEventListener('click',e=>{
  renderSaleProductPicker();closeSaleProductPicker();
 });
 
-document.querySelectorAll('[data-page]').forEach(b=>{if(b.dataset.amwBound)return;b.dataset.amwBound='1';b.addEventListener('click',async()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.page));if(b.dataset.page==='debts')loadDebts();if(b.dataset.page==='products'||b.dataset.page==='sales'){try{await refreshAll()}catch(error){console.error('AMWEMARI product/sales refresh failed:',error);const status=$('saleActionStatus');if(status&&b.dataset.page==='sales')status.textContent='Taarifa hazijapakiwa: '+(error.message||String(error));const table=$('productsTable');if(table&&b.dataset.page==='products')table.textContent='Bidhaa hazijapakiwa: '+(error.message||String(error));}}if(b.dataset.page==='sales'){const customerStoreId=String(store?.id||'');if(customerStoreId&&saleCustomerCacheStoreId!==customerStoreId){try{await loadSaleCreditCustomers()}catch(error){console.error('AMWEMARI sales customer list:',error);const el=$('saleCreditCustomer');if(el)el.innerHTML='<option value="">Imeshindikana kupakia wateja: '+esc(error.message||String(error))+'</option>'}}}if(b.dataset.page==='purchases'&&store&&store.owner_id===user.id)loadBusinessLoans()})});
+document.querySelectorAll('[data-page]').forEach(b=>{if(b.dataset.amwBound)return;b.dataset.amwBound='1';b.addEventListener('click',async()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.page));if(b.dataset.page==='debts')loadDebts();if(b.dataset.page==='products'||b.dataset.page==='sales'||b.dataset.page==='purchases'){try{await refreshAll()}catch(error){console.error('AMWEMARI product/sales refresh failed:',error);const status=$('saleActionStatus');if(status&&b.dataset.page==='sales')status.textContent='Taarifa hazijapakiwa: '+(error.message||String(error));const table=$('productsTable');if(table&&b.dataset.page==='products')table.textContent='Bidhaa hazijapakiwa: '+(error.message||String(error));}}if(b.dataset.page==='sales'){const customerStoreId=String(store?.id||'');if(customerStoreId&&saleCustomerCacheStoreId!==customerStoreId){try{await loadSaleCreditCustomers()}catch(error){console.error('AMWEMARI sales customer list:',error);const el=$('saleCreditCustomer');if(el)el.innerHTML='<option value="">Imeshindikana kupakia wateja: '+esc(error.message||String(error))+'</option>'}}}if(b.dataset.page==='purchases'&&store&&store.owner_id===user.id)loadBusinessLoans()})});
 function renderProductsForFastAccess(){
  $('productCount').textContent=products.length;
  $('lowStock').textContent=products.filter(p=>Number(p.quantity)<=Number(p.reorder_level)).length;
@@ -1380,6 +1381,7 @@ function syncProductSelect(id,rows,includeStock){
  else if(id==='saleProduct')el.value='';
  else if(rows.length)el.selectedIndex=0;
  if(id==='saleProduct')renderSaleProductPicker();
+ if(id==='purchaseProduct')renderPurchaseProductPicker();
 }
 function renderAll(){const ts=todayRows(sales,'sold_at'),te=todayRows(expenses,'expense_date'),sum=ts.reduce((a,b)=>a+Number(b.total),0),ex=te.reduce((a,b)=>a+Number(b.amount),0);$('todaySales').textContent=money(sum);$('todayCount').textContent=ts.length;$('productCount').textContent=products.length;$('lowStock').textContent=products.filter(p=>Number(p.quantity)<=Number(p.reorder_level)).length;$('lowStockList').innerHTML=lowStockTable();$('reportSales').textContent=money(sum);$('reportExpenses').textContent=money(ex);$('reportNet').textContent=money(sum-ex);$('recentSales').innerHTML=salesTable(ts.slice(0,6));$('salesTable').innerHTML=salesTable(sales);const ownRows=sales.filter(s=>s.sold_by===user?.id);$('mySalesSummary').textContent='Mauzo yangu yaliyopakiwa: '+ownRows.length+' · Jumla '+money(ownRows.reduce((a,s)=>a+Number(s.total),0))+' · Imepokelewa '+money(ownRows.reduce((a,s)=>a+Number(s.amount_paid),0))+' · Salio '+money(ownRows.reduce((a,s)=>a+Math.max(0,Number(s.total)-Number(s.amount_paid)),0));$('productsTable').innerHTML=productsTable();$('expensesTable').innerHTML=expensesTable();syncProductSelect('saleProduct',products,true);syncProductSelect('purchaseProduct',products,false);updateSalePrice();updatePurchasePreview();renderCart();$('purchasesTable').innerHTML=purchasesTable()}
 async function loadRecentSalesHistory(){
@@ -1572,6 +1574,39 @@ $('productForm').addEventListener('submit',async e=>{
    }catch(queueError){productStatus('Haikuwezekana kuhifadhi bidhaa kwenye simu: '+(queueError.message||queueError),true);message('appMsg','Haikuwezekana kuhifadhi bidhaa kwenye simu: '+(queueError.message||queueError),true)}
   }else{productStatus('Bidhaa haijahifadhiwa: '+detail,true);message('appMsg','Bidhaa haijahifadhiwa: '+detail,true)}
  }finally{submit.disabled=false;submit.textContent='Hifadhi bidhaa'}
+});
+function renderPurchaseProductPicker(){
+ const select=$('purchaseProduct'),button=$('purchaseProductOpen'),list=$('purchaseProductPickerList');
+ if(!select||!button||!list)return;
+ const active=(products||[]).filter(p=>String(p.store_id)===String(store?.id||'')&&p.is_active!==false);
+ const selected=active.find(p=>String(p.id)===String(select.value));
+ button.textContent=selected?selected.name+' ▾':'Chagua bidhaa ▾';
+ const count=$('purchaseProductCount');if(count)count.textContent='Bidhaa '+active.length+' zinapatikana';
+ const modalCount=$('purchaseProductCountModal');if(modalCount)modalCount.textContent='Bidhaa '+active.length+' · Chagua unayonunua';
+ const term=String($('purchaseProductSearch')?.value||'').trim().toLocaleLowerCase();
+ const rows=active.filter(p=>!term||String(p.name||'').toLocaleLowerCase().includes(term));
+ list.innerHTML=rows.length?rows.map(p=>'<button type="button" data-purchase-pick="'+esc(p.id)+'" style="width:100%;text-align:left;background:#ea580c;color:#fff;border:1px solid #c2410c;padding:12px"><strong>'+esc(p.name)+'</strong><br><small>Stock: '+esc(stockDisplay(p))+' · Bei ya kununua: '+money(p.purchase_pack_price||0)+'/'+esc(p.pack_name||'pakiti')+'</small></button>').join(''):'<p class="muted">Hakuna bidhaa inayolingana na utafutaji.</p>';
+}
+function openPurchaseProductPicker(){
+ const modal=$('purchaseProductPicker');if(!modal)return;
+ if($('purchaseProductSearch'))$('purchaseProductSearch').value='';
+ renderPurchaseProductPicker();
+ modal.classList.remove('hidden');modal.setAttribute('aria-hidden','false');
+ $('purchaseProductSearch')?.focus();
+}
+function closePurchaseProductPicker(){
+ const modal=$('purchaseProductPicker');if(modal){modal.classList.add('hidden');modal.setAttribute('aria-hidden','true')}
+}
+$('purchaseProductOpen')?.addEventListener('click',openPurchaseProductPicker);
+$('purchaseProductPickerClose')?.addEventListener('click',closePurchaseProductPicker);
+$('purchaseProductSearch')?.addEventListener('input',renderPurchaseProductPicker);
+$('purchaseProductPicker')?.addEventListener('click',e=>{if(e.target===$('purchaseProductPicker'))closePurchaseProductPicker()});
+$('purchaseProductPickerList')?.addEventListener('click',e=>{
+ const option=e.target.closest('[data-purchase-pick]');if(!option)return;
+ const select=$('purchaseProduct');if(!select)return;
+ select.value=option.dataset.purchasePick;
+ select.dispatchEvent(new Event('change',{bubbles:true}));
+ renderPurchaseProductPicker();closePurchaseProductPicker();
 });
 $('purchaseDate').value=new Date().toLocaleDateString('en-CA',{timeZone:'Africa/Dar_es_Salaam'});
 $('purchaseProduct').addEventListener('change',()=>{const p=products.find(x=>x.id===$('purchaseProduct').value);$('purchasePackCost').value=p?String(p.purchase_pack_price||0):'0';updatePurchasePreview()});
