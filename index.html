@@ -262,6 +262,7 @@ async function renderPendingProducts(){const q=(await window.localAll('pending_p
 async function syncPendingProducts(){
  if(!navigator.onLine||!store||!user)return;
  const q=(await window.localAll('pending_products')).filter(p=>p.store_id===store.id).sort((a,b)=>a.created_at.localeCompare(b.created_at));
+ let synced=0;
  for(const item of q){
   try{
    // Use the same atomic, idempotent RPC as online product creation.
@@ -278,6 +279,7 @@ async function syncPendingProducts(){
    const saved=Array.isArray(result.data)?result.data[0]:result.data;
    if(!saved||saved.id!==item.id||saved.store_id!==store.id)throw new Error('Supabase haijathibitisha bidhaa na stock yake ya mwanzo.');
    await localDelete('pending_products',item.id);
+   synced++;
   }catch(error){
    console.warn('AMWEMARI product sync paused:',error);
    message('appMsg','Bidhaa '+item.payload.name+' bado inasubiri kutumwa. Mfumo utajaribu tena intaneti ikipatikana: '+(error.message||error),true);
@@ -285,7 +287,7 @@ async function syncPendingProducts(){
   }
  }
  await renderPendingProducts();
- if(navigator.onLine)await refreshAll();
+ if(synced>0&&navigator.onLine)await refreshAll();
 }
 async function getQueuedQuantity(productId){const q=await window.localAll('pending_sales');return q.filter(s=>s.store_id===store.id&&s.seller_id===user.id).reduce((sum,s)=>sum+s.items.filter(i=>i.product_id===productId).reduce((a,i)=>a+Number(i.quantity),0),0)}
 async function renderPendingSales(){const q=(await window.localAll('pending_sales')).filter(s=>s.store_id===store?.id&&s.seller_id===user?.id);const el=$('pendingSales');if(!el)return;el.textContent='Mauzo yanayosubiri kusawazishwa: '+q.length+(q.length?' · Jumla '+money(q.reduce((a,s)=>a+Number(s.total),0)):'');el.classList.toggle('success',q.length===0);el.classList.toggle('error',q.length>0)}
