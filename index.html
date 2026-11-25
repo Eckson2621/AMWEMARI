@@ -959,7 +959,7 @@ function renderSaleProductPicker(){
  // Do not hide valid rows again using a possibly stale cached store object.
  const active=source.filter(p=>p.is_active!==false);
  const selected=active.find(p=>String(p.id)===String(select.value));
- button.textContent=selected?selected.name+' ▾':'Select Product ▾';
+ button.textContent=selected?selected.name+' ▾':'Chagua bidhaa ▾';
  const count=$('saleProductCount');if(count)count.textContent='Bidhaa '+active.length+' zinapatikana';
  const modalCount=$('saleProductCountModal');if(modalCount)modalCount.textContent='Bidhaa '+active.length+' · Chagua unayotaka kuuza';
  const term=String($('saleProductSearch')?.value||'').trim().toLocaleLowerCase();
@@ -1028,6 +1028,16 @@ $('saleProductPickerList')?.addEventListener('click',e=>{
 });
 
 document.querySelectorAll('[data-page]').forEach(b=>{if(b.dataset.amwBound)return;b.dataset.amwBound='1';b.addEventListener('click',async()=>{document.querySelectorAll('[data-page]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.page));if(b.dataset.page==='debts')loadDebts();if(b.dataset.page==='products'||b.dataset.page==='sales'){try{await refreshAll()}catch(error){console.error('AMWEMARI product/sales refresh failed:',error);const status=$('saleActionStatus');if(status&&b.dataset.page==='sales')status.textContent='Taarifa hazijapakiwa: '+(error.message||String(error));const table=$('productsTable');if(table&&b.dataset.page==='products')table.textContent='Bidhaa hazijapakiwa: '+(error.message||String(error));}}if(b.dataset.page==='sales'){const customerStoreId=String(store?.id||'');if(customerStoreId&&saleCustomerCacheStoreId!==customerStoreId){try{await loadSaleCreditCustomers()}catch(error){console.error('AMWEMARI sales customer list:',error);const el=$('saleCreditCustomer');if(el)el.innerHTML='<option value="">Imeshindikana kupakia wateja: '+esc(error.message||String(error))+'</option>'}}}if(b.dataset.page==='purchases'&&store&&store.owner_id===user.id)loadBusinessLoans()})});
+function renderProductsForFastAccess(){
+ $('productCount').textContent=products.length;
+ $('lowStock').textContent=products.filter(p=>Number(p.quantity)<=Number(p.reorder_level)).length;
+ $('lowStockList').innerHTML=lowStockTable();
+ $('productsTable').innerHTML=productsTable();
+ syncProductSelect('saleProduct',products,true);
+ syncProductSelect('purchaseProduct',products,false);
+ updateSalePrice();
+}
+
 async function refreshAll(){
  if(!store)return;
  const isOwner=store.owner_id===user.id;
@@ -1039,7 +1049,8 @@ async function refreshAll(){
  // Older product rows may have is_active=NULL; treat them as active, and hide only explicitly archived rows.
  products=(p.data||[]).filter(row=>row.is_active!==false);
  try{await localReplace('products',products)}catch(cacheError){console.warn('AMWEMARI product cache update failed:',cacheError)}
- renderAll();
+ // Make the product selector usable immediately without redrawing the entire sales screen twice.
+ renderProductsForFastAccess();
  const [s,x,m]=await Promise.all([
   fetchAllReportRows('sales','*,sale_items!sale_items_sale_id_fkey(product_name_snapshot,quantity,unit_price,line_total)',q=>q.eq('status','completed').order('sold_at',{ascending:false})),
   isOwner?db.from('expenses').select('*').eq('store_id',store.id).order('expense_date',{ascending:false}).limit(100):Promise.resolve({data:[],error:null}),
