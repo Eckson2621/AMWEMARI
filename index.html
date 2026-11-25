@@ -1625,24 +1625,49 @@ function updatePurchasePreview(){
  const qty=packs*units+loose,total=(packs*packCost)+(loose*(packCost/units));
  $('purchasePreview').textContent=packs+' '+(p.pack_name||'pack')+' × '+units+' + '+loose+' '+(p.base_unit||'kipande')+' za ziada = '+qty+' '+(p.base_unit||'kipande')+' zitaongezwa kwenye stock. Gharama yote: '+money(total)+'.';
 }
+let purchaseSaveInProgress=false;
 async function recordPurchase(){
- const p=products.find(x=>x.id===$('purchaseProduct').value),packs=Number($('purchasePacks').value),loose=Number($('purchaseLoose').value),packCost=Number($('purchasePackCost').value),date=$('purchaseDate').value,source=$('purchaseFundingSource').value,method=$('purchaseMethod').value,lender=$('purchaseLenderName').value.trim(),dueDate=$('purchaseLoanDueDate').value||null;
- if(!p||!Number.isInteger(packs)||packs<0||!Number.isInteger(loose)||loose<0||(packs===0&&loose===0)||!Number.isFinite(packCost)||packCost<=0||!date){message('appMsg','Weka bidhaa, idadi, bei halisi ya ununuzi na tarehe sahihi.',true);return}
+ if(purchaseSaveInProgress)return;
+ if(!navigator.onLine){message('appMsg','Huwezi kuhifadhi ununuzi bila intaneti. Unganisha intaneti kisha jaribu tena; stock haijabadilishwa.',true);return}
+ if(!store?.id||!user?.id){message('appMsg','Biashara haijapakiwa. Fungua upya ukurasa ukiwa umeingia.',true);return}
+ const selectedId=String($('purchaseProduct')?.value||'').trim();
+ const packs=Number($('purchasePacks')?.value),loose=Number($('purchaseLoose')?.value),packCost=Number($('purchasePackCost')?.value);
+ const date=$('purchaseDate')?.value,source=$('purchaseFundingSource')?.value,method=$('purchaseMethod')?.value;
+ const lender=$('purchaseLenderName')?.value.trim()||null,dueDate=$('purchaseLoanDueDate')?.value||null;
+ if(!selectedId||!Number.isInteger(packs)||packs<0||!Number.isInteger(loose)||loose<0||(packs===0&&loose===0)||!Number.isFinite(packCost)||packCost<=0||!date){
+  message('appMsg','Weka bidhaa, idadi ya vifungashio/vipande, bei ya kununua na tarehe sahihi.',true);return;
+ }
+ if(!['business_cash','owner_capital','business_loan','supplier_credit'].includes(source)){message('appMsg','Chagua chanzo sahihi cha fedha za ununuzi.',true);return}
  if((source==='business_loan'||source==='supplier_credit')&&!lender){message('appMsg','Weka jina la aliyekukopesha au supplier.',true);return}
- const btn=document.querySelector('#purchases button[onclick="recordPurchase()"]');if(btn){btn.disabled=true;btn.textContent='Inahifadhi...'}
+ if((source==='business_cash'||source==='owner_capital')&&!['cash','mobile_money','bank','card'].includes(method)){message('appMsg','Chagua njia sahihi ya malipo.',true);return}
+ const btn=document.querySelector('#purchases button[onclick="recordPurchase()"]');
+ purchaseSaveInProgress=true;if(btn){btn.disabled=true;btn.textContent='Inahifadhi...'}
  try{
+  // Re-read the selected product from the active business immediately before saving.
+  // This avoids submitting an old product id from a stale picker/cache.
+  const {data:p,error:productError}=await db.from('products').select('id,store_id,name,base_unit,pack_name,units_per_pack,is_active').eq('id',selectedId).eq('store_id',store.id).eq('is_active',true).single();
+  if(productError)throw new Error('Bidhaa haijathibitishwa kwenye biashara hii: '+productError.message);
+  if(!p||!Number(p.units_per_pack)||Number(p.units_per_pack)<=0)throw new Error('Bidhaa haipo au idadi ya vipande kwa kifungashio si sahihi.');
   const {data,error}=await db.rpc('record_purchase_with_funding',{
    p_store_id:store.id,p_product_id:p.id,p_package_quantity:packs,p_loose_units:loose,
    p_package_cost:packCost,p_purchase_date:date,p_note:'Ununuzi wa stock',
-   p_funding_source:source,p_payment_method:method,p_lender_name:lender||null,p_loan_due_date:dueDate
+   p_funding_source:source,p_payment_method:method,p_lender_name:lender,p_loan_due_date:dueDate
   });
   if(error)throw error;
+  const saved=Array.isArray(data)?data[0]:data;
+  const quantityAdded=Number(saved?.quantity_added);
+  if(!saved||!Number.isFinite(quantityAdded)||quantityAdded<=0)throw new Error('Seva haikurudisha uthibitisho wa stock kuongezwa. Hakuna ujumbe wa mafanikio uliotolewa; kagua historia ya ununuzi kabla ya kujaribu tena.');
   $('purchasePacks').value='0';$('purchaseLoose').value='0';$('purchaseLenderName').value='';$('purchaseLoanDueDate').value='';
   await refreshAll();
   const sourceLabel={business_cash:'Fedha za biashara',owner_capital:'Mtaji binafsi (umerekodiwa)',business_loan:'Mkopo wa biashara (umerekodiwa)',supplier_credit:'Deni la supplier (limerekodiwa)'}[source];
-  message('appMsg','Ununuzi umehifadhiwa. Stock imeongezeka kwa '+Number(data?.[0]?.quantity_added||0)+' '+(p.base_unit||'vipande')+'. Chanzo: '+sourceLabel+'.');
- }catch(error){message('appMsg','Ununuzi haujahifadhiwa: '+(error.message||error),true)}
- finally{if(btn){btn.disabled=false;btn.textContent='Hifadhi ununuzi'}}
+  message('appMsg','Ununuzi umehifadhiwa. Stock imeongezeka kwa '+quantityAdded+' '+(p.base_unit||'vipande')+'. Chanzo: '+sourceLabel+'.');
+ }catch(error){
+  console.error('AMWEMARI purchase save failed:',error);
+  const detail=[error?.message,error?.details,error?.hint,error?.code].filter(Boolean).join(' · ');
+  message('appMsg','Ununuzi haujahifadhiwa: '+(detail||String(error)||'Hitilafu isiyojulikana'),true);
+ }finally{
+  purchaseSaveInProgress=false;if(btn){btn.disabled=false;btn.textContent='Hifadhi ununuzi'}
+ }
 }
 async function adjustStock(id){const p=products.find(x=>x.id===id),v=prompt('Ongeza kiasi cha stock kwa '+p.name+':');if(v===null)return;const qty=Number(v);if(!Number.isFinite(qty)||qty<=0){alert('Weka kiasi zaidi ya sifuri.');return}const {error}=await db.from('products').update({quantity:Number(p.quantity)+qty,updated_at:new Date().toISOString()}).eq('id',id).eq('store_id',store.id);if(error){message('appMsg',error.message,true);return}const m=await db.from('stock_movements').insert({store_id:store.id,product_id:id,movement_type:'purchase',quantity_change:qty,unit_cost:p.cost_price,reference_type:'manual_adjustment',note:'Manual stock addition',performed_by:user.id});if(m.error)message('appMsg','Stock imeongezwa lakini ledger imeshindwa: '+m.error.message,true);await refreshAll()}
 function updateSalePrice(){
