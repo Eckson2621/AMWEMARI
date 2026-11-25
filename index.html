@@ -1052,13 +1052,18 @@ async function refreshAll(){
  try{await localReplace('products',products)}catch(cacheError){console.warn('AMWEMARI product cache update failed:',cacheError)}
  // Make the product selector usable immediately without redrawing the entire sales screen twice.
  renderProductsForFastAccess();
- const [s,x,m]=await Promise.all([
+ const results=await Promise.allSettled([
   fetchAllReportRows('sales','*,sale_items!sale_items_sale_id_fkey(product_name_snapshot,quantity,unit_price,line_total)',q=>q.eq('status','completed').order('sold_at',{ascending:false})),
-  isOwner?db.from('expenses').select('*').eq('store_id',store.id).order('expense_date',{ascending:false}).limit(100):Promise.resolve({data:[],error:null}),
-  isOwner?db.from('stock_movements').select('*').eq('store_id',store.id).eq('movement_type','purchase').order('purchase_date',{ascending:false}).limit(100):Promise.resolve({data:[],error:null})
+  isOwner?fetchAllReportRows('expenses','*',q=>q.order('expense_date',{ascending:false})):Promise.resolve([]),
+  isOwner?fetchAllReportRows('stock_movements','*',q=>q.eq('movement_type','purchase').order('purchase_date',{ascending:false})):Promise.resolve([])
  ]);
- for(const r of [x,m])if(r.error)throw r.error;
- sales=s||[];expenses=x.data||[];movements=m.data||[];
+ const [salesResult,expensesResult,purchasesResult]=results;
+ if(salesResult.status==='fulfilled')sales=salesResult.value||[];
+ else console.warn('AMWEMARI sales could not load:',salesResult.reason);
+ if(expensesResult.status==='fulfilled')expenses=expensesResult.value||[];
+ else console.warn('AMWEMARI expenses could not load:',expensesResult.reason);
+ if(purchasesResult.status==='fulfilled')movements=purchasesResult.value||[];
+ else {movements=[];const host=$('purchasesTable');if(host)host.textContent='Manunuzi hayajapakiwa: '+(purchasesResult.reason?.message||String(purchasesResult.reason));}
  renderAll();
  if(!$('sales').classList.contains('hidden')){await Promise.all([loadDailySales(),loadRecentSalesHistory()]);}
  if(isOwner){
@@ -1580,7 +1585,8 @@ $('productForm').addEventListener('submit',async e=>{
 function renderPurchaseProductPicker(){
  const select=$('purchaseProduct'),button=$('purchaseProductOpen'),list=$('purchaseProductPickerList');
  if(!select||!button||!list)return;
- const active=(products||[]).filter(p=>String(p.store_id)===String(store?.id||'')&&p.is_active!==false);
+ // products is already scoped to the active business in refreshAll.
+ const active=(products||[]).filter(p=>p.is_active!==false);
  const selected=active.find(p=>String(p.id)===String(select.value));
  button.textContent=selected?selected.name+' ▾':'Chagua bidhaa ▾';
  const count=$('purchaseProductCount');if(count)count.textContent='Bidhaa '+active.length+' zinapatikana';
@@ -1673,7 +1679,25 @@ async function recordPurchase(){
   purchaseSaveInProgress=false;if(btn){btn.disabled=false;btn.textContent='Hifadhi ununuzi'}
  }
 }
-async function adjustStock(id){const p=products.find(x=>x.id===id),v=prompt('Ongeza kiasi cha stock kwa '+p.name+':');if(v===null)return;const qty=Number(v);if(!Number.isFinite(qty)||qty<=0){alert('Weka kiasi zaidi ya sifuri.');return}const {error}=await db.from('products').update({quantity:Number(p.quantity)+qty,updated_at:new Date().toISOString()}).eq('id',id).eq('store_id',store.id);if(error){message('appMsg',error.message,true);return}const m=await db.from('stock_movements').insert({store_id:store.id,product_id:id,movement_type:'purchase',quantity_change:qty,unit_cost:p.cost_price,reference_type:'manual_adjustment',note:'Manual stock addition',performed_by:user.id});if(m.error)message('appMsg','Stock imeongezwa lakini ledger imeshindwa: '+m.error.message,true);await refreshAll()}
+async function adjustStock(id){
+ if(!store?.id||store.owner_id!==user?.id){message('appMsg','Mmiliki pekee ndiye anayeruhusiwa kuongeza stock.',true);return}
+ if(!navigator.onLine){message('appMsg','Kuongeza stock kunahitaji intaneti.',true);return}
+ const p=products.find(x=>x.id===id);if(!p)return;
+ const raw=prompt('Ongeza kiasi cha '+(p.base_unit||'vipande')+' kwa '+p.name+':');
+ if(raw===null)return;
+ const qty=Number(raw);if(!Number.isInteger(qty)||qty<=0){message('appMsg','Weka idadi kamili ya vipande iliyo zaidi ya sifuri.',true);return}
+ const unitCost=Number(p.cost_price||0),units=Math.max(1,Number(p.units_per_pack||1)),packCost=unitCost*units;
+ if(!Number.isFinite(packCost)||packCost<=0){message('appMsg','Bidhaa hii haina gharama sahihi ya kununulia. Fungua Hariri bidhaa uweke bei ya kununua kwanza.',true);return}
+ if(!confirm('Ongeza '+qty+' '+(p.base_unit||'vipande')+' za '+p.name+'? Mfumo utazirekodi kama manunuzi yaliyolipwa kwa fedha za biashara na kuziongeza kwenye stock na historia ya manunuzi.'))return;
+ try{
+  const {data,error}=await db.rpc('record_purchase_with_funding',{p_store_id:store.id,p_product_id:id,p_package_quantity:0,p_loose_units:qty,p_package_cost:packCost,p_purchase_date:localToday(),p_note:'Stock imeongezwa kupitia Orodha ya bidhaa',p_funding_source:'business_cash',p_payment_method:'cash',p_lender_name:null,p_loan_due_date:null});
+  if(error)throw error;
+  const saved=Array.isArray(data)?data[0]:data;
+  if(!saved||Number(saved.quantity_added)!==qty)throw new Error('Seva haikuthibitisha idadi ya stock iliyoongezwa.');
+  message('appMsg','Stock imeongezwa kwa '+p.name+': '+qty+' '+(p.base_unit||'vipande')+'. Imeonekana pia kwenye Manunuzi.');
+  try{await refreshAll()}catch(refreshError){console.warn('Stock added but refresh failed:',refreshError);message('appMsg','Stock imeongezwa na kuhifadhiwa. Orodha haikujirefresh: '+(refreshError.message||refreshError),true)}
+ }catch(error){message('appMsg','Imeshindikana kuongeza stock: '+(error.message||error),true)}
+}
 function updateSalePrice(){
  const select=$('saleProduct'),unit=$('saleUnit'),display=$('salePrice');
  if(!select||!unit||!display)return;
