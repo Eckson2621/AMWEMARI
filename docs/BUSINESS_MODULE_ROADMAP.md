@@ -186,3 +186,14 @@ This section records verified implementation scope, not a production release cla
 - Read-only Supabase inspection reconfirmed RLS policies on customers, products, suppliers, service appointments, and service jobs. The live `service_appointments` INSERT policy still permits store members when `created_by = auth.uid()`; the additive owner-only restrictive migration remains in the preview branch and has not been applied to the live database. No migration, SQL write, or record modification was performed.
 - Current preview head is `728ae489622b8969e9f1c6ef55903b8eca356e87`. PR #1 remains open, draft, unmerged, and not mergeable. Current compare reports preview 67 commits ahead and 204 behind `main`; the divergence has grown because `main` has continued moving. Do not merge or blindly cherry-pick the divergent histories.
 - Browser/E2E and real two-tenant isolation tests remain outstanding. No module is declared production-ready. All code and documentation changes are confined to `multi-business-preview`; `main`, the live app, and existing business records were not changed by this increment.
+
+
+## Preview progress snapshot — 2026-11-26
+
+- Improved the shared workspace navigation's accessibility: the dashboard is marked with `aria-current="page"` initially, and the selected navigation button receives that marker when the user changes pages. The previous marker is removed from the other buttons. Existing business-type labels, role visibility and page routing are unchanged.
+- Added a source-level regression test for the initial and changing current-page state. This is not a browser/E2E result.
+- This increment is frontend-only. No Supabase migration, schema change, RLS change, or business-record write was performed.
+- At the start of this increment, preview head was `90c1dd429044861e5de53d16b76d98760b3145aa`; main head was `ed1860b6ac2c13a470b0905c40308abf82149798`. GitHub compare reported preview 68 commits ahead and 242 behind main. PR #1 remains open, draft and unmerged.
+- The latest known GitHub preview validation on the starting head passed, while the Cloudflare Workers Build check for that same head failed (build `1e4e9b23-8af4-4714-b391-138d6c97a1d6`); no Preview deployment URL was produced.
+- Separately, main's `ed1860b` service-worker hotfix has a successful GitHub deploy workflow and Cloudflare Workers Build. That is a main/production-path result, not a Preview deployment and not caused by this increment.
+- Browser/E2E and real two-tenant isolation tests remain outstanding. No merge, production deployment, or live-app change was performed.

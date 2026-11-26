@@ -232,6 +232,11 @@ test('workspace navigation exposes the active business type and applies its sale
   assert.match(html, /salesNav'\)\.textContent=BUSINESS_SALES_NAV_LABELS\[kind\]/);
 });
 
+test('workspace navigation announces the current page accessibly', () => {
+  assert.match(html, /<button class="active" data-page="dashboard" aria-current="page">Muhtasari<\/button>/);
+  assert.match(html, /const active=x===b;x\.classList\.toggle\('active',active\);if\(active\)x\.setAttribute\('aria-current','page'\);else x\.removeAttribute\('aria-current'\)/);
+});
+
 test('appointments can link a loaded customer from the same store without a schema migration', () => {
   assert.match(html, /id="appointmentCustomerId"/);
   assert.match(html, /function renderAppointmentCustomerOptions\(\)/);
