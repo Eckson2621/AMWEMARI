@@ -80,7 +80,7 @@
 </head>
 <body>
 <div id="authView" class="wrap auth">
- <div class="row"><div class="brand">AMWEMARI</div><button type="button" class="secondary theme-toggle" data-theme-toggle>☀️ Mwanga</button></div><p class="muted">Mfumo wa kusimamia biashara na kurekodi mauzo.</p>
+ <div class="row"><div class="brand">AMWEMARI</div><button type="button" class="secondary theme-toggle" data-theme-toggle>☀️ Mwanga</button></div>
  <div class="panel">
   <div class="tabs"><button type="button" id="loginTab" class="active" onclick="authMode('login')">Ingia</button><button type="button" id="signupTab" class="secondary" onclick="authMode('signup')">Fungua akaunti</button><button type="button" id="staffTab" class="secondary" onclick="staffLoginMode()">Mfanyakazi</button></div>
   <div id="authMsg" class="notice hidden"></div>
@@ -91,7 +91,7 @@
    <div class="field"><label>Nenosiri</label><div style="position:relative"><input id="password" type="password" minlength="6" required autocomplete="current-password" style="padding-right:52px"><button type="button" aria-label="Show password" title="Show password" onclick="const p=document.getElementById('password');const show=p.type==='password';p.type=show?'text':'password';this.textContent=show?'🙈':'👁';this.setAttribute('aria-label',show?'Hide password':'Show password');this.title=show?'Hide password':'Show password'" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);padding:6px 8px;background:transparent;color:#334155;border:0;box-shadow:none;font-size:18px;line-height:1;min-width:36px">👁</button></div></div>
    <button id="authSubmit" type="submit" style="width:100%">Ingia</button>
   </form>
-  <button id="resendConfirmationBtn" type="button" class="secondary" style="width:100%;margin-top:10px" onclick="resendConfirmation()">Tuma tena Email ya Uthibitisho (Resend)</button>
+  
   <form id="staffLoginForm" class="hidden"><div class="field"><label>Username</label><input id="staffLoginUsername" autocomplete="username" required></div><div class="field"><label>Password</label><div style="position:relative"><input id="staffLoginPassword" type="password" minlength="8" autocomplete="current-password" required style="padding-right:52px"><button type="button" aria-label="Show password" title="Show password" onclick="const p=document.getElementById('staffLoginPassword');const show=p.type==='password';p.type=show?'text':'password';this.textContent=show?'🙈':'👁';this.setAttribute('aria-label',show?'Hide password':'Show password');this.title=show?'Hide password':'Show password'" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);padding:6px 8px;background:transparent;color:#334155;border:0;box-shadow:none;font-size:18px;line-height:1;min-width:36px">👁</button></div></div><button id="staffLoginSubmit" type="submit" style="width:100%">Ingia kama mfanyakazi</button></form>
  </div>
 </div>
