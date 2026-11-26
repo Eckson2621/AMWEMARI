@@ -1046,6 +1046,7 @@ function renderProductsForFastAccess(){
 async function refreshAll(){
  if(!store)return;
  const isOwner=store.owner_id===user.id;
+ const refreshWarnings=[];
  $('cashFlowPanel').classList.toggle('hidden',!isOwner);
  // Load products independently first. A failure in sales/expenses/stock queries
  // must never leave the product picker stuck on its initial loading placeholder.
@@ -1063,19 +1064,26 @@ async function refreshAll(){
  ]);
  const [salesResult,expensesResult,purchasesResult]=results;
  if(salesResult.status==='fulfilled')sales=salesResult.value||[];
- else console.warn('AMWEMARI sales could not load:',salesResult.reason);
+ else {sales=[];refreshWarnings.push('mauzo');console.warn('AMWEMARI sales could not load:',salesResult.reason);}
  if(expensesResult.status==='fulfilled')expenses=expensesResult.value||[];
- else console.warn('AMWEMARI expenses could not load:',expensesResult.reason);
+ else {expenses=[];refreshWarnings.push('matumizi');console.warn('AMWEMARI expenses could not load:',expensesResult.reason);}
  if(purchasesResult.status==='fulfilled')movements=purchasesResult.value||[];
- else {movements=[];const host=$('purchasesTable');if(host)host.textContent='Manunuzi hayajapakiwa: '+(purchasesResult.reason?.message||String(purchasesResult.reason));}
+ else {movements=[];refreshWarnings.push('manunuzi');const host=$('purchasesTable');if(host)host.textContent='Manunuzi hayajapakiwa: '+(purchasesResult.reason?.message||String(purchasesResult.reason));}
  renderAll();
- if(!$('sales').classList.contains('hidden')){await Promise.all([loadDailySales(),loadRecentSalesHistory()]);}
+ if(!$('sales').classList.contains('hidden')){
+  const salesTasks=await Promise.allSettled([loadDailySales(),loadRecentSalesHistory()]);
+  if(salesTasks.some(result=>result.status==='rejected')){refreshWarnings.push('historia ya mauzo');salesTasks.forEach(result=>{if(result.status==='rejected')console.warn('AMWEMARI sales history could not load:',result.reason)});}
+ }
  if(isOwner){
   const tasks=[['ripoti',loadBusinessReport],['wafanyakazi',loadStaff],['mtiririko wa fedha',loadCashFlow],['hali ya fedha',loadFinancialPosition],['mikopo',loadBusinessLoans]];
-  const results=await Promise.allSettled(tasks.map(([,load])=>load()));
-  results.forEach((result,index)=>{if(result.status==='rejected')console.warn('AMWEMARI '+tasks[index][0]+' haikupakia:',result.reason)});
+  const taskResults=await Promise.allSettled(tasks.map(([,load])=>load()));
+  taskResults.forEach((result,index)=>{if(result.status==='rejected'){refreshWarnings.push(tasks[index][0]);console.warn('AMWEMARI '+tasks[index][0]+' haikupakia:',result.reason)}});
  }
- await renderPendingSales();clearMessage('appMsg');
+ try{await renderPendingSales()}catch(error){refreshWarnings.push('mauzo yanayosubiri kusawazishwa');console.warn('AMWEMARI pending sales could not render:',error);}
+ if(refreshWarnings.length){
+  const uniqueWarnings=[...new Set(refreshWarnings)];
+  message('appMsg','TAHADHARI: Baadhi ya taarifa hazikupakiwa ('+uniqueWarnings.join(', ')+'). Usitumie taarifa hizi kufanya maamuzi ya fedha mpaka muunganisho urejee; gusa Onyesha upya ujaribu tena.',true);
+ }else clearMessage('appMsg');
 }
 
 async function loadCashFlow(){
