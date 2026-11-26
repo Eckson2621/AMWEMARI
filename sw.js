@@ -37,6 +37,7 @@ self.addEventListener("fetch",event=>{
  if(request.method!=="GET")return;
  const url=new URL(request.url);
  if(url.origin!==self.location.origin)return;
+ if(url.pathname==="/api"||url.pathname.startsWith("/api/")||url.pathname==="/health"||url.pathname==="/healthz"||url.pathname.startsWith("/webhook"))return;
  event.respondWith((async()=>{
   const cache=await caches.open(CACHE_NAME);
   const cached=await cache.match(request);
