@@ -28,16 +28,6 @@ panel.querySelector("form").addEventListener("submit",async e=>{e.preventDefault
    document.body.appendChild(box);
   }
  }catch(e){console.warn("EAM Center notice unavailable",e);}
- try{
-  const data=await get("release_list"),release=data.release;
-  if(release&&release.package_url){
-   const box=document.createElement("aside");box.id="eam-center-update";
-   box.style.cssText="position:fixed;right:18px;bottom:76px;z-index:2147482997;max-width:min(90vw,340px);background:#e8f3ff;color:#12365a;border:1px solid #93c5fd;border-radius:12px;padding:13px 15px;box-shadow:0 8px 28px #0003;font:14px/1.4 system-ui";
-   box.innerHTML='<strong>Update mpya: '+esc(release.version)+'</strong><div>'+esc(release.title)+'</div><small>'+esc(release.release_notes)+'</small><div style="display:flex;gap:8px;margin-top:10px"><button type="button" id="eam-center-update-now" style="border:0;border-radius:8px;padding:9px 12px;background:#1d4ed8;color:white;font-weight:700">Update</button><button type="button" id="eam-center-update-later" style="border:0;border-radius:8px;padding:9px 12px;background:#dbeafe;color:#12365a">Baadaye</button></div>';
-   document.body.appendChild(box);
-   box.querySelector("#eam-center-update-now").onclick=()=>{window.location.assign(release.package_url);};
-   box.querySelector("#eam-center-update-later").onclick=()=>box.remove();
-  }
- }catch(e){console.warn("EAM Center release check unavailable",e);}
+ // Update prompts are controlled by the app's waiting service worker.
 })();
 })();
