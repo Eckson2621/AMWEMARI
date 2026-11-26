@@ -197,3 +197,13 @@ This section records verified implementation scope, not a production release cla
 - The latest known GitHub preview validation on the starting head passed, while the Cloudflare Workers Build check for that same head failed (build `1e4e9b23-8af4-4714-b391-138d6c97a1d6`); no Preview deployment URL was produced.
 - Separately, main's `ed1860b` service-worker hotfix has a successful GitHub deploy workflow and Cloudflare Workers Build. That is a main/production-path result, not a Preview deployment and not caused by this increment.
 - Browser/E2E and real two-tenant isolation tests remain outstanding. No merge, production deployment, or live-app change was performed.
+
+
+## Preview progress snapshot — 2026-11-26 (static asset packaging)
+
+- Added a root `.assetsignore` for the Wrangler static-assets directory (`./`). It excludes Git metadata, Wrangler temporary files, CI configuration, documentation, Supabase source/migrations, tests, the Worker entrypoint directory, Wrangler config and README from the public static asset set. The app shell (`index.html`), manifest and service worker remain included.
+- Added a source-level regression test to ensure these private/build-only paths remain excluded and required app shell files are not excluded.
+- This is a Preview-only packaging safeguard. It does not alter the Live/main branch or the current production deployment.
+- Cloudflare's current Preview build on the previous head `c61b8ea` failed; a new build for this increment will be checked separately. The earlier failure's root cause is still not confirmed, so this ignore-file change is not claimed as a build fix.
+- The main deployment log for `ed1860b` on 2026-11-26 showed Wrangler reading 126 files from the root assets directory and listing `.git/*` and `.wrangler/tmp/*` among uploaded assets. This is a packaging/security hygiene issue to address on main only with separate authorization.
+- No Supabase migration, schema/RLS change, database write, browser/E2E test, or two-tenant isolation test was performed. No production merge or deployment was made.

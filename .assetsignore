@@ -1,0 +1,10 @@
+/.git/
+/.wrangler/
+/.github/
+/docs/
+/supabase/
+/tests/
+/src/
+/wrangler.jsonc
+/README.md
+/.assetsignore

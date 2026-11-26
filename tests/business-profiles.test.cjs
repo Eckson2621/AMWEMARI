@@ -7,6 +7,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const assetsIgnore = fs.readFileSync(path.join(__dirname, '..', '.assetsignore'), 'utf8');
 const appointmentInsertPolicyMigration = fs.readFileSync(path.join(__dirname, '..', 'supabase', 'migrations', '20261123123000_restrict_service_appointment_insert_to_owner.sql'), 'utf8');
 const registryMatch = html.match(/const BUSINESS_PROFILES=(\{[\s\S]*?\});\s*const BUSINESS_WORKSPACES=/);
 assert.ok(registryMatch, 'BUSINESS_PROFILES registry must exist before businessKind().');
@@ -40,6 +41,16 @@ const expectedTypes = [
   'services',
   'other'
 ];
+
+test('Cloudflare static asset ignore rules exclude repository and build internals', () => {
+  const ignored = assetsIgnore.split(/\\r?\\n/).map(line => line.trim()).filter(Boolean);
+  for (const path of ['/.git/', '/.wrangler/', '/.github/', '/docs/', '/supabase/', '/tests/', '/src/', '/wrangler.jsonc', '/README.md', '/.assetsignore']) {
+    assert.ok(ignored.includes(path), path + ' must not be published as a static asset');
+  }
+  for (const publicAsset of ['/index.html', '/manifest.json', '/sw.js']) {
+    assert.ok(!ignored.includes(publicAsset), publicAsset + ' must remain publishable');
+  }
+});
 
 test('all 19 supported business types have a profile', () => {
   assert.deepEqual(Object.keys(profiles).sort(), [...expectedTypes].sort());
