@@ -2898,4 +2898,50 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </script>
 <script>(function(){const applyTheme=function(theme){const value=theme==="light"?"light":"dark";document.documentElement.dataset.theme=value;try{localStorage.setItem("amwemari-theme",value)}catch(e){}const meta=document.getElementById("amwThemeColor");if(meta)meta.setAttribute("content",value==="dark"?"#0b1220":"#f3f6fa");document.querySelectorAll("[data-theme-toggle]").forEach(function(button){button.textContent=value==="dark"?"☀️ Mwanga":"🌙 Dark mode";button.setAttribute("aria-label",value==="dark"?"Badili kwenda mwonekano wa mwanga":"Badili kwenda dark mode");button.setAttribute("aria-pressed",value==="dark"?"true":"false")})};document.addEventListener("click",function(event){const button=event.target.closest("[data-theme-toggle]");if(!button)return;event.preventDefault();applyTheme(document.documentElement.dataset.theme==="dark"?"light":"dark")});applyTheme(document.documentElement.dataset.theme||"dark")})();</script>
 <script src="/feedback-center.js" defer></script>
+
+<script>
+(()=> {
+ const APP="AMWEMARI";
+ const API="https://pzgnnjwmwylkmikcxwmf.supabase.co/functions/v1/feedback-center";
+ const KEY="sb_publishable_1jZy2d-qVJOiCZvHoB6-ow_AytoxBA2";
+ let registration=null, prompted=false;
+ const esc=v=>String(v||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+ async function showIfWaiting(){
+  if(!registration||!registration.waiting||document.getElementById("eam-app-update-prompt"))return;
+  let release=null;
+  try{
+   const response=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json","apikey":KEY},body:JSON.stringify({action:"release_list",app_name:APP})});
+   const data=await response.json();release=data.release||null;
+  }catch(_){}
+  const box=document.createElement("aside");box.id="eam-app-update-prompt";
+  box.style.cssText="position:fixed;right:16px;bottom:16px;z-index:2147483002;width:min(92vw,350px);box-sizing:border-box;background:#eaf3ff;color:#17365b;border:1px solid #8db9ef;border-radius:14px;padding:15px;box-shadow:0 12px 34px #0004;font:14px/1.45 system-ui";
+  box.innerHTML='<strong style="display:block;font-size:15px;margin-bottom:5px">Update mpya inapatikana'+(release&&release.version?' · '+esc(release.version):'')+'</strong><div>'+esc(release&&release.title?release.title:"Toleo jipya la mfumo limeandaliwa.")+'</div>'+(release&&release.release_notes?'<small style="display:block;margin-top:5px">'+esc(release.release_notes)+'</small>':'')+'<div style="display:flex;gap:8px;margin-top:12px"><button id="eam-app-update-now" type="button" style="border:0;border-radius:9px;padding:10px 14px;background:#1d4ed8;color:white;font-weight:700">Update</button><button id="eam-app-update-later" type="button" style="border:0;border-radius:9px;padding:10px 14px;background:#dbeafe;color:#17365b">Baadaye</button></div>';
+  document.body.appendChild(box);
+  box.querySelector("#eam-app-update-later").addEventListener("click",()=>box.remove());
+  box.querySelector("#eam-app-update-now").addEventListener("click",()=>{
+   if(!confirm("Unataka kusasisha mfumo sasa? Baada ya kuthibitisha ukurasa utafunguka tena kwa toleo jipya."))return;
+   if(!registration.waiting){box.remove();return;}
+   prompted=true;
+   navigator.serviceWorker.addEventListener("controllerchange",()=>{if(prompted)location.reload();},{once:true});
+   registration.waiting.postMessage({type:"SKIP_WAITING"});
+   const button=box.querySelector("#eam-app-update-now");button.disabled=true;button.textContent="Inasasisha...";
+  });
+ }
+ async function init(){
+  if(!("serviceWorker" in navigator)||location.protocol!=="https:")return;
+  try{
+   registration=await navigator.serviceWorker.getRegistration("/");
+   if(!registration)registration=await navigator.serviceWorker.register("/sw.js",{updateViaCache:"none"});
+   await registration.update().catch(()=>{});
+   await showIfWaiting();
+   registration.addEventListener("updatefound",()=>{
+    const worker=registration.installing;if(!worker)return;
+    worker.addEventListener("statechange",()=>{if(worker.state==="installed"&&navigator.serviceWorker.controller)showIfWaiting();});
+   });
+   if(registration.waiting)showIfWaiting();
+  }catch(error){console.warn(APP+" update check:",error);}
+ }
+ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
+})();
+</script>
 </body></html>
