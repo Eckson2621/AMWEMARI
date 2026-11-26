@@ -43,7 +43,7 @@ const expectedTypes = [
 ];
 
 test('Cloudflare static asset ignore rules exclude repository and build internals', () => {
-  const ignored = assetsIgnore.split(/\\r?\\n/).map(line => line.trim()).filter(Boolean);
+  const ignored = assetsIgnore.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
   for (const path of ['/.git/', '/.wrangler/', '/.github/', '/docs/', '/supabase/', '/tests/', '/src/', '/wrangler.jsonc', '/README.md', '/.assetsignore']) {
     assert.ok(ignored.includes(path), path + ' must not be published as a static asset');
   }
