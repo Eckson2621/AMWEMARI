@@ -1,4 +1,4 @@
-const CACHE_NAME="amwemari-shell-v74";
+const CACHE_NAME="amwemari-shell-v75";
 const CACHE_PREFIX="amwemari-shell-";
 const CORE_FILES=["/","/index.html","/manifest.json","/icons/icon.svg","/icons/logo.svg","/pwa-install.js","/feedback-center.js"];
 self.addEventListener("install",event=>{
@@ -40,14 +40,18 @@ self.addEventListener("fetch",event=>{
  if(url.pathname==="/api"||url.pathname.startsWith("/api/")||url.pathname==="/health"||url.pathname==="/healthz"||url.pathname.startsWith("/webhook"))return;
  event.respondWith((async()=>{
   const cache=await caches.open(CACHE_NAME);
-  const cached=await cache.match(request);
-  if(cached)return cached;
+  const isPage=request.mode==="navigate"||url.pathname==="/"||url.pathname==="/index.html";
+  if(!isPage){
+   const cached=await cache.match(request);
+   if(cached)return cached;
+  }
   try{
-   const response=await fetch(request);
+   const response=await fetch(request,{cache:isPage?"no-store":"default"});
    if(response.ok)await cache.put(request,response.clone());
    return response;
   }catch(error){
-   if(request.mode==="navigate"){const fallback=await cache.match("/")||await cache.match("/index.html");if(fallback)return fallback;}
+   const fallback=await cache.match(request)||(isPage?await cache.match("/")||await cache.match("/index.html"):null);
+   if(fallback)return fallback;
    throw error;
   }
  })());
