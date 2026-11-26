@@ -20,15 +20,7 @@
         });
       }).catch(error => console.warn(APP_NAME + ' service worker:', error));
     }
-    document.querySelectorAll('.brand, .admin-brand').forEach(node => {
-      if (node.querySelector('.pwa-brand-icon')) return;
-      const img = document.createElement('img');
-      img.className = 'pwa-brand-icon';
-      img.src = '/icons/icon.svg';
-      img.alt = '';
-      img.setAttribute('aria-hidden', 'true');
-      node.prepend(img);
-    });
+    // Do not inject the app icon into page headings; keep the logo only as the installed-app icon.
     if (window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true) return;
     if (document.getElementById('pwa-install-panel')) return;
     const style = document.createElement('style');
