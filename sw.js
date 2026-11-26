@@ -2,7 +2,6 @@ const CACHE_NAME="amwemari-shell-v76";
 const CACHE_PREFIX="amwemari-shell-";
 const CORE_FILES=["/","/index.html","/manifest.json","/icons/icon.svg","/icons/logo.svg","/pwa-install.js","/feedback-center.js"];
 self.addEventListener("install",event=>{
- self.skipWaiting();
  event.waitUntil((async()=>{
   const cache=await caches.open(CACHE_NAME);
   const save=async path=>{
