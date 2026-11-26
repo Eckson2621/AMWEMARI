@@ -2913,6 +2913,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    const response=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json","apikey":KEY},body:JSON.stringify({action:"release_list",app_name:APP})});
    const data=await response.json();release=data.release||null;
   }catch(_){}
+  if(!release)return;
   const box=document.createElement("aside");box.id="eam-app-update-prompt";
   box.style.cssText="position:fixed;right:16px;bottom:16px;z-index:2147483002;width:min(92vw,350px);box-sizing:border-box;background:#eaf3ff;color:#17365b;border:1px solid #8db9ef;border-radius:14px;padding:15px;box-shadow:0 12px 34px #0004;font:14px/1.45 system-ui";
   box.innerHTML='<strong style="display:block;font-size:15px;margin-bottom:5px">Update mpya inapatikana'+(release&&release.version?' · '+esc(release.version):'')+'</strong><div>'+esc(release&&release.title?release.title:"Toleo jipya la mfumo limeandaliwa.")+'</div>'+(release&&release.release_notes?'<small style="display:block;margin-top:5px">'+esc(release.release_notes)+'</small>':'')+'<div style="display:flex;gap:8px;margin-top:12px"><button id="eam-app-update-now" type="button" style="border:0;border-radius:9px;padding:10px 14px;background:#1d4ed8;color:white;font-weight:700">Update</button><button id="eam-app-update-later" type="button" style="border:0;border-radius:9px;padding:10px 14px;background:#dbeafe;color:#17365b">Baadaye</button></div>';
