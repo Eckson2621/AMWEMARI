@@ -1349,8 +1349,8 @@ async function exportBusinessReport(format){
    w.document.write('<h2>Matumizi</h2>'+reportHtmlTable(['Tarehe','Aina','Maelezo','Kiasi'],expenses));
    w.document.write('<h2>Manunuzi ya stock</h2>'+reportHtmlTable(['Tarehe','Bidhaa','Katoni/pakiti','Jina la kifungashio','Vipimo vilivyoingia','Gharama'],purchases));
    w.document.write('<h2>Stock iliyopo sasa</h2>'+reportHtmlTable(['Bidhaa','Stock','Gharama kwa kipimo','Thamani ya stock'],stock));
-   w.document.write('<p class="muted">Faida ghafi = mapato ya bidhaa baada ya punguzo, bila kodi ya mauzo, ukiondoa gharama ya bidhaa zilizouzwa. Manunuzi ya stock hayaondolewi tena kwenye faida.</p></p><script src="/feedback-center.js" defer></script>
-</body></html>');
+   w.document.write('<p class="muted">Faida ghafi = mapato ya bidhaa baada ya punguzo, bila kodi ya mauzo, ukiondoa gharama ya bidhaa zilizouzwa. Manunuzi ya stock hayaondolewi tena kwenye faida.</p>');
+   w.document.write('</body></html>');
    w.document.close();message('reportMessage','Ripoti ya PDF iko tayari. Chagua Chapisha kisha Save as PDF.');
   }
  }catch(error){if(printWindow&&!printWindow.closed)printWindow.close();message('reportMessage','Imeshindikana kupakua ripoti: '+(error.message||error),true)}
