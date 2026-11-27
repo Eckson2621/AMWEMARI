@@ -2915,7 +2915,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
  const KEY="sb_publishable_1jZy2d-qVJOiCZvHoB6-ow_AytoxBA2";
  const dismissedKey="eam-pwa-update-dismissed:"+APP;
  const approvedKey="eam-pwa-update-approved:"+APP;
- let registration=null;
+ let registration=null,watchedRegistration=null;
  const esc=value=>String(value||"").replace(/[&<>"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
  function askWorker(worker,type){
   return new Promise(resolve=>{
@@ -2974,6 +2974,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
    registration=await navigator.serviceWorker.getRegistration("/");
    if(!registration)registration=await navigator.serviceWorker.register("/sw.js",{updateViaCache:"none"});
    await registration.update().catch(()=>{});
+   if(watchedRegistration!==registration){
+    watchedRegistration=registration;
+    registration.addEventListener("updatefound",()=>{
+     const installing=registration.installing;
+     if(installing)installing.addEventListener("statechange",()=>{if(installing.state==="installed"&&navigator.serviceWorker.controller)checkForUpdate();});
+    });
+   }
+   
    const worker=registration.waiting||registration.active||navigator.serviceWorker.controller;
    if(!worker)return;
    const state=await askWorker(worker,"GET_VERSION_STATE");
