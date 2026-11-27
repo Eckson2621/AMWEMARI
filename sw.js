@@ -6,6 +6,20 @@ const DB_NAME="eam-pwa-version-control";
 const DB_STORE="settings";
 const DB_KEY="selectedCache";
 let pinnedCachePromise=null;
+function cacheVersion(name){
+ const match=name.match(/-v(\d+)$/i);
+ return match?Number(match[1]):0;
+}
+function newestCache(names){
+ const sorted=[...names].sort((a,b)=>cacheVersion(a)-cacheVersion(b)||a.localeCompare(b,undefined,{numeric:true}));
+ return sorted.length?sorted[sorted.length-1]:null;
+}
+function previousCache(names,selected){
+ const version=cacheVersion(selected);
+ const candidates=version?names.filter(name=>cacheVersion(name)<version):names.filter(name=>name!==selected);
+ return newestCache(candidates);
+}
+
 function openVersionDb(){
  return new Promise((resolve,reject)=>{
   const request=indexedDB.open(DB_NAME,1);
@@ -41,7 +55,7 @@ async function ensurePinnedCache(){
  const keys=await caches.keys();
  if(selected&&keys.includes(selected))return selected;
  const previous=keys.filter(key=>key.startsWith(CACHE_PREFIX)&&key!==CACHE_NAME);
- selected=previous.length?previous[previous.length-1]:CACHE_NAME;
+ selected=newestCache(previous)||CACHE_NAME;
  await writePinnedCache(selected);
  return selected;
 }
@@ -138,7 +152,7 @@ self.addEventListener("message",event=>{
    const selected=await getPinnedCache();
    const keys=await caches.keys();
    const previous=keys.filter(key=>key.startsWith(CACHE_PREFIX)&&key!==selected&&key!==CACHE_NAME);
-   const target=previous.length?previous[previous.length-1]:null;
+   const target=previousCache(previous,selected);
    if(!target){if(port)port.postMessage({ok:false,error:"No earlier cached version is available"});return;}
    await writePinnedCache(target);
    pinnedCachePromise=Promise.resolve(target);
