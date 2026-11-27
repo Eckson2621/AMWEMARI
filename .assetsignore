@@ -1,0 +1,21 @@
+# The asset directory is the repository root; publish only browser-facing files.
+# Never upload repository, build, source, or deployment metadata as public assets.
+.git/
+.wrangler/
+.github/
+src/
+supabase/
+node_modules/
+.env
+.env.*
+.dev.vars
+.dev.vars.*
+.gitignore
+.assetsignore
+wrangler.jsonc
+package.json
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+*.md
+*.map
