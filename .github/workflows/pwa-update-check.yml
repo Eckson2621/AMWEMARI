@@ -48,3 +48,9 @@ jobs:
             echo "Automatic foreground reload is not allowed."
             exit 1
           fi
+      - name: Verify root asset exclusions
+        run: |
+          test -f .assetsignore
+          for pattern in '.git/' '.wrangler/' '.github/' 'src/' 'supabase/' 'node_modules/' '.env' '.env.*' '.dev.vars' '.dev.vars.*' 'wrangler.jsonc' '*.md' '*.map'; do
+            grep -Fqx "$pattern" .assetsignore || { echo "Missing asset exclusion: $pattern"; exit 1; }
+          done
