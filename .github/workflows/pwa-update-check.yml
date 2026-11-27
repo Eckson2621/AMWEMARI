@@ -28,6 +28,7 @@ jobs:
           HTML_FILE: "index.html"
         run: |
           node --check "$SW_FILE"
+          node -e 'const fs=require("fs"),vm=require("vm"),s=fs.readFileSync(process.env.SW_FILE,"utf8"),a=s.indexOf("function cacheVersion("),b=s.indexOf("function openVersionDb(",a);if(a<0||b<0)throw Error("Cache version helpers missing");const c={};vm.runInNewContext(s.slice(a,b)+";result=[newestCache([\"app-v9\",\"app-v11\",\"app-v10\"]),previousCache([\"app-v9\",\"app-v10\"],\"app-v11\"),previousCache([\"app-v8\"],\"app-v9\")]",c);if(c.result.join("|")!=="app-v11|app-v10|app-v8")throw Error("Cache ordering/rollback selection failed: "+c.result);'
           node --check "$PWA_FILE"
           node -e 'const fs=require("fs");const h=fs.readFileSync(process.env.HTML_FILE,"utf8");const i=h.indexOf("GET_VERSION_STATE");if(i<0)process.exit(1);const a=h.lastIndexOf("<script",i);const b=h.indexOf("</script>",i);if(a<0||b<0)process.exit(1);fs.writeFileSync("/tmp/pwa-update-inline.js",h.slice(h.indexOf(">",a)+1,b));'
           node --check /tmp/pwa-update-inline.js
