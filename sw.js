@@ -128,6 +128,24 @@ self.addEventListener("message",event=>{
   })());
  }
 });
+
+/* Explicit local rollback hook: call with message type ROLLBACK_TO_PREVIOUS. */
+self.addEventListener("message",event=>{
+ if(!event.data||event.data.type!=="ROLLBACK_TO_PREVIOUS")return;
+ const port=event.ports&&event.ports[0];
+ event.waitUntil((async()=>{
+  try{
+   const selected=await getPinnedCache();
+   const keys=await caches.keys();
+   const previous=keys.filter(key=>key.startsWith(CACHE_PREFIX)&&key!==selected&&key!==CACHE_NAME);
+   const target=previous.length?previous[previous.length-1]:null;
+   if(!target){if(port)port.postMessage({ok:false,error:"No earlier cached version is available"});return;}
+   await writePinnedCache(target);
+   pinnedCachePromise=Promise.resolve(target);
+   if(port)port.postMessage({ok:true,selectedCache:target});
+  }catch(error){if(port)port.postMessage({ok:false,error:String(error)});}
+ })());
+});
 self.addEventListener("activate",event=>{
  event.waitUntil((async()=>{
   /* Keep old version caches: devices may still be pinned to them for later rollback. */
