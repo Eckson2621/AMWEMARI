@@ -16,7 +16,7 @@ self.addEventListener("install",event=>{
     const urls=[...new Set([...CORE_FILES,...found])];
     await Promise.all(urls.map(async value=>{
      try{const url=new URL(value,self.location.origin);if(url.origin!==self.location.origin)return;
- if(request.headers.has("Authorization"))return;
+ 
  if(/^\/(?:api|auth|rest|storage|functions|rpc)(?:\/|$)/i.test(url.pathname)||/^\/(?:health|healthz|webhook)(?:\/|$)/i.test(url.pathname))return;const response=await fetch(url.href,{cache:"reload"});if(response.ok)await cache.put(url.href,response.clone());}catch(_){}
     }));
    }catch(_){}
