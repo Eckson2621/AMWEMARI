@@ -1,0 +1,43 @@
+name: PWA update flow checks
+
+on:
+  push:
+    branches:
+      - feature/manual-user-approved-updates-20261127
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check update flow
+        env:
+          SW_FILE: "sw.js"
+          PWA_FILE: "pwa-install.js"
+          HTML_FILE: "index.html"
+        run: |
+          node --check "$SW_FILE"
+          node --check "$PWA_FILE"
+          if grep -Eq '^[[:space:]]*self\\.skipWaiting\\(\\);' "$SW_FILE"; then
+            echo "Service worker must not activate itself without user approval."
+            exit 1
+          fi
+          grep -q 'SKIP_WAITING' "$SW_FILE"
+          grep -q 'eam-app-update-prompt' "$HTML_FILE"
+          grep -q 'release_list' "$HTML_FILE"
+          grep -q 'registration.waiting.postMessage' "$HTML_FILE"
+          if grep -q '__eamPwaUpdatePending' "$PWA_FILE"; then
+            echo "Automatic foreground reload is not allowed."
+            exit 1
+          fi
