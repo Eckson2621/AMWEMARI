@@ -9,14 +9,7 @@
         checkForUpdates();
         window.addEventListener('online', checkForUpdates);
         document.addEventListener('visibilitychange', () => {
-          if (!document.hidden) {
-            if (window.__eamPwaUpdatePending) { window.location.reload(); return; }
-            checkForUpdates();
-          }
-        });
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          // Finish the current action first; refresh automatically on the next app foreground.
-          window.__eamPwaUpdatePending = true;
+          if (!document.hidden) checkForUpdates();
         });
       }).catch(error => console.warn(APP_NAME + ' service worker:', error));
     }
