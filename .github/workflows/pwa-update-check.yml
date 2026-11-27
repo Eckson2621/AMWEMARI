@@ -34,6 +34,7 @@ jobs:
           grep -q 'APPROVE_UPDATE' "$SW_FILE"
           grep -q 'GET_VERSION_STATE' "$SW_FILE"
           grep -q 'eam-pwa-version-control' "$SW_FILE"
+          grep -q 'ROLLBACK_TO_PREVIOUS' "$SW_FILE"
           if grep -q 'caches.delete' "$SW_FILE"; then
             echo "Old version caches must be retained."
             exit 1
