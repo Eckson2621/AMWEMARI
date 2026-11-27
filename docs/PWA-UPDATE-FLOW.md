@@ -8,7 +8,7 @@
 - EAM Feedback Center's published release notice is shown when a newer cached version exists.
 - Baadaye dismisses that release notice on this device without changing the selected version.
 - Update sends APPROVE_UPDATE; the selected cache is persisted before the waiting worker is allowed to activate.
-- Previous version caches are retained to support users who defer and to preserve a rollback path; cache eviction by the browser or clearing site data remains outside application control.
+- Previous version caches are retained to support users who defer and to preserve a rollback path. The Service Worker exposes an explicit ROLLBACK_TO_PREVIOUS message for switching the local version pin to the prior retained cache; cache eviction by the browser or clearing site data remains outside application control.
 - Only the app shell and static assets are cached. API, authentication, storage, functions, RPC, health, webhook, authorization-bearing, and non-static dynamic requests are not cached.
 - Database changes must remain backward-compatible with users who defer updates. No destructive migration is part of this workflow.
 
