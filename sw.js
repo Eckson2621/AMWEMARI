@@ -1,8 +1,7 @@
-const CACHE_NAME="amwemari-shell-v76";
+const CACHE_NAME="amwemari-shell-v77";
 const CACHE_PREFIX="amwemari-shell-";
 const CORE_FILES=["/","/index.html","/manifest.json","/icons/icon.svg","/icons/logo.svg","/pwa-install.js","/feedback-center.js"];
 self.addEventListener("install",event=>{
- self.skipWaiting();
  event.waitUntil((async()=>{
   const cache=await caches.open(CACHE_NAME);
   const save=async path=>{
@@ -16,7 +15,9 @@ self.addEventListener("install",event=>{
     const found=[...html.matchAll(/(?:src|href)=["']([^"'#]+)["']/gi)].map(m=>m[1]);
     const urls=[...new Set([...CORE_FILES,...found])];
     await Promise.all(urls.map(async value=>{
-     try{const url=new URL(value,self.location.origin);if(url.origin!==self.location.origin)return;const response=await fetch(url.href,{cache:"reload"});if(response.ok)await cache.put(url.href,response.clone());}catch(_){}
+     try{const url=new URL(value,self.location.origin);if(url.origin!==self.location.origin)return;
+ if(request.headers.has("Authorization"))return;
+ if(/^\/(?:api|auth|rest|storage|functions|rpc)(?:\/|$)/i.test(url.pathname)||/^\/(?:health|healthz|webhook)(?:\/|$)/i.test(url.pathname))return;const response=await fetch(url.href,{cache:"reload"});if(response.ok)await cache.put(url.href,response.clone());}catch(_){}
     }));
    }catch(_){}
   }
@@ -48,7 +49,7 @@ self.addEventListener("fetch",event=>{
   }
   try{
    const response=await fetch(request,{cache:isPage?"no-store":"default"});
-   if(response.ok)await cache.put(request,response.clone());
+   if(response.ok&&!/no-store|private/i.test(response.headers.get("cache-control")||""))await cache.put(request,response.clone());
    return response;
   }catch(error){
    const fallback=await cache.match(request)||(isPage?await cache.match("/")||await cache.match("/index.html"):null);
