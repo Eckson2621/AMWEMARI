@@ -29,7 +29,7 @@ jobs:
         run: |
           node --check "$SW_FILE"
           node --check "$PWA_FILE"
-          if grep -Eq '^[[:space:]]*self\\.skipWaiting\\(\\);' "$SW_FILE"; then
+          if grep -Eq '^[[:space:]]*self[.]skipWaiting[(][)];' "$SW_FILE"; then
             echo "Service worker must not activate itself without user approval."
             exit 1
           fi
